@@ -49,6 +49,8 @@ public class CommentsTest extends SDKTest {
 		expectedWhen.set(2013, 7, 16, 12, 56, 50);
 		expectedWhen.set(Calendar.MILLISECOND, 0);
 		assertEquals(comment.getDateTime(), expectedWhen.getTime());
+
+		assertEquals(comment.toString(), text);
 	}
 
 	/** Comment date may be null. */

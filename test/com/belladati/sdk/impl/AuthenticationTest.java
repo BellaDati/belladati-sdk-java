@@ -1,6 +1,8 @@
 package com.belladati.sdk.impl;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertTrue;
 
 import java.io.IOException;
 import java.util.Map;
@@ -9,6 +11,7 @@ import org.apache.http.entity.StringEntity;
 import org.testng.annotations.Test;
 
 import com.belladati.sdk.BellaDati;
+import com.belladati.sdk.BellaDatiConnection;
 import com.belladati.sdk.BellaDatiService;
 import com.belladati.sdk.auth.OAuthRequest;
 import com.belladati.sdk.test.TestRequestHandler;
@@ -42,10 +45,16 @@ public class AuthenticationTest extends SDKTest {
 			}
 		});
 
-		OAuthRequest oAuth = BellaDati.connect(server.getHttpURL()).oAuth(key, secret);
+		BellaDatiConnection connection = BellaDati.connect(server.getHttpURL());
+		OAuthRequest oAuth = connection.oAuth(key, secret);
 
 		assertEquals(oAuth.getAuthorizationUrl().toString(), server.getHttpURL() + "/authorizeRequestToken/" + requestToken + "/"
 			+ key, "Unexpected authorization URL");
+
+		assertTrue(connection.toString().contains(server.getHttpURL()));
+		assertTrue(oAuth.toString().contains(server.getHttpURL()));
+		assertTrue(oAuth.toString().contains(key));
+		assertFalse(oAuth.toString().contains(secret));
 
 		final String accessToken = "accessToken";
 		final String accessSecret = "accessSecret";
@@ -63,6 +72,11 @@ public class AuthenticationTest extends SDKTest {
 		String reportsURI = queryReports(service, key, accessToken);
 
 		server.assertRequestUris(requestTokenURI, accessTokenURI, reportsURI);
+
+		assertTrue(service.toString().contains(server.getHttpURL()));
+		assertTrue(service.toString().contains(key));
+		assertTrue(service.toString().contains(accessToken));
+		assertFalse(service.toString().contains(accessSecret));
 	}
 
 	/** Tests xAuth authentication. */
@@ -91,6 +105,11 @@ public class AuthenticationTest extends SDKTest {
 		String reportsURI = queryReports(service, key, accessToken);
 
 		server.assertRequestUris(accessTokenURI, reportsURI);
+
+		assertTrue(service.toString().contains(server.getHttpURL()));
+		assertTrue(service.toString().contains(key));
+		assertTrue(service.toString().contains(accessToken));
+		assertFalse(service.toString().contains(accessSecret));
 	}
 
 	/**

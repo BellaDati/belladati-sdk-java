@@ -229,6 +229,12 @@ class BellaDatiServiceImpl implements BellaDatiService {
 		return loadImage("api/users/" + userId + "/image");
 	}
 
+	@Override
+	public String toString() {
+		return "BellaDati Service(server: " + client.getBaseUrl() + ", key: " + tokenHolder.getConsumerKey() + ", token: "
+			+ tokenHolder.getToken() + ")";
+	}
+
 	/** Deserialization. Sets up the element lists and maps as empty objects. */
 	private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
 		in.defaultReadObject();

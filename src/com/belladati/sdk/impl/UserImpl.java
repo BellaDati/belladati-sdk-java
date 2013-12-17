@@ -92,4 +92,12 @@ class UserImpl implements User {
 		return locale;
 	}
 
+	@Override
+	public String toString() {
+		String name = getName();
+		if (name == null || name.isEmpty()) {
+			return username;
+		}
+		return name;
+	}
 }

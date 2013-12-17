@@ -12,6 +12,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.belladati.sdk.filter.Filter.MultiValueFilter;
+import com.belladati.sdk.filter.Filter.NoValueFilter;
 import com.belladati.sdk.filter.FilterOperation;
 import com.belladati.sdk.filter.FilterValue;
 import com.belladati.sdk.impl.AttributeImpl.InvalidAttributeException;
@@ -53,13 +54,16 @@ public class FilterTest extends SDKTest {
 
 	/** Null filter is correctly turned into JSON. */
 	public void filterNullToJson() throws InvalidAttributeException {
-		JsonNode filterJson = FilterOperation.NULL.createFilter(attribute).toJson();
+		NoValueFilter filter = FilterOperation.NULL.createFilter(attribute);
+		JsonNode filterJson = filter.toJson();
 
 		ObjectNode expectedJson = mapper.createObjectNode();
 		ObjectNode operation = mapper.createObjectNode().put("op", "NULL");
 		expectedJson.put(code, operation);
 
 		assertEquals(filterJson, expectedJson);
+
+		assertEquals(filter.toString(), expectedJson.toString());
 	}
 
 	/** Not null filter is correctly turned into JSON. */
@@ -99,9 +103,11 @@ public class FilterTest extends SDKTest {
 
 	/** Filters with values are correctly turned into JSON. */
 	public void filterValuesToJson() throws InvalidAttributeValueException {
-		JsonNode filterJson = FilterOperation.IN.createFilter(attribute).addValue(value).toJson();
+		MultiValueFilter filter = FilterOperation.IN.createFilter(attribute).addValue(value);
+		JsonNode filterJson = filter.toJson();
 
 		assertEquals(filterJson, buildInFilterNode());
+		assertEquals(filter.toString(), filterJson.toString());
 	}
 
 	/** Filters with temporary values are correctly turned into JSON. */

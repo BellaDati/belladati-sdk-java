@@ -137,6 +137,9 @@ public class AttributesTest extends SDKTest {
 
 		assertEquals(values.get(0).getLabel(), label);
 		assertEquals(values.get(0).getValue(), value);
+
+		assertEquals(attribute.toString(), name);
+		assertEquals(values.get(0).toString(), label);
 	}
 
 	/** Invalid values in values attribute are ignored. */

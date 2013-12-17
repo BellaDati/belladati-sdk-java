@@ -38,4 +38,8 @@ class UserInfoImpl implements UserInfo {
 		return service.loadUserImage(id);
 	}
 
+	@Override
+	public String toString() {
+		return name;
+	}
 }

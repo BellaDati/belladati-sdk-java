@@ -56,6 +56,11 @@ public abstract class ViewImpl implements View {
 		return service.loadViewContent(id, type, filters);
 	}
 
+	@Override
+	public String toString() {
+		return name;
+	}
+
 	class UnknownViewTypeException extends Exception {
 		/** The serialVersionUID */
 		private static final long serialVersionUID = -9179478821813868612L;

@@ -1,6 +1,7 @@
 package com.belladati.sdk.impl;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
 
 import java.util.Collections;
 
@@ -45,6 +46,8 @@ public class DashletsTest extends SDKTest {
 		Dashlet dashlet = dashboard.getDashlets().get(0);
 
 		assertEquals(dashlet.getType(), Type.VIEW);
+
+		assertTrue(dashlet.toString().contains(Type.VIEW.toString()));
 
 		View view = (View) dashlet.getContent();
 		assertEquals(view.getId(), viewId);

@@ -32,4 +32,9 @@ class OAuthRequestImpl implements OAuthRequest {
 		client.postToken("oauth/accessToken", tokenHolder);
 		return new BellaDatiServiceImpl(client, tokenHolder);
 	}
+
+	@Override
+	public String toString() {
+		return "OAuth Authentication(server: " + client.getBaseUrl() + ", key: " + tokenHolder.getConsumerKey() + ")";
+	}
 }

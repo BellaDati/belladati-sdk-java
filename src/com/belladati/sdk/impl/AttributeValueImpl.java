@@ -27,6 +27,11 @@ class AttributeValueImpl implements AttributeValue {
 		return value;
 	}
 
+	@Override
+	public String toString() {
+		return label;
+	}
+
 	class InvalidAttributeValueException extends Exception {
 		/** The serialVersionUID */
 		private static final long serialVersionUID = -4920843734203654180L;

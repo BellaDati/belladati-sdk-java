@@ -58,11 +58,15 @@ public class UserTest extends SDKTest {
 		assertEquals(user.getLocale(), locale);
 
 		server.assertRequestUris(usersUri + "/" + id);
+
+		assertEquals(user.toString(), givenName + " " + familyName);
 	}
 
 	/** User can be loaded from a user info object. */
 	public void loadUserFromInfo() {
 		UserInfo userInfo = new UserInfoImpl(service, id, "some other name");
+
+		assertEquals(userInfo.toString(), userInfo.getName());
 
 		server.register(usersUri + "/" + id,
 			builder.buildUserNode(id, username, givenName, familyName, email, firstLogin, lastLogin, locale).toString());
@@ -117,6 +121,7 @@ public class UserTest extends SDKTest {
 			builder.buildUserNode(id, username, givenName, null, email, firstLogin, lastLogin, locale).toString());
 
 		assertEquals(service.loadUser(id).getName(), givenName);
+		assertEquals(service.loadUser(id).toString(), givenName);
 	}
 
 	/** Full name is correct when only family name exists. */
@@ -125,6 +130,7 @@ public class UserTest extends SDKTest {
 			builder.buildUserNode(id, username, null, familyName, email, firstLogin, lastLogin, locale).toString());
 
 		assertEquals(service.loadUser(id).getName(), familyName);
+		assertEquals(service.loadUser(id).toString(), familyName);
 	}
 
 	/** Full name is correct when no name exists. */
@@ -133,6 +139,7 @@ public class UserTest extends SDKTest {
 			.buildUserNode(id, username, null, null, email, firstLogin, lastLogin, locale).toString());
 
 		assertEquals(service.loadUser(id).getName(), "");
+		assertEquals(service.loadUser(id).toString(), username);
 	}
 
 	/** Date fields not containing dates are treated as null. */

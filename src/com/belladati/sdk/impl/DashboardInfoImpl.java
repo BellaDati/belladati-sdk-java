@@ -61,4 +61,9 @@ class DashboardInfoImpl implements DashboardInfo {
 	public Object loadThumbnail() throws IOException {
 		return service.loadDashboardThumbnail(id);
 	}
+
+	@Override
+	public String toString() {
+		return name;
+	}
 }

@@ -60,8 +60,12 @@ public class CachedListTest extends SDKTest {
 		});
 		list.load();
 
-		assertEquals(list.get(), Arrays.asList(new Item(id1), new Item(id2)));
+		Item item1 = new Item(id1);
+		Item item2 = new Item(id2);
+		assertEquals(list.get(), Arrays.asList(item1, item2));
 		assertEquals(list.get(), list.toList());
+
+		assertEquals(list.toString(), list.get().toString());
 	}
 
 	/** Previously loaded items are discarded when load is called again. */

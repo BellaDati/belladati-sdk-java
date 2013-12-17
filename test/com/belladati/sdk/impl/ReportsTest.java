@@ -55,6 +55,8 @@ public class ReportsTest extends SDKTest {
 		expectedChange.set(2012, 3, 16, 10, 17, 26);
 		expectedChange.set(Calendar.MILLISECOND, 0);
 		assertEquals(info.getLastChange(), expectedChange.getTime());
+
+		assertEquals(info.toString(), name);
 	}
 
 	/** Report description may be null. */
@@ -119,6 +121,8 @@ public class ReportsTest extends SDKTest {
 
 		assertEquals(report.getAttributes(), Collections.emptyList());
 		assertEquals(report.getViews(), Collections.emptyList());
+
+		assertEquals(report.toString(), name);
 	}
 
 	/** Report description may be null. */

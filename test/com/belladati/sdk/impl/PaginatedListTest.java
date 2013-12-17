@@ -127,6 +127,7 @@ public class PaginatedListTest extends SDKTest {
 		list.load();
 
 		assertEquals(list.toList(), Arrays.asList(new Item(id2)));
+		assertEquals(list.toString(), Arrays.asList(new Item(id2)).toString());
 	}
 
 	/** loadNext() calls regular load when not yet loaded. */

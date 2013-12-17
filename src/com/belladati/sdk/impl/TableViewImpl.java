@@ -150,5 +150,10 @@ class TableViewImpl extends ViewImpl implements TableView {
 				throw new InternalConfigurationException(e);
 			}
 		}
+
+		@Override
+		public String toString() {
+			return "Table(id: " + id + ")";
+		}
 	}
 }

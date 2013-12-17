@@ -51,6 +51,8 @@ public class DashboardsTest extends SDKTest {
 		expectedChange.set(2012, 3, 16, 10, 17, 26);
 		expectedChange.set(Calendar.MILLISECOND, 0);
 		assertEquals(info.getLastChange(), expectedChange.getTime());
+
+		assertEquals(info.toString(), name);
 	}
 
 	/** Dashboard last change may be null. */
@@ -96,6 +98,8 @@ public class DashboardsTest extends SDKTest {
 		assertEquals(dashboard.getLastChange(), expectedChange.getTime());
 
 		assertEquals(dashboard.getDashlets(), Collections.emptyList());
+
+		assertEquals(dashboard.toString(), name);
 	}
 
 	/** Dashboard last change may be null. */

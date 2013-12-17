@@ -120,4 +120,9 @@ class ReportImpl implements Report {
 	public void postComment(String text) {
 		service.postComment(id, text);
 	}
+
+	@Override
+	public String toString() {
+		return name;
+	}
 }

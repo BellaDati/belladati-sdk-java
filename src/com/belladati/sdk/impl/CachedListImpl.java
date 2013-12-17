@@ -58,6 +58,11 @@ abstract class CachedListImpl<T> implements CachedList<T> {
 		return isLoaded;
 	}
 
+	@Override
+	public String toString() {
+		return data.toString();
+	}
+
 	protected abstract T parse(BellaDatiServiceImpl service, JsonNode node) throws ParseException;
 
 	protected static class ParseException extends Exception {

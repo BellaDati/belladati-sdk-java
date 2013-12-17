@@ -189,5 +189,10 @@ abstract class PaginatedListImpl<T> implements PaginatedList<T> {
 		return Collections.unmodifiableList(currentData);
 	}
 
+	@Override
+	public String toString() {
+		return currentData.toString();
+	}
+
 	protected abstract T parse(BellaDatiServiceImpl service, JsonNode node);
 }

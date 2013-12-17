@@ -39,6 +39,7 @@ public class ViewsTest extends SDKTest {
 		ObjectNode viewNode = new ObjectMapper().createObjectNode().put("some field", "some value");
 		server.register(viewsUri + id + "/" + stringType, viewNode.toString());
 
+		assertEquals(view.toString(), name);
 		assertEquals(view.loadContent(), viewNode);
 
 		server.assertRequestUris(viewsUri + id + "/" + stringType);

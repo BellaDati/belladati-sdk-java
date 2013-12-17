@@ -80,6 +80,11 @@ class DashletImpl implements Dashlet {
 		return content;
 	}
 
+	@Override
+	public String toString() {
+		return "Dashlet containing " + type;
+	}
+
 	class DashletException extends Exception {
 		/** The serialVersionUID */
 		private static final long serialVersionUID = -2686607915455923775L;

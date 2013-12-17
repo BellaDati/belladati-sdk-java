@@ -48,4 +48,8 @@ class CommentImpl implements Comment {
 		return authorInfo;
 	}
 
+	@Override
+	public String toString() {
+		return text;
+	}
 }

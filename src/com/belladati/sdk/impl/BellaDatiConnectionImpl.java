@@ -37,4 +37,9 @@ class BellaDatiConnectionImpl implements BellaDatiConnection {
 		client.postToken("oauth/accessToken", tokenHolder, parameters);
 		return new BellaDatiServiceImpl(client, tokenHolder);
 	}
+
+	@Override
+	public String toString() {
+		return "Connection(server: " + client.getBaseUrl() + ")";
+	}
 }

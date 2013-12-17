@@ -42,6 +42,9 @@ public class TableViewsTest extends SDKTest {
 		assertTrue(table.hasTopHeader());
 
 		server.assertRequestUris(viewsUri + id + "/table/bounds");
+
+		assertEquals(view.toString(), name);
+		assertTrue(table.toString().contains(id));
 	}
 
 	/** Table is loaded correctly via service. */

@@ -42,7 +42,7 @@ class AttributeImpl implements Attribute {
 
 	@Override
 	public String toString() {
-		return "Attribute(name: " + name + ", code: " + code + ")";
+		return name;
 	}
 
 	class InvalidAttributeException extends Exception {

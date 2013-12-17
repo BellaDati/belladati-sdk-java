@@ -74,4 +74,9 @@ class DashboardImpl implements Dashboard {
 	public List<Dashlet> getDashlets() {
 		return dashlets;
 	}
+
+	@Override
+	public String toString() {
+		return name;
+	}
 }
