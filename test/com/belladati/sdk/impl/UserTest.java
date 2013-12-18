@@ -1,6 +1,7 @@
 package com.belladati.sdk.impl;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotEquals;
 import static org.testng.Assert.assertNull;
 
 import java.awt.image.BufferedImage;
@@ -232,6 +233,31 @@ public class UserTest extends SDKTest {
 		server.register(usersUri + "/" + id + "/image", "");
 
 		userInfo.loadImage();
+	}
+
+	/** equals/hashcode for UserInfo */
+	public void userInfoEquality() {
+		UserInfo u1 = new UserInfoImpl(service, id, givenName);
+		UserInfo u2 = new UserInfoImpl(service, id, "");
+		UserInfo u3 = new UserInfoImpl(service, "otherId", "");
+
+		assertEquals(u1, u2);
+		assertEquals(u1.hashCode(), u2.hashCode());
+
+		assertNotEquals(u1, u3);
+	}
+
+	/** equals/hashcode for User */
+	public void userEquality() {
+		User u1 = new UserImpl(builder.buildUserNode(id, username, givenName, familyName, email, firstLogin, lastLogin, locale));
+		User u2 = new UserImpl(builder.buildUserNode(id, "", "", "", "", "", "", ""));
+		User u3 = new UserImpl(builder.buildUserNode("otherId", username, givenName, familyName, email, firstLogin, lastLogin,
+			locale));
+
+		assertEquals(u1, u2);
+		assertEquals(u1.hashCode(), u2.hashCode());
+
+		assertNotEquals(u1, u3);
 	}
 
 	@DataProvider(name = "userOptionalFields")

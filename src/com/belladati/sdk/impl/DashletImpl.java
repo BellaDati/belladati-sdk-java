@@ -55,7 +55,7 @@ class DashletImpl implements Dashlet {
 			throw new UnsupportedDashletContentException("Missing view element");
 		}
 		try {
-			return new JsonViewImpl(service, node.get("viewReport"));
+			return ViewImpl.buildView(service, node.get("viewReport"));
 		} catch (UnknownViewTypeException e) {
 			throw new UnsupportedDashletContentException(e);
 		}
@@ -83,6 +83,19 @@ class DashletImpl implements Dashlet {
 	@Override
 	public String toString() {
 		return "Dashlet containing " + type;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (obj instanceof DashletImpl) {
+			return content.equals(((DashletImpl) obj).content);
+		}
+		return false;
+	}
+
+	@Override
+	public int hashCode() {
+		return content.hashCode();
 	}
 
 	class DashletException extends Exception {

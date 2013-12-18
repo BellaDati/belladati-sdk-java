@@ -155,5 +155,18 @@ class TableViewImpl extends ViewImpl implements TableView {
 		public String toString() {
 			return "Table(id: " + id + ")";
 		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (obj instanceof TableImpl) {
+				return id.equals(((TableImpl) obj).id) && filters.equals(((TableImpl) obj).filters);
+			}
+			return false;
+		}
+
+		@Override
+		public int hashCode() {
+			return id.hashCode();
+		}
 	}
 }

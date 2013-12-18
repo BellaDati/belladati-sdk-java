@@ -7,7 +7,40 @@ import com.belladati.sdk.view.View;
 import com.belladati.sdk.view.ViewType;
 import com.fasterxml.jackson.databind.JsonNode;
 
-public abstract class ViewImpl implements View {
+abstract class ViewImpl implements View {
+
+	/**
+	 * Builds an instance based on the given node. Will select an appropriate
+	 * class to instantiate based on the view's type.
+	 */
+	static ViewImpl buildView(BellaDatiServiceImpl service, JsonNode node) throws UnknownViewTypeException {
+		switch (parseType(node)) {
+		case TABLE:
+			return new TableViewImpl(service, node);
+		default:
+			return new JsonViewImpl(service, node);
+		}
+	}
+
+	/**
+	 * Parses the view type from the given JSON node.
+	 * 
+	 * @param node the node to examine
+	 * @return the view type from the node
+	 * @throws UnknownViewTypeException if no view type was found or it couldn't
+	 *             be parsed
+	 */
+	private static ViewType parseType(JsonNode node) throws UnknownViewTypeException {
+		if (node.hasNonNull("type")) {
+			try {
+				return ViewType.valueOf(node.get("type").asText().toUpperCase());
+			} catch (IllegalArgumentException e) {
+				throw new UnknownViewTypeException(node.get("type").asText());
+			}
+		} else {
+			throw new UnknownViewTypeException("missing type");
+		}
+	}
 
 	protected final BellaDatiServiceImpl service;
 
@@ -20,15 +53,7 @@ public abstract class ViewImpl implements View {
 
 		this.id = node.get("id").asText();
 		this.name = node.get("name").asText();
-		if (node.hasNonNull("type")) {
-			try {
-				this.type = ViewType.valueOf(node.get("type").asText().toUpperCase());
-			} catch (IllegalArgumentException e) {
-				throw new UnknownViewTypeException(node.get("type").asText());
-			}
-		} else {
-			throw new UnknownViewTypeException("missing type");
-		}
+		this.type = parseType(node);
 	}
 
 	@Override
@@ -61,7 +86,20 @@ public abstract class ViewImpl implements View {
 		return name;
 	}
 
-	class UnknownViewTypeException extends Exception {
+	@Override
+	public boolean equals(Object obj) {
+		if (obj instanceof ViewImpl) {
+			return id.equals(((ViewImpl) obj).id);
+		}
+		return false;
+	}
+
+	@Override
+	public int hashCode() {
+		return id.hashCode();
+	}
+
+	static class UnknownViewTypeException extends Exception {
 		/** The serialVersionUID */
 		private static final long serialVersionUID = -9179478821813868612L;
 

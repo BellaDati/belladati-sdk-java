@@ -8,7 +8,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 class JsonViewImpl extends ViewImpl implements JsonView {
 
-	public JsonViewImpl(BellaDatiServiceImpl service, JsonNode node) throws UnknownViewTypeException {
+	JsonViewImpl(BellaDatiServiceImpl service, JsonNode node) throws UnknownViewTypeException {
 		super(service, node);
 	}
 

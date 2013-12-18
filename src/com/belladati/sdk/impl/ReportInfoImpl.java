@@ -92,4 +92,17 @@ class ReportInfoImpl implements ReportInfo {
 	public String toString() {
 		return name;
 	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (obj instanceof ReportInfoImpl) {
+			return id.equals(((ReportInfoImpl) obj).id);
+		}
+		return false;
+	}
+
+	@Override
+	public int hashCode() {
+		return id.hashCode();
+	}
 }

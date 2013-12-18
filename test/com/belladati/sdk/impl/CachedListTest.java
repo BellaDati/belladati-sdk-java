@@ -22,7 +22,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 @Test
 public class CachedListTest extends SDKTest {
 
-	CachedList<Item> list;
+	private CachedList<Item> list;
 
 	private final String uri = "/list";
 	private final String field = "field";

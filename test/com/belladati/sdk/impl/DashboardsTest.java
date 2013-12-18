@@ -1,6 +1,7 @@
 package com.belladati.sdk.impl;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotEquals;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertSame;
 
@@ -193,6 +194,30 @@ public class DashboardsTest extends SDKTest {
 		server.register(dashboardsUri + "/" + id + "/thumbnail", "not a thumbnail image");
 
 		dashboardInfo.loadThumbnail();
+	}
+
+	/** equals/hashcode for dashboard info */
+	public void dashboardInfoEquality() {
+		DashboardInfo d1 = new DashboardInfoImpl(service, builder.buildDashboardNode(id, name, lastChange));
+		DashboardInfo d2 = new DashboardInfoImpl(service, builder.buildDashboardNode(id, "", null));
+		DashboardInfo d3 = new DashboardInfoImpl(service, builder.buildDashboardNode("otherId", name, lastChange));
+
+		assertEquals(d1, d2);
+		assertEquals(d1.hashCode(), d2.hashCode());
+
+		assertNotEquals(d1, d3);
+	}
+
+	/** equals/hashcode for dashboard */
+	public void dashboardEquality() {
+		Dashboard d1 = new DashboardImpl(service, builder.buildDashboardNode(id, name, lastChange));
+		Dashboard d2 = new DashboardImpl(service, builder.buildDashboardNode(id, "", null));
+		Dashboard d3 = new DashboardImpl(service, builder.buildDashboardNode("otherId", name, lastChange));
+
+		assertEquals(d1, d2);
+		assertEquals(d1.hashCode(), d2.hashCode());
+
+		assertNotEquals(d1, d3);
 	}
 
 	/**

@@ -1,6 +1,7 @@
 package com.belladati.sdk.impl;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotEquals;
 import static org.testng.Assert.assertTrue;
 
 import java.util.Collections;
@@ -10,7 +11,10 @@ import org.testng.annotations.Test;
 import com.belladati.sdk.dashboard.Dashboard;
 import com.belladati.sdk.dashboard.Dashlet;
 import com.belladati.sdk.dashboard.Dashlet.Type;
+import com.belladati.sdk.impl.DashletImpl.DashletException;
 import com.belladati.sdk.impl.ViewImpl.UnknownViewTypeException;
+import com.belladati.sdk.view.JsonView;
+import com.belladati.sdk.view.TableView;
 import com.belladati.sdk.view.View;
 import com.belladati.sdk.view.ViewType;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -53,6 +57,12 @@ public class DashletsTest extends SDKTest {
 		assertEquals(view.getId(), viewId);
 		assertEquals(view.getName(), viewName);
 		assertEquals(view.getType(), viewType);
+
+		if (viewType == ViewType.TABLE) {
+			assertTrue(view instanceof TableView, "Wrong view instance type, was " + view.getClass());
+		} else {
+			assertTrue(view instanceof JsonView, "Wrong view instance type, was " + view.getClass());
+		}
 
 		server.assertRequestUris(dashboardsUri + "/" + dashboardId);
 	}
@@ -214,6 +224,41 @@ public class DashletsTest extends SDKTest {
 		Dashboard dashboard = service.loadDashboard(dashboardId);
 
 		assertEquals(dashboard.getDashlets(), Collections.emptyList());
+	}
+
+	/** equals/hashcode for text dashlets */
+	public void textEquality() throws DashletException {
+		Dashlet d1 = new DashletImpl(service, new ObjectMapper().createObjectNode().put("type", "textContent")
+			.put("textContent", "text"));
+		Dashlet d2 = new DashletImpl(service, new ObjectMapper().createObjectNode().put("type", "textContent")
+			.put("textContent", "text"));
+		Dashlet d3 = new DashletImpl(service, new ObjectMapper().createObjectNode().put("type", "textContent")
+			.put("textContent", "other text"));
+
+		assertEquals(d1, d2);
+		assertEquals(d1.hashCode(), d2.hashCode());
+
+		assertNotEquals(d1, d3);
+	}
+
+	/** equals/hashcode for view dashlets */
+	public void viewEquality() throws DashletException {
+		ObjectNode n1 = new ObjectMapper().createObjectNode().put("type", "viewReport").put("canAccessViewReport", true);
+		n1.put("viewReport", builder.buildViewNode(viewId, viewName, "chart"));
+		Dashlet d1 = new DashletImpl(service, n1);
+
+		ObjectNode n2 = new ObjectMapper().createObjectNode().put("type", "viewReport").put("canAccessViewReport", true);
+		n2.put("viewReport", builder.buildViewNode(viewId, "other name", "kpi"));
+		Dashlet d2 = new DashletImpl(service, n2);
+
+		ObjectNode n3 = new ObjectMapper().createObjectNode().put("type", "viewReport").put("canAccessViewReport", true);
+		n3.put("viewReport", builder.buildViewNode("otherId", viewName, "chart"));
+		Dashlet d3 = new DashletImpl(service, n3);
+
+		assertEquals(d1, d2);
+		assertEquals(d1.hashCode(), d2.hashCode());
+
+		assertNotEquals(d1, d3);
 	}
 
 	private void registerDashboardWith(ObjectNode dashlet) {

@@ -1,6 +1,7 @@
 package com.belladati.sdk.impl;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotEquals;
 import static org.testng.Assert.assertSame;
 
 import java.io.IOException;
@@ -12,6 +13,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import com.belladati.sdk.impl.AttributeImpl.InvalidAttributeException;
+import com.belladati.sdk.impl.AttributeValueImpl.InvalidAttributeValueException;
 import com.belladati.sdk.report.Attribute;
 import com.belladati.sdk.report.AttributeValue;
 import com.belladati.sdk.report.Report;
@@ -168,6 +170,33 @@ public class AttributesTest extends SDKTest {
 		Attribute attribute = new AttributeImpl(service, reportId, builder.buildAttributeNode(name, code));
 
 		assertSame(service.getAttributeValues(reportId, code), attribute.getValues());
+	}
+
+	/** equals and hashcode work as expected for attributes */
+	public void attributeEquality() throws InvalidAttributeException {
+		Attribute att1 = new AttributeImpl(service, reportId, builder.buildAttributeNode("1", code));
+		Attribute att2 = new AttributeImpl(service, reportId, builder.buildAttributeNode("2", code));
+		Attribute att3 = new AttributeImpl(service, reportId, builder.buildAttributeNode("3", "3"));
+		Attribute att4 = new AttributeImpl(service, "4", builder.buildAttributeNode("4", code));
+
+		assertEquals(att1, att2);
+		assertEquals(att1.hashCode(), att2.hashCode());
+
+		assertNotEquals(att1, att3);
+		assertNotEquals(att1, att4);
+	}
+
+	/** equals and hashcode work as expected for attribute values */
+	public void attributeValueEquality() throws InvalidAttributeValueException {
+		String value = "value";
+		AttributeValue v1 = new AttributeValueImpl(builder.buildAttributeValueNode("1", value));
+		AttributeValue v2 = new AttributeValueImpl(builder.buildAttributeValueNode("2", value));
+		AttributeValue v3 = new AttributeValueImpl(builder.buildAttributeValueNode("3", "3"));
+
+		assertEquals(v1, v2);
+		assertEquals(v1.hashCode(), v2.hashCode());
+
+		assertNotEquals(v1, v3);
 	}
 
 	/** Provides attribute JSON that's invalid in some way. */

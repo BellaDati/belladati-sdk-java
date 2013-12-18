@@ -1,6 +1,7 @@
 package com.belladati.sdk.impl;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotEquals;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertSame;
 
@@ -240,6 +241,30 @@ public class ReportsTest extends SDKTest {
 		server.register(reportsUri + "/" + id + "/thumbnail", "not a thumbnail image");
 
 		reportInfo.loadThumbnail();
+	}
+
+	/** equals/hashcode for report info */
+	public void reportInfoEquality() {
+		ReportInfo r1 = new ReportInfoImpl(service, builder.buildReportNode(id, name, description, owner, lastChange));
+		ReportInfo r2 = new ReportInfoImpl(service, builder.buildReportNode(id, "", "", "", null));
+		ReportInfo r3 = new ReportInfoImpl(service, builder.buildReportNode("otherId", name, description, owner, lastChange));
+
+		assertEquals(r1, r2);
+		assertEquals(r1.hashCode(), r2.hashCode());
+
+		assertNotEquals(r1, r3);
+	}
+
+	/** equals/hashcode for report */
+	public void reportEquality() {
+		Report r1 = new ReportImpl(service, builder.buildReportNode(id, name, description, owner, lastChange));
+		Report r2 = new ReportImpl(service, builder.buildReportNode(id, "", "", "", null));
+		Report r3 = new ReportImpl(service, builder.buildReportNode("otherId", name, description, owner, lastChange));
+
+		assertEquals(r1, r2);
+		assertEquals(r1.hashCode(), r2.hashCode());
+
+		assertNotEquals(r1, r3);
 	}
 
 	/**

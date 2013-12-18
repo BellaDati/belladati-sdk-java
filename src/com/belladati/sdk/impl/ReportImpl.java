@@ -54,7 +54,7 @@ class ReportImpl implements Report {
 		if (json.hasNonNull("views") && json.get("views") instanceof ArrayNode) {
 			for (JsonNode view : (ArrayNode) json.get("views")) {
 				try {
-					viewInfos.add(new JsonViewImpl(this.service, view));
+					viewInfos.add(ViewImpl.buildView(service, view));
 				} catch (UnknownViewTypeException e) {
 					// nothing to do, just ignore the view
 				}
@@ -124,5 +124,18 @@ class ReportImpl implements Report {
 	@Override
 	public String toString() {
 		return name;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (obj instanceof ReportImpl) {
+			return id.equals(((ReportImpl) obj).id);
+		}
+		return false;
+	}
+
+	@Override
+	public int hashCode() {
+		return id.hashCode();
 	}
 }

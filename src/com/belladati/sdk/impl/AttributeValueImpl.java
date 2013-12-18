@@ -32,6 +32,19 @@ class AttributeValueImpl implements AttributeValue {
 		return label;
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (obj instanceof AttributeValueImpl) {
+			return value.equals(((AttributeValueImpl) obj).value);
+		}
+		return false;
+	}
+
+	@Override
+	public int hashCode() {
+		return value.hashCode();
+	}
+
 	class InvalidAttributeValueException extends Exception {
 		/** The serialVersionUID */
 		private static final long serialVersionUID = -4920843734203654180L;

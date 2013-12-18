@@ -49,6 +49,25 @@ class CommentImpl implements Comment {
 	}
 
 	@Override
+	public boolean equals(Object obj) {
+		if (obj instanceof CommentImpl) {
+			if (authorInfo.equals(((CommentImpl) obj).authorInfo) && text.equals(((CommentImpl) obj).text)) {
+				if (date == null) {
+					return ((CommentImpl) obj).date == null;
+				} else {
+					return date.equals(((CommentImpl) obj).date);
+				}
+			}
+		}
+		return false;
+	}
+
+	@Override
+	public int hashCode() {
+		return authorInfo.hashCode() ^ text.hashCode();
+	}
+
+	@Override
 	public String toString() {
 		return text;
 	}

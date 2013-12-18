@@ -42,4 +42,17 @@ class UserInfoImpl implements UserInfo {
 	public String toString() {
 		return name;
 	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (obj instanceof UserInfoImpl) {
+			return id.equals(((UserInfoImpl) obj).id);
+		}
+		return false;
+	}
+
+	@Override
+	public int hashCode() {
+		return id.hashCode();
+	}
 }

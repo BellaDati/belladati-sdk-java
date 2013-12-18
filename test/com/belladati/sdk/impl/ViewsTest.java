@@ -1,6 +1,8 @@
 package com.belladati.sdk.impl;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotEquals;
+import static org.testng.Assert.assertTrue;
 
 import java.util.Collections;
 
@@ -8,6 +10,8 @@ import org.testng.annotations.Test;
 
 import com.belladati.sdk.impl.ViewImpl.UnknownViewTypeException;
 import com.belladati.sdk.report.Report;
+import com.belladati.sdk.view.JsonView;
+import com.belladati.sdk.view.TableView;
 import com.belladati.sdk.view.View;
 import com.belladati.sdk.view.ViewType;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -34,7 +38,7 @@ public class ViewsTest extends SDKTest {
 	/** View JSON is loaded correctly. */
 	@Test(dataProvider = "jsonViewTypes")
 	public void loadViewJson(String stringType, ViewType viewType) throws UnknownViewTypeException {
-		View view = new JsonViewImpl(service, builder.buildViewNode(id, name, stringType));
+		View view = ViewImpl.buildView(service, builder.buildViewNode(id, name, stringType));
 
 		ObjectNode viewNode = new ObjectMapper().createObjectNode().put("some field", "some value");
 		server.register(viewsUri + id + "/" + stringType, viewNode.toString());
@@ -43,6 +47,12 @@ public class ViewsTest extends SDKTest {
 		assertEquals(view.loadContent(), viewNode);
 
 		server.assertRequestUris(viewsUri + id + "/" + stringType);
+
+		if (viewType == ViewType.TABLE) {
+			assertTrue(view instanceof TableView, "Wrong view instance type, was " + view.getClass());
+		} else {
+			assertTrue(view instanceof JsonView, "Wrong view instance type, was " + view.getClass());
+		}
 	}
 
 	/** View JSON is loaded correctly via service. */
@@ -88,10 +98,16 @@ public class ViewsTest extends SDKTest {
 		Report report = service.loadReport(id);
 
 		assertEquals(report.getViews().size(), 1);
-		View viewInfo = report.getViews().get(0);
-		assertEquals(viewInfo.getId(), viewId);
-		assertEquals(viewInfo.getName(), viewName);
-		assertEquals(viewInfo.getType(), viewType);
+		View view = report.getViews().get(0);
+		assertEquals(view.getId(), viewId);
+		assertEquals(view.getName(), viewName);
+		assertEquals(view.getType(), viewType);
+
+		if (viewType == ViewType.TABLE) {
+			assertTrue(view instanceof TableView, "Wrong view instance type, was " + view.getClass());
+		} else {
+			assertTrue(view instanceof JsonView, "Wrong view instance type, was " + view.getClass());
+		}
 	}
 
 	/** Report views of unsupported type are ignored. */
@@ -125,5 +141,17 @@ public class ViewsTest extends SDKTest {
 		Report report = service.loadReport(id);
 
 		assertEquals(report.getViews(), Collections.emptyList());
+	}
+
+	/** equals/hashcode for views (JSON and tables) */
+	public void equality() throws UnknownViewTypeException {
+		View v1 = ViewImpl.buildView(service, builder.buildViewNode(id, name, "chart"));
+		View v2 = ViewImpl.buildView(service, builder.buildViewNode(id, "", "table"));
+		View v3 = ViewImpl.buildView(service, builder.buildViewNode("otherId", name, "chart"));
+
+		assertEquals(v1, v2);
+		assertEquals(v1.hashCode(), v2.hashCode());
+
+		assertNotEquals(v1, v3);
 	}
 }

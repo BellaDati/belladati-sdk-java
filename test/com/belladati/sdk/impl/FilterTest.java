@@ -1,6 +1,7 @@
 package com.belladati.sdk.impl;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertSame;
 
@@ -11,6 +12,7 @@ import org.apache.http.entity.StringEntity;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import com.belladati.sdk.filter.Filter;
 import com.belladati.sdk.filter.Filter.MultiValueFilter;
 import com.belladati.sdk.filter.Filter.NoValueFilter;
 import com.belladati.sdk.filter.FilterOperation;
@@ -114,8 +116,8 @@ public class FilterTest extends SDKTest {
 	public void filterTempValueToJson() throws InvalidAttributeValueException {
 		MultiValueFilter filter = FilterOperation.IN.createFilter(attribute).addValue(new FilterValue(valueString));
 
-		assertEquals(filter.getValues().get(0).getLabel(), valueString);
-		assertEquals(filter.getValues().get(0).getValue(), valueString);
+		assertEquals(filter.getValues().iterator().next().getLabel(), valueString);
+		assertEquals(filter.getValues().iterator().next().getValue(), valueString);
 		assertEquals(filter.toJson(), buildInFilterNode());
 	}
 
@@ -123,8 +125,8 @@ public class FilterTest extends SDKTest {
 	public void filterTempValueLabelToJson() throws InvalidAttributeValueException {
 		MultiValueFilter filter = FilterOperation.IN.createFilter(attribute).addValue(new FilterValue(label, valueString));
 
-		assertEquals(filter.getValues().get(0).getLabel(), label);
-		assertEquals(filter.getValues().get(0).getValue(), valueString);
+		assertEquals(filter.getValues().iterator().next().getLabel(), label);
+		assertEquals(filter.getValues().iterator().next().getValue(), valueString);
 		assertEquals(filter.toJson(), buildInFilterNode());
 	}
 
@@ -281,6 +283,39 @@ public class FilterTest extends SDKTest {
 		serviceTable.loadData(1, 1, 1, 1);
 
 		server.assertRequestUris(boundsUri, boundsUri, leftUri, leftUri, topUri, topUri, dataUri, dataUri);
+	}
+
+	/** equals/hashcode for no value filters */
+	public void noValuesEquality() throws InvalidAttributeException {
+		Filter<?> f1 = FilterOperation.NULL.createFilter(attribute);
+		Filter<?> f2 = FilterOperation.NULL.createFilter(attribute);
+		Filter<?> f3 = FilterOperation.NOT_NULL.createFilter(attribute);
+		Filter<?> f4 = FilterOperation.NULL.createFilter(new AttributeImpl(service, reportId, builder.buildAttributeNode(name,
+			"otherCode")));
+
+		assertEquals(f1, f2);
+		assertEquals(f1.hashCode(), f2.hashCode());
+
+		assertNotEquals(f1, f3);
+		assertNotEquals(f1, f4);
+	}
+
+	/** equals/hashcode for value filters */
+	public void valuesEquality() throws InvalidAttributeException, InvalidAttributeValueException {
+		Filter<?> f1 = FilterOperation.IN.createFilter(attribute).addValue(value);
+		Filter<?> f2 = FilterOperation.IN.createFilter(attribute).addValue(value);
+		Filter<?> f3 = FilterOperation.NOT_IN.createFilter(attribute).addValue(value);
+		Filter<?> f4 = FilterOperation.IN.createFilter(
+			new AttributeImpl(service, reportId, builder.buildAttributeNode(name, "otherCode"))).addValue(value);
+		Filter<?> f5 = FilterOperation.IN.createFilter(attribute).addValue(
+			new AttributeValueImpl(builder.buildAttributeValueNode(label, "other value")));
+
+		assertEquals(f1, f2);
+		assertEquals(f1.hashCode(), f2.hashCode());
+
+		assertNotEquals(f1, f3);
+		assertNotEquals(f1, f4);
+		assertNotEquals(f1, f5);
 	}
 
 	private ObjectNode buildInFilterNode() {

@@ -66,4 +66,17 @@ class DashboardInfoImpl implements DashboardInfo {
 	public String toString() {
 		return name;
 	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (obj instanceof DashboardInfoImpl) {
+			return id.equals(((DashboardInfoImpl) obj).id);
+		}
+		return false;
+	}
+
+	@Override
+	public int hashCode() {
+		return id.hashCode();
+	}
 }

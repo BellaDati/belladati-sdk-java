@@ -2,15 +2,20 @@ package com.belladati.sdk.impl;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNotEquals;
 import static org.testng.Assert.assertTrue;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.http.entity.StringEntity;
 import org.testng.annotations.Test;
 
+import com.belladati.sdk.filter.Filter;
+import com.belladati.sdk.filter.FilterOperation;
 import com.belladati.sdk.impl.ViewImpl.UnknownViewTypeException;
 import com.belladati.sdk.test.TestRequestHandler;
 import com.belladati.sdk.view.TableView;
@@ -335,5 +340,33 @@ public class TableViewsTest extends SDKTest {
 
 		assertEquals(table.loadData(firstRow, lastRow, firstCol, lastCol), result);
 		server.assertRequestUris(viewsUri + id + "/table/data");
+	}
+
+	/** equals/hashcode without filters */
+	public void noFilterEquality() {
+		Table t1 = new TableViewImpl.TableImpl(service, id, builder.buildTableNode(2, 2));
+		Table t2 = new TableViewImpl.TableImpl(service, id, builder.buildTableNode(1, 1));
+		Table t3 = new TableViewImpl.TableImpl(service, "otherId", builder.buildTableNode(1, 1));
+
+		assertEquals(t1, t2);
+		assertEquals(t1.hashCode(), t2.hashCode());
+
+		assertNotEquals(t1, t3);
+	}
+
+	/** equals/hashcode with filters */
+	public void filterEquality() {
+		List<Filter<?>> f1 = Arrays.<Filter<?>> asList(FilterOperation.NULL.createFilter(service, "id", "code"));
+		Table t1 = new TableViewImpl.TableImpl(service, id, builder.buildTableNode(2, 2), f1);
+		Table t2 = new TableViewImpl.TableImpl(service, id, builder.buildTableNode(1, 1), f1);
+		Table t3 = new TableViewImpl.TableImpl(service, "otherId", builder.buildTableNode(1, 1), f1);
+		Table t4 = new TableViewImpl.TableImpl(service, "otherId", builder.buildTableNode(1, 1),
+			Arrays.<Filter<?>> asList(FilterOperation.NOT_NULL.createFilter(service, "id", "code")));
+
+		assertEquals(t1, t2);
+		assertEquals(t1.hashCode(), t2.hashCode());
+
+		assertNotEquals(t1, t3);
+		assertNotEquals(t1, t4);
 	}
 }

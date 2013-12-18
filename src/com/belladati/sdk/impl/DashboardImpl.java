@@ -79,4 +79,17 @@ class DashboardImpl implements Dashboard {
 	public String toString() {
 		return name;
 	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (obj instanceof DashboardImpl) {
+			return id.equals(((DashboardImpl) obj).id);
+		}
+		return false;
+	}
+
+	@Override
+	public int hashCode() {
+		return id.hashCode();
+	}
 }

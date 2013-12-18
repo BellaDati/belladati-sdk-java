@@ -1,6 +1,7 @@
 package com.belladati.sdk.impl;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotEquals;
 import static org.testng.Assert.assertNotSame;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertSame;
@@ -128,6 +129,26 @@ public class CommentsTest extends SDKTest {
 		registerPost();
 		new ReportImpl(service, builder.buildReportNode(reportId, "name", null, "owner", null)).postComment(text);
 		server.assertRequestUris(String.format(commentsUri, reportId));
+	}
+
+	/** equals and hashcode work as expected */
+	public void equality() {
+		Comment com1 = new CommentImpl(service, builder.buildCommentNode(authorId, author, text, when));
+		Comment com2 = new CommentImpl(service, builder.buildCommentNode(authorId, "", text, when));
+
+		Comment com3 = new CommentImpl(service, builder.buildCommentNode("otherId", "", text, when));
+		Comment com4 = new CommentImpl(service, builder.buildCommentNode(authorId, "", "other text", when));
+		Comment com5 = new CommentImpl(service, builder.buildCommentNode(authorId, "", text, "Fri, 16 Aug 2013 12:56:51 GMT"));
+		Comment com6 = new CommentImpl(service, builder.buildCommentNode(authorId, "", text, null));
+
+		assertEquals(com1, com2);
+		assertEquals(com1.hashCode(), com2.hashCode());
+
+		assertNotEquals(com1, com3);
+		assertNotEquals(com1, com4);
+		assertNotEquals(com1, com5);
+		assertNotEquals(com1, com6);
+		assertNotEquals(com6, com1);
 	}
 
 	/** Registers a response to a comment POST, checking for the expected text. */
