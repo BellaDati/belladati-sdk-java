@@ -126,7 +126,7 @@ public class ExceptionTest extends SDKTest {
 	public void timestampRefused() {
 		long start = 12345;
 		long end = 67890;
-		registerError(400, "oauth_problem=timestamp_refused&acceptable_timestamps=" + start + "-" + end);
+		registerError(400, "oauth_problem=timestamp_refused&oauth_acceptable_timestamps=" + start + "-" + end);
 		AuthorizationException rawException = assertAuthException(Reason.TIMESTAMP_REFUSED);
 		InvalidTimestampException exception = (InvalidTimestampException) rawException;
 

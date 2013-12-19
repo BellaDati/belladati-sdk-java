@@ -206,7 +206,7 @@ class BellaDatiClient implements Serializable {
 				} else if ("domain_restricted".equals(problem)) {
 					return new AuthorizationException(Reason.USER_DOMAIN_MISMATCH);
 				} else if ("timestamp_refused".equals(problem)) {
-					String acceptable = oauthParams.getFirst("acceptable_timestamps");
+					String acceptable = oauthParams.getFirst("oauth_acceptable_timestamps");
 					if (acceptable != null && acceptable.contains("-")) {
 						return new InvalidTimestampException(Long.parseLong(acceptable.split("-")[0]), Long.parseLong(acceptable
 							.split("-")[1]));
