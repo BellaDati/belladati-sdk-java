@@ -28,7 +28,7 @@
 	<parent>
 		<groupId>com.belladati</groupId>
 		<artifactId>sdk-root</artifactId>
-		<version>0.9.0</version>
+		<version>0.9.1</version>
 		<relativePath>../belladati-sdk-main/root</relativePath>
 	</parent>
 	<repositories>
