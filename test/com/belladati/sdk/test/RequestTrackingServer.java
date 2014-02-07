@@ -104,6 +104,13 @@ public class RequestTrackingServer extends LocalTestServer {
 	}
 
 	/**
+	 * Resets the list of queried request URIs.
+	 */
+	public void resetRequestUris() {
+		requestUris.clear();
+	}
+
+	/**
 	 * Convenience method to get the server's HTTP URL.
 	 * 
 	 * @return the server's HTTP URL

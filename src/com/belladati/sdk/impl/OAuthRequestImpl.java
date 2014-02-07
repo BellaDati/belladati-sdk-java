@@ -8,6 +8,9 @@ import com.belladati.sdk.auth.OAuthRequest;
 
 class OAuthRequestImpl implements OAuthRequest {
 
+	/** The serialVersionUID */
+	private static final long serialVersionUID = -8823818244254801967L;
+
 	private final BellaDatiClient client;
 
 	private final TokenHolder tokenHolder;

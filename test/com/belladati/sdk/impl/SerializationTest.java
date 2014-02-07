@@ -1,5 +1,7 @@
 package com.belladati.sdk.impl;
 
+import static org.testng.Assert.assertEquals;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -12,6 +14,7 @@ import org.testng.annotations.Test;
 import com.belladati.sdk.BellaDati;
 import com.belladati.sdk.BellaDatiConnection;
 import com.belladati.sdk.BellaDatiService;
+import com.belladati.sdk.auth.OAuthRequest;
 import com.belladati.sdk.test.TestRequestHandler;
 
 @Test
@@ -73,5 +76,46 @@ public class SerializationTest extends SDKTest {
 		// use deserialized service
 		newService.loadReport(id);
 		server.assertRequestUris(reportsUri + "/" + id);
+	}
+
+	/**
+	 * Pending OAuth requests can be saved and restored, including their tokens.
+	 */
+	public void saveRestoreOAuthRequest() throws IOException, ClassNotFoundException {
+		// set up connnection and server
+		BellaDatiConnection connection = BellaDati.connect(server.getHttpURL());
+		final String key = "key";
+		final String requestToken = "abc123";
+		server.register("/oauth/requestToken", "oauth_token=" + requestToken + "&oauth_token_secret=123abc");
+		OAuthRequest oldRequest = connection.oAuth(key, "secret");
+		server.resetRequestUris();
+
+		// serialize request
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		ObjectOutputStream output = new ObjectOutputStream(baos);
+		output.writeObject(oldRequest);
+		output.close();
+		baos.close();
+		byte[] bytes = baos.toByteArray();
+
+		// deserialize request
+		ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
+		ObjectInputStream input = new ObjectInputStream(bais);
+		OAuthRequest newRequest = (OAuthRequest) input.readObject();
+		input.close();
+		bais.close();
+
+		assertEquals(newRequest.getAuthorizationUrl().toString(), server.getHttpURL() + "/authorizeRequestToken/" + requestToken
+			+ "/" + key);
+
+		server.register("/oauth/accessToken", new TestRequestHandler() {
+			@Override
+			protected void handle(HttpHolder holder) throws IOException {
+				holder.assertAuth(key, requestToken);
+				holder.response.setEntity(new StringEntity("oauth_token=access&oauth_token_secret=accessSecret"));
+			}
+		});
+		newRequest.requestAccess();
+		server.assertRequestUris("/oauth/accessToken");
 	}
 }
