@@ -1,8 +1,35 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-  <artifactId>sdk-java</artifactId>
+	<groupId>com.belladati</groupId>
+	<artifactId>sdk-java</artifactId>
+	<version>0.9.1-SNAPSHOT</version>
+	<packaging>jar</packaging>
 	<name>BellaDati SDK for Standard Java</name>
+	<url>http://www.belladati.com</url>
+	<description>The BellaDati SDK allows accessing a BellaDati server from 3rd-party applications using Java. This project contains the implementation for standard Java.</description>
+	<scm>
+		<url>git@github.com:BellaDati/belladati-sdk-java.git</url>
+		<connection>scm:git:git@github.com:BellaDati/belladati-sdk-java.git</connection>
+		<developerConnection>scm:git:git@github.com:BellaDati/belladati-sdk-java.git</developerConnection>
+	</scm>
+	<developers>
+		<developer>
+			<id>thrar</id>
+			<name>Chris Hennigfeld</name>
+			<email>christian.hennigfeld@belladati.com</email>
+		</developer>
+	</developers>
+	<licenses>
+		<license>
+			<name>The Apache Software License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+		</license>
+	</licenses>
+	<parent>
+		<groupId>org.sonatype.oss</groupId>
+		<artifactId>oss-parent</artifactId>
+		<version>7</version>
+	</parent>
 	<build>
 		<sourceDirectory>src</sourceDirectory>
 		<testSourceDirectory>test</testSourceDirectory>
@@ -23,14 +50,49 @@
 					<target>1.6</target>
 				</configuration>
 			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>2.9.1</version>
+				<configuration>
+					<show>package</show>
+				</configuration>
+				<executions>
+					<execution>
+						<id>attach-javadocs</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>attach-sources</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-gpg-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>sign-artifacts</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>sign</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 	</build>
-	<parent>
-		<groupId>com.belladati</groupId>
-		<artifactId>sdk-root</artifactId>
-		<version>0.9.1</version>
-		<relativePath>../belladati-sdk-main/root</relativePath>
-	</parent>
 	<dependencies>
 		<dependency>
 			<groupId>org.testng</groupId>
@@ -58,6 +120,7 @@
 	  		<artifactId>httpclient</artifactId>
 	  		<classifier>tests</classifier>
 	  		<version>4.3.1</version>
+			<scope>test</scope>
 	  	</dependency>
 	  	<dependency>
 	  		<groupId>org.apache.httpcomponents</groupId>
