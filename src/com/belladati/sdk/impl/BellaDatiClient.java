@@ -74,8 +74,12 @@ class BellaDatiClient implements Serializable {
 				.loadTrustMaterial(null, new TrustSelfSignedStrategy()).build();
 
 			// set timeouts for the HTTP client
-			RequestConfig requestConfig = RequestConfig.copy(RequestConfig.DEFAULT).setConnectTimeout(10000)
-				.setSocketTimeout(10000).setConnectionRequestTimeout(10000).build();
+			int globalTimeout = readFromProperty("bdTimeout", 10000);
+			int connectTimeout = readFromProperty("bdConnectTimeout", globalTimeout);
+			int connectionRequestTimeout = readFromProperty("bdConnectionRequestTimeout", globalTimeout);
+			int socketTimeout = readFromProperty("bdSocketTimeout", globalTimeout);
+			RequestConfig requestConfig = RequestConfig.copy(RequestConfig.DEFAULT).setConnectTimeout(connectTimeout)
+				.setSocketTimeout(socketTimeout).setConnectionRequestTimeout(connectionRequestTimeout).build();
 
 			// configure caching
 			CacheConfig cacheConfig = CacheConfig.copy(CacheConfig.DEFAULT).setSharedCache(false).setMaxCacheEntries(1000)
@@ -86,6 +90,14 @@ class BellaDatiClient implements Serializable {
 				.setDefaultRequestConfig(requestConfig).build();
 		} catch (GeneralSecurityException e) {
 			throw new InternalConfigurationException("Failed to set up SSL context", e);
+		}
+	}
+
+	private int readFromProperty(String property, int defaultValue) {
+		try {
+			return Integer.parseInt(System.getProperty(property));
+		} catch (NumberFormatException e) {
+			return defaultValue;
 		}
 	}
 
