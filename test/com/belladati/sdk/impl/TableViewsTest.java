@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.http.entity.StringEntity;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import com.belladati.sdk.filter.Filter;
@@ -199,7 +200,7 @@ public class TableViewsTest extends SDKTest {
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void tableLeftHeaderAboveCount() {
 		Table table = new TableViewImpl.TableImpl(service, id, builder.buildTableNode(10, 10));
-		table.loadLeftHeader(3, 10);
+		table.loadLeftHeader(3, 11);
 	}
 
 	/** Left header first row greater than last row. */
@@ -220,7 +221,7 @@ public class TableViewsTest extends SDKTest {
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void tableTopHeaderAboveCount() {
 		Table table = new TableViewImpl.TableImpl(service, id, builder.buildTableNode(10, 10));
-		table.loadTopHeader(3, 10);
+		table.loadTopHeader(3, 11);
 	}
 
 	/** Top header first column greater than last column. */
@@ -241,7 +242,7 @@ public class TableViewsTest extends SDKTest {
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void tableDataRowAboveCount() {
 		Table table = new TableViewImpl.TableImpl(service, id, builder.buildTableNode(10, 10));
-		table.loadData(3, 10, 3, 3);
+		table.loadData(3, 11, 3, 3);
 	}
 
 	/** Data first row greater than last row. */
@@ -262,7 +263,7 @@ public class TableViewsTest extends SDKTest {
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void tableDataColumnAboveCount() {
 		Table table = new TableViewImpl.TableImpl(service, id, builder.buildTableNode(10, 10));
-		table.loadData(3, 3, 3, 10);
+		table.loadData(3, 3, 3, 11);
 	}
 
 	/** Data first column greater than last column. */
@@ -272,10 +273,14 @@ public class TableViewsTest extends SDKTest {
 		table.loadData(3, 3, 5, 3);
 	}
 
+	@DataProvider(name = "firstLastProvider")
+	public Object[][] provideFirstLast() {
+		return new Object[][] { { 3, 8 }, { 10, 10 } };
+	}
+
 	/** Left header is loaded correctly. */
-	public void loadLeftHeader() {
-		final int firstRow = 3;
-		final int lastRow = 8;
+	@Test(dataProvider = "firstLastProvider")
+	public void loadLeftHeader(final int firstRow, final int lastRow) {
 		Table table = new TableViewImpl.TableImpl(service, id, builder.buildTableNode(10, 10, 2, 2));
 
 		final JsonNode result = new ObjectMapper().createObjectNode().put("content", "some content");
@@ -295,9 +300,8 @@ public class TableViewsTest extends SDKTest {
 	}
 
 	/** Top header is loaded correctly. */
-	public void loadTopHeader() {
-		final int firstCol = 3;
-		final int lastCol = 8;
+	@Test(dataProvider = "firstLastProvider")
+	public void loadTopHeader(final int firstCol, final int lastCol) {
 		Table table = new TableViewImpl.TableImpl(service, id, builder.buildTableNode(10, 10, 2, 2));
 
 		final JsonNode result = new ObjectMapper().createObjectNode().put("content", "some content");
@@ -316,12 +320,14 @@ public class TableViewsTest extends SDKTest {
 		server.assertRequestUris(viewsUri + id + "/table/topHeader");
 	}
 
+	@DataProvider(name = "doubleFirstLastProvider")
+	public Object[][] provideDoubleFirstLast() {
+		return new Object[][] { { 3, 8, 4, 9 }, { 10, 10, 10, 10 } };
+	}
+
 	/** Data is loaded correctly. */
-	public void loadData() {
-		final int firstRow = 3;
-		final int lastRow = 8;
-		final int firstCol = 4;
-		final int lastCol = 9;
+	@Test(dataProvider = "doubleFirstLastProvider")
+	public void loadData(final int firstRow, final int lastRow, final int firstCol, final int lastCol) {
 		Table table = new TableViewImpl.TableImpl(service, id, builder.buildTableNode(10, 10, 2, 2));
 
 		final JsonNode result = new ObjectMapper().createObjectNode().put("content", "some content");

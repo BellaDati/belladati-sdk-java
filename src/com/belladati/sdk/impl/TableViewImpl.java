@@ -75,20 +75,20 @@ class TableViewImpl extends ViewImpl implements TableView {
 		}
 
 		@Override
-		public JsonNode loadLeftHeader(int firstRow, int lastRow) throws IllegalArgumentException {
-			if (firstRow < 0) {
+		public JsonNode loadLeftHeader(int startRow, int endRow) throws IllegalArgumentException {
+			if (startRow < 0) {
 				throw new IllegalArgumentException("First row must be > 0");
 			}
-			if (lastRow >= getRowCount()) {
+			if (endRow > getRowCount()) {
 				throw new IllegalArgumentException("Last row must be < row count");
 			}
-			if (firstRow > lastRow) {
+			if (startRow > endRow) {
 				throw new IllegalArgumentException("First row must be <= last row");
 			}
 			try {
 				URIBuilder builder = new URIBuilder("api/reports/views/" + id + "/table/leftHeader");
-				builder.addParameter("rowsFrom", "" + firstRow);
-				builder.addParameter("rowsTo", "" + lastRow);
+				builder.addParameter("rowsFrom", "" + startRow);
+				builder.addParameter("rowsTo", "" + endRow);
 				service.appendFilter(builder, filters);
 				return service.loadJson(builder.build().toString());
 			} catch (URISyntaxException e) {
@@ -97,20 +97,20 @@ class TableViewImpl extends ViewImpl implements TableView {
 		}
 
 		@Override
-		public JsonNode loadTopHeader(int firstColumn, int lastColumn) throws IllegalArgumentException {
-			if (firstColumn < 0) {
+		public JsonNode loadTopHeader(int startColumn, int endColumn) throws IllegalArgumentException {
+			if (startColumn < 0) {
 				throw new IllegalArgumentException("First column must be > 0");
 			}
-			if (lastColumn >= getColumnCount()) {
+			if (endColumn > getColumnCount()) {
 				throw new IllegalArgumentException("Last column must be < column count");
 			}
-			if (firstColumn > lastColumn) {
+			if (startColumn > endColumn) {
 				throw new IllegalArgumentException("First column must be <= last column");
 			}
 			try {
 				URIBuilder builder = new URIBuilder("api/reports/views/" + id + "/table/topHeader");
-				builder.addParameter("columnsFrom", "" + firstColumn);
-				builder.addParameter("columnsTo", "" + lastColumn);
+				builder.addParameter("columnsFrom", "" + startColumn);
+				builder.addParameter("columnsTo", "" + endColumn);
 				service.appendFilter(builder, filters);
 				return service.loadJson(builder.build().toString());
 			} catch (URISyntaxException e) {
@@ -119,31 +119,31 @@ class TableViewImpl extends ViewImpl implements TableView {
 		}
 
 		@Override
-		public JsonNode loadData(int firstRow, int lastRow, int firstColumn, int lastColumn) throws IllegalArgumentException {
-			if (firstRow < 0) {
+		public JsonNode loadData(int startRow, int endRow, int startColumn, int endColumn) throws IllegalArgumentException {
+			if (startRow < 0) {
 				throw new IllegalArgumentException("First row must be > 0");
 			}
-			if (lastRow >= getRowCount()) {
+			if (endRow > getRowCount()) {
 				throw new IllegalArgumentException("Last row must be < row count");
 			}
-			if (firstRow > lastRow) {
+			if (startRow > endRow) {
 				throw new IllegalArgumentException("First row must be <= last row");
 			}
-			if (firstColumn < 0) {
+			if (startColumn < 0) {
 				throw new IllegalArgumentException("First column must be > 0");
 			}
-			if (lastColumn >= getRowCount()) {
+			if (endColumn > getRowCount()) {
 				throw new IllegalArgumentException("Last column must be < column count");
 			}
-			if (firstColumn > lastColumn) {
+			if (startColumn > endColumn) {
 				throw new IllegalArgumentException("First column must be <= last column");
 			}
 			try {
 				URIBuilder builder = new URIBuilder("api/reports/views/" + id + "/table/data");
-				builder.addParameter("rowsFrom", "" + firstRow);
-				builder.addParameter("rowsTo", "" + lastRow);
-				builder.addParameter("columnsFrom", "" + firstColumn);
-				builder.addParameter("columnsTo", "" + lastColumn);
+				builder.addParameter("rowsFrom", "" + startRow);
+				builder.addParameter("rowsTo", "" + endRow);
+				builder.addParameter("columnsFrom", "" + startColumn);
+				builder.addParameter("columnsTo", "" + endColumn);
 				service.appendFilter(builder, filters);
 				return service.loadJson(builder.build().toString());
 			} catch (URISyntaxException e) {
