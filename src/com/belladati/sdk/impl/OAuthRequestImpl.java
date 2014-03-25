@@ -1,7 +1,10 @@
 package com.belladati.sdk.impl;
 
 import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.net.URL;
+
+import org.apache.http.client.utils.URIBuilder;
 
 import com.belladati.sdk.BellaDatiService;
 import com.belladati.sdk.auth.OAuthRequest;
@@ -22,10 +25,29 @@ class OAuthRequestImpl implements OAuthRequest {
 
 	@Override
 	public URL getAuthorizationUrl() {
+		return getAuthorizationUrl(null);
+	}
+
+	@Override
+	public URL getAuthorizationUrl(String redirectUrl) {
+		if (redirectUrl != null) {
+			// check if the redirect URL is valid
+			try {
+				new URL(redirectUrl);
+			} catch (MalformedURLException e) {
+				throw new IllegalArgumentException("Invalid redirect URL", e);
+			}
+		}
 		try {
-			return new URL(client.getBaseUrl() + "authorizeRequestToken/" + tokenHolder.getToken() + "/"
+			URIBuilder builder = new URIBuilder(client.getBaseUrl() + "authorizeRequestToken/" + tokenHolder.getToken() + "/"
 				+ tokenHolder.getConsumerKey());
+			if (redirectUrl != null) {
+				builder.addParameter("callbackUrl", redirectUrl);
+			}
+			return builder.build().toURL();
 		} catch (MalformedURLException e) {
+			throw new IllegalArgumentException("Invalid URL", e);
+		} catch (URISyntaxException e) {
 			throw new IllegalArgumentException("Invalid URL", e);
 		}
 	}

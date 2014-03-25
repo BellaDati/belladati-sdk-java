@@ -5,6 +5,8 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.Map;
 
 import org.apache.http.entity.StringEntity;
@@ -48,9 +50,6 @@ public class AuthenticationTest extends SDKTest {
 		BellaDatiConnection connection = BellaDati.connect(server.getHttpURL());
 		OAuthRequest oAuth = connection.oAuth(key, secret);
 
-		assertEquals(oAuth.getAuthorizationUrl().toString(), server.getHttpURL() + "/authorizeRequestToken/" + requestToken + "/"
-			+ key, "Unexpected authorization URL");
-
 		assertTrue(connection.toString().contains(server.getHttpURL()));
 		assertTrue(oAuth.toString().contains(server.getHttpURL()));
 		assertTrue(oAuth.toString().contains(key));
@@ -77,6 +76,55 @@ public class AuthenticationTest extends SDKTest {
 		assertTrue(service.toString().contains(key));
 		assertTrue(service.toString().contains(accessToken));
 		assertFalse(service.toString().contains(accessSecret));
+	}
+
+	/**
+	 * Auth URL is correct when there's no redirect.
+	 */
+	public void authUrlNoRedirect() {
+		// set up connnection and server
+		BellaDatiConnection connection = BellaDati.connect(server.getHttpURL());
+		final String key = "key";
+		final String requestToken = "abc123";
+		server.register("/oauth/requestToken", "oauth_token=" + requestToken + "&oauth_token_secret=123abc");
+		OAuthRequest request = connection.oAuth(key, "secret");
+
+		assertEquals(request.getAuthorizationUrl().toString(), server.getHttpURL() + "/authorizeRequestToken/" + requestToken
+			+ "/" + key, "Unexpected authorization URL");
+	}
+
+	/**
+	 * Valid redirect URL is appended.
+	 */
+	public void authUrlValidRedirect() throws UnsupportedEncodingException {
+		// set up connnection and server
+		BellaDatiConnection connection = BellaDati.connect(server.getHttpURL());
+		final String key = "key";
+		final String requestToken = "abc123";
+		server.register("/oauth/requestToken", "oauth_token=" + requestToken + "&oauth_token_secret=123abc");
+		OAuthRequest request = connection.oAuth(key, "secret");
+
+		String redirectUrl = "http://www.example.com";
+		assertEquals(request.getAuthorizationUrl(redirectUrl).toString(), server.getHttpURL() + "/authorizeRequestToken/"
+			+ requestToken + "/" + key + "?callbackUrl=" + URLEncoder.encode(redirectUrl, "UTF-8"),
+			"Unexpected authorization URL");
+	}
+
+	/**
+	 * Invalid redirect URL leads to exception.
+	 */
+	@Test(expectedExceptions = IllegalArgumentException.class)
+	public void authUrlInvalidRedirect() {
+		// set up connnection and server
+		BellaDatiConnection connection = BellaDati.connect(server.getHttpURL());
+		final String key = "key";
+		final String requestToken = "abc123";
+		server.register("/oauth/requestToken", "oauth_token=" + requestToken + "&oauth_token_secret=123abc");
+		OAuthRequest request = connection.oAuth(key, "secret");
+
+		String redirectUrl = "not a URL";
+		assertEquals(request.getAuthorizationUrl(redirectUrl).toString(), server.getHttpURL() + "/authorizeRequestToken/"
+			+ requestToken + "/" + key + "?callbackUrl=" + redirectUrl, "Unexpected authorization URL");
 	}
 
 	/** Tests xAuth authentication. */
