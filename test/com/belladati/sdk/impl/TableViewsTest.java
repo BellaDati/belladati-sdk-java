@@ -69,6 +69,35 @@ public class TableViewsTest extends SDKTest {
 		server.assertRequestUris(viewsUri + id + "/table/bounds");
 	}
 
+	/** Table is loaded correctly. */
+	public void loadViewTableFromLoader() throws UnknownViewTypeException {
+		View view = new TableViewImpl(service, builder.buildViewNode(id, name, "table"));
+		int rows = 8;
+		int columns = 12;
+		server.register(viewsUri + id + "/table/bounds", builder.buildTableNode(rows, columns, 2, 2).toString());
+
+		TableView.Table table = (Table) view.createLoader().loadContent();
+
+		assertEquals(table.getRowCount(), rows);
+		assertEquals(table.getColumnCount(), columns);
+		assertTrue(table.hasLeftHeader());
+		assertTrue(table.hasTopHeader());
+	}
+
+	/** Table is loaded correctly via service. */
+	public void loadViewTableFromServiceLoader() {
+		int rows = 8;
+		int columns = 12;
+		server.register(viewsUri + id + "/table/bounds", builder.buildTableNode(rows, columns, 2, 2).toString());
+
+		TableView.Table table = (Table) service.createViewLoader(id, ViewType.TABLE).loadContent();
+
+		assertEquals(table.getRowCount(), rows);
+		assertEquals(table.getColumnCount(), columns);
+		assertTrue(table.hasLeftHeader());
+		assertTrue(table.hasTopHeader());
+	}
+
 	/** Table without left header. */
 	public void tableZeroLeftHeader() {
 		server.register(viewsUri + id + "/table/bounds", builder.buildTableNode(10, 12, 0, 2).toString());
@@ -374,5 +403,20 @@ public class TableViewsTest extends SDKTest {
 
 		assertNotEquals(t1, t3);
 		assertNotEquals(t1, t4);
+	}
+
+	/** no date/time definition means neither is supported */
+	public void noDateTimeDefinition() throws UnknownViewTypeException {
+		View view = new TableViewImpl(service, builder.buildViewNode(id, name, "table"));
+		assertFalse(view.isDateIntervalSupported());
+		assertFalse(view.isTimeIntervalSupported());
+	}
+
+	/** date/time definition still doesn't support intervals */
+	public void hasDateTimeDefinition() throws UnknownViewTypeException {
+		View view = new TableViewImpl(service, builder.insertViewDateTimeDefinition(true, true,
+			builder.buildViewNode(id, name, "table")));
+		assertFalse(view.isDateIntervalSupported());
+		assertFalse(view.isTimeIntervalSupported());
 	}
 }

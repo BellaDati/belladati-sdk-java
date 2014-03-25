@@ -32,6 +32,13 @@ public class JsonBuilder {
 		return new ObjectMapper().createObjectNode().put("id", id).put("name", name).put("type", type);
 	}
 
+	public ObjectNode insertViewDateTimeDefinition(boolean dateSupported, boolean timeSupported, ObjectNode viewNode) {
+		ObjectNode definition = new ObjectMapper().createObjectNode().put("timeSupported", timeSupported)
+			.put("dateSupported", dateSupported);
+		viewNode.put("dateTimeDefinition", definition);
+		return viewNode;
+	}
+
 	/** Builds a JSON node representing a report comment. */
 	public ObjectNode buildCommentNode(String authorId, String authorName, String text, String when) {
 		return new ObjectMapper().createObjectNode().put("authorId", authorId).put("author", authorName).put("text", text)

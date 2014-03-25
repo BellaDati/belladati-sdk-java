@@ -1,6 +1,7 @@
 package com.belladati.sdk.impl;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotEquals;
 import static org.testng.Assert.assertTrue;
 
@@ -48,11 +49,7 @@ public class ViewsTest extends SDKTest {
 
 		server.assertRequestUris(viewsUri + id + "/" + stringType);
 
-		if (viewType == ViewType.TABLE) {
-			assertTrue(view instanceof TableView, "Wrong view instance type, was " + view.getClass());
-		} else {
-			assertTrue(view instanceof JsonView, "Wrong view instance type, was " + view.getClass());
-		}
+		assertTrue(view instanceof JsonView, "Wrong view instance type, was " + view.getClass());
 	}
 
 	/** View JSON is loaded correctly via service. */
@@ -62,6 +59,30 @@ public class ViewsTest extends SDKTest {
 		server.register(viewsUri + id + "/" + stringType, viewNode.toString());
 
 		assertEquals(service.loadViewContent(id, viewType), viewNode);
+
+		server.assertRequestUris(viewsUri + id + "/" + stringType);
+	}
+
+	/** View JSON is loaded correctly through a loader. */
+	@Test(dataProvider = "jsonViewTypes")
+	public void loadViewJsonFromLoader(String stringType, ViewType viewType) throws UnknownViewTypeException {
+		View view = ViewImpl.buildView(service, builder.buildViewNode(id, name, stringType));
+
+		ObjectNode viewNode = new ObjectMapper().createObjectNode().put("some field", "some value");
+		server.register(viewsUri + id + "/" + stringType, viewNode.toString());
+
+		assertEquals(view.createLoader().loadContent(), viewNode);
+
+		server.assertRequestUris(viewsUri + id + "/" + stringType);
+	}
+
+	/** View JSON is loaded correctly via service through a loader. */
+	@Test(dataProvider = "jsonViewTypes")
+	public void loadViewJsonFromServiceLoader(String stringType, ViewType viewType) throws UnknownViewTypeException {
+		ObjectNode viewNode = new ObjectMapper().createObjectNode().put("some field", "some value");
+		server.register(viewsUri + id + "/" + stringType, viewNode.toString());
+
+		assertEquals(service.createViewLoader(id, viewType).loadContent(), viewNode);
 
 		server.assertRequestUris(viewsUri + id + "/" + stringType);
 	}
@@ -153,5 +174,44 @@ public class ViewsTest extends SDKTest {
 		assertEquals(v1.hashCode(), v2.hashCode());
 
 		assertNotEquals(v1, v3);
+	}
+
+	/** no date/time definition means neither is supported */
+	public void noDateTimeDefinition() throws UnknownViewTypeException {
+		View view = ViewImpl.buildView(service, builder.buildViewNode(id, name, "chart"));
+		assertFalse(view.isDateIntervalSupported());
+		assertFalse(view.isTimeIntervalSupported());
+	}
+
+	/** neither is supported in the definition */
+	public void neitherSupported() throws UnknownViewTypeException {
+		View view = ViewImpl.buildView(service,
+			builder.insertViewDateTimeDefinition(false, false, builder.buildViewNode(id, name, "chart")));
+		assertFalse(view.isDateIntervalSupported());
+		assertFalse(view.isTimeIntervalSupported());
+	}
+
+	/** only date is supported in the definition */
+	public void dateSupported() throws UnknownViewTypeException {
+		View view = ViewImpl.buildView(service,
+			builder.insertViewDateTimeDefinition(true, false, builder.buildViewNode(id, name, "chart")));
+		assertTrue(view.isDateIntervalSupported());
+		assertFalse(view.isTimeIntervalSupported());
+	}
+
+	/** only time is supported in the definition */
+	public void timeSupported() throws UnknownViewTypeException {
+		View view = ViewImpl.buildView(service,
+			builder.insertViewDateTimeDefinition(false, true, builder.buildViewNode(id, name, "chart")));
+		assertFalse(view.isDateIntervalSupported());
+		assertTrue(view.isTimeIntervalSupported());
+	}
+
+	/** both are supported in the definition */
+	public void bothSupported() throws UnknownViewTypeException {
+		View view = ViewImpl.buildView(service,
+			builder.insertViewDateTimeDefinition(true, true, builder.buildViewNode(id, name, "chart")));
+		assertTrue(view.isDateIntervalSupported());
+		assertTrue(view.isTimeIntervalSupported());
 	}
 }

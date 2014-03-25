@@ -5,7 +5,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.lang.reflect.Field;
-import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -23,7 +22,6 @@ import com.belladati.sdk.dashboard.DashboardInfo;
 import com.belladati.sdk.exception.InternalConfigurationException;
 import com.belladati.sdk.filter.Filter;
 import com.belladati.sdk.impl.AttributeValueImpl.InvalidAttributeValueException;
-import com.belladati.sdk.impl.TableViewImpl.TableImpl;
 import com.belladati.sdk.report.AttributeValue;
 import com.belladati.sdk.report.Comment;
 import com.belladati.sdk.report.Report;
@@ -32,6 +30,7 @@ import com.belladati.sdk.user.User;
 import com.belladati.sdk.util.CachedList;
 import com.belladati.sdk.util.PaginatedIdList;
 import com.belladati.sdk.util.PaginatedList;
+import com.belladati.sdk.view.ViewLoader;
 import com.belladati.sdk.view.ViewType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -158,16 +157,12 @@ class BellaDatiServiceImpl implements BellaDatiService {
 
 	@Override
 	public Object loadViewContent(String viewId, ViewType viewType, Collection<Filter<?>> filters) {
-		try {
-			URIBuilder builder = new URIBuilder("api/reports/views/" + viewId + "/" + viewType.getUri());
-			JsonNode json = loadJson(appendFilter(builder, filters).build().toString());
-			if (viewType == ViewType.TABLE) {
-				return new TableImpl(this, viewId, json, filters);
-			}
-			return json;
-		} catch (URISyntaxException e) {
-			throw new InternalConfigurationException(e);
-		}
+		return createViewLoader(viewId, viewType).addFilters(filters).loadContent();
+	}
+
+	@Override
+	public ViewLoader createViewLoader(String viewId, ViewType viewType) {
+		return new ViewLoaderImpl(this, viewId, viewType);
 	}
 
 	/**

@@ -4,6 +4,7 @@ import java.util.Collection;
 
 import com.belladati.sdk.filter.Filter;
 import com.belladati.sdk.view.View;
+import com.belladati.sdk.view.ViewLoader;
 import com.belladati.sdk.view.ViewType;
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -47,6 +48,8 @@ abstract class ViewImpl implements View {
 	private final String id;
 	private final String name;
 	private final ViewType type;
+	private final boolean dateIntervalSupported;
+	private final boolean timeIntervalSupported;
 
 	ViewImpl(BellaDatiServiceImpl service, JsonNode node) throws UnknownViewTypeException {
 		this.service = service;
@@ -54,6 +57,24 @@ abstract class ViewImpl implements View {
 		this.id = node.get("id").asText();
 		this.name = node.get("name").asText();
 		this.type = parseType(node);
+
+		if (node.hasNonNull("dateTimeDefinition") && this.type != ViewType.TABLE) {
+			// we have a date/time definition and are not dealing with a table
+			JsonNode definition = node.get("dateTimeDefinition");
+			if (definition.hasNonNull("dateSupported")) {
+				dateIntervalSupported = definition.get("dateSupported").asBoolean();
+			} else {
+				dateIntervalSupported = false;
+			}
+			if (definition.hasNonNull("timeSupported")) {
+				timeIntervalSupported = definition.get("timeSupported").asBoolean();
+			} else {
+				timeIntervalSupported = false;
+			}
+		} else {
+			dateIntervalSupported = false;
+			timeIntervalSupported = false;
+		}
 	}
 
 	@Override
@@ -97,6 +118,21 @@ abstract class ViewImpl implements View {
 	@Override
 	public int hashCode() {
 		return id.hashCode();
+	}
+
+	@Override
+	public boolean isDateIntervalSupported() {
+		return dateIntervalSupported;
+	}
+
+	@Override
+	public boolean isTimeIntervalSupported() {
+		return timeIntervalSupported;
+	}
+
+	@Override
+	public ViewLoader createLoader() {
+		return new ViewLoaderImpl(service, id, type);
 	}
 
 	static class UnknownViewTypeException extends Exception {

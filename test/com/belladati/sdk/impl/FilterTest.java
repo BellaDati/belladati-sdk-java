@@ -156,7 +156,7 @@ public class FilterTest extends SDKTest {
 		});
 
 		view.loadContent();
-		service.loadViewContent(viewId, ViewType.CHART);
+		service.createViewLoader(viewId, ViewType.CHART).loadContent();
 
 		server.assertRequestUris(viewsUri, viewsUri);
 	}
@@ -178,7 +178,8 @@ public class FilterTest extends SDKTest {
 		});
 
 		view.loadContent(FilterOperation.IN.createFilter(attribute).addValue(value));
-		service.loadViewContent(viewId, ViewType.CHART, FilterOperation.IN.createFilter(attribute).addValue(value));
+		service.createViewLoader(viewId, ViewType.CHART).addFilter(FilterOperation.IN.createFilter(attribute).addValue(value))
+			.loadContent();
 
 		server.assertRequestUris(viewsUri, viewsUri);
 	}
@@ -210,8 +211,43 @@ public class FilterTest extends SDKTest {
 		AttributeValue value2 = new AttributeValueImpl(builder.buildAttributeValueNode("another label", valueString2));
 		view.loadContent(FilterOperation.IN.createFilter(attribute).addValue(value), FilterOperation.IN.createFilter(attribute2)
 			.addValue(value2));
-		service.loadViewContent(viewId, ViewType.CHART, FilterOperation.IN.createFilter(attribute).addValue(value),
-			FilterOperation.IN.createFilter(attribute2).addValue(value2));
+		service
+			.createViewLoader(viewId, ViewType.CHART)
+			.addFilters(FilterOperation.IN.createFilter(attribute).addValue(value),
+				FilterOperation.IN.createFilter(attribute2).addValue(value2)).loadContent();
+
+		server.assertRequestUris(viewsUri, viewsUri);
+	}
+
+	/** Query parameters with multiple filters are correct. */
+	public void queryStringMultipleConsecutiveFilters() throws UnknownViewTypeException, InvalidAttributeException,
+		InvalidAttributeValueException {
+		View view = new JsonViewImpl(service, builder.buildViewNode(viewId, viewName, "chart"));
+
+		final String code2 = "another code";
+		final String valueString2 = "another value";
+
+		server.register(viewsUri, new TestRequestHandler() {
+			@Override
+			protected void handle(HttpHolder holder) throws IOException {
+				String filterString = holder.getUrlParameters().get("filter");
+				assertNotNull(filterString);
+				ObjectNode expected = mapper.createObjectNode();
+				expected.setAll(buildInFilterNode());
+				expected.setAll(buildInFilterNode(code2, valueString2));
+				ObjectNode drilldownNode = mapper.createObjectNode();
+				drilldownNode.put("drilldown", expected);
+				assertEquals(new ObjectMapper().readTree(filterString), drilldownNode);
+				holder.response.setEntity(new StringEntity("{}"));
+			}
+		});
+
+		Attribute attribute2 = new AttributeImpl(service, "", builder.buildAttributeNode("another name", code2));
+		AttributeValue value2 = new AttributeValueImpl(builder.buildAttributeValueNode("another label", valueString2));
+		view.loadContent(FilterOperation.IN.createFilter(attribute).addValue(value), FilterOperation.IN.createFilter(attribute2)
+			.addValue(value2));
+		service.createViewLoader(viewId, ViewType.CHART).addFilter(FilterOperation.IN.createFilter(attribute).addValue(value))
+			.addFilter(FilterOperation.IN.createFilter(attribute2).addValue(value2)).loadContent();
 
 		server.assertRequestUris(viewsUri, viewsUri);
 	}
