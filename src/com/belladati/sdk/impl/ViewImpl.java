@@ -2,7 +2,13 @@ package com.belladati.sdk.impl;
 
 import java.util.Collection;
 
+import com.belladati.sdk.exception.interval.InvalidIntervalException;
 import com.belladati.sdk.filter.Filter;
+import com.belladati.sdk.intervals.AbsoluteInterval;
+import com.belladati.sdk.intervals.DateUnit;
+import com.belladati.sdk.intervals.Interval;
+import com.belladati.sdk.intervals.RelativeInterval;
+import com.belladati.sdk.intervals.TimeUnit;
 import com.belladati.sdk.view.View;
 import com.belladati.sdk.view.ViewLoader;
 import com.belladati.sdk.view.ViewType;
@@ -43,6 +49,80 @@ abstract class ViewImpl implements View {
 		}
 	}
 
+	/**
+	 * Parses the date interval from the given date/time definition node.
+	 * 
+	 * @param node the node to examine
+	 * @return the node's date interval, or <tt>null</tt> if none is defined or
+	 *         it's invalid
+	 */
+	private static Interval<DateUnit> parseDateInterval(JsonNode node) {
+		try {
+			if (node.hasNonNull("dateInterval") && node.get("dateInterval").hasNonNull("aggregationType")) {
+				JsonNode dateInterval = node.get("dateInterval");
+				DateUnit unit = DateUnit.valueOf(dateInterval.get("aggregationType").asText().toUpperCase());
+				JsonNode interval = dateInterval.get("interval");
+				String type = interval.get("type").asText().toLowerCase();
+				if ("relative".equals(type)) {
+					// the server may send numbers inside strings
+					// or numbers as decimals, e.g. 3.0
+					// regardless, we treat them all as int
+					String from = interval.get("from").asText();
+					String to = interval.get("to").asText();
+					return new RelativeInterval<DateUnit>(unit, (int) Float.parseFloat(from), (int) Float.parseFloat(to));
+				} else if ("absolute".equals(type)) {
+					// an absolute interval
+					return new AbsoluteInterval<DateUnit>(unit, unit.parseAbsolute(interval.get("from")),
+						unit.parseAbsolute(interval.get("to")));
+				}
+			}
+		} catch (InvalidIntervalException e) {
+			// ignore the interval
+		} catch (NumberFormatException e) {
+			// ignore the interval
+		} catch (IllegalArgumentException e) {
+			// ignore the interval
+		}
+		return null;
+	}
+
+	/**
+	 * Parses the time interval from the given date/time definition node.
+	 * 
+	 * @param node the node to examine
+	 * @return the node's time interval, or <tt>null</tt> if none is defined or
+	 *         it's invalid
+	 */
+	private static Interval<TimeUnit> parseTimeInterval(JsonNode node) {
+		try {
+			if (node.hasNonNull("timeInterval") && node.get("timeInterval").hasNonNull("aggregationType")) {
+				JsonNode timeInterval = node.get("timeInterval");
+				TimeUnit unit = TimeUnit.valueOf(timeInterval.get("aggregationType").asText().toUpperCase());
+				JsonNode interval = timeInterval.get("interval");
+				String type = interval.get("type").asText().toLowerCase();
+				if ("relative".equals(type)) {
+					// the server may send numbers inside strings
+					// or numbers as decimals, e.g. 3.0
+					// regardless, we treat them all as int
+					String from = interval.get("from").asText();
+					String to = interval.get("to").asText();
+					return new RelativeInterval<TimeUnit>(unit, (int) Float.parseFloat(from), (int) Float.parseFloat(to));
+				} else if ("absolute".equals(type)) {
+					// an absolute interval
+					return new AbsoluteInterval<TimeUnit>(unit, unit.parseAbsolute(interval.get("from")),
+						unit.parseAbsolute(interval.get("to")));
+				}
+			}
+		} catch (InvalidIntervalException e) {
+			// ignore the interval
+		} catch (NumberFormatException e) {
+			// ignore the interval
+		} catch (IllegalArgumentException e) {
+			// ignore the interval
+		}
+		return null;
+	}
+
 	protected final BellaDatiServiceImpl service;
 
 	private final String id;
@@ -50,6 +130,9 @@ abstract class ViewImpl implements View {
 	private final ViewType type;
 	private final boolean dateIntervalSupported;
 	private final boolean timeIntervalSupported;
+
+	private final Interval<DateUnit> dateInterval;
+	private final Interval<TimeUnit> timeInterval;
 
 	ViewImpl(BellaDatiServiceImpl service, JsonNode node) throws UnknownViewTypeException {
 		this.service = service;
@@ -71,9 +154,13 @@ abstract class ViewImpl implements View {
 			} else {
 				timeIntervalSupported = false;
 			}
+			dateInterval = parseDateInterval(definition);
+			timeInterval = parseTimeInterval(definition);
 		} else {
 			dateIntervalSupported = false;
 			timeIntervalSupported = false;
+			dateInterval = null;
+			timeInterval = null;
 		}
 	}
 
@@ -128,6 +215,26 @@ abstract class ViewImpl implements View {
 	@Override
 	public boolean isTimeIntervalSupported() {
 		return timeIntervalSupported;
+	}
+
+	@Override
+	public boolean hasPredefinedDateInterval() {
+		return dateInterval != null;
+	}
+
+	@Override
+	public boolean hasPredefinedTimeInterval() {
+		return timeInterval != null;
+	}
+
+	@Override
+	public Interval<DateUnit> getPredefinedDateInterval() {
+		return dateInterval;
+	}
+
+	@Override
+	public Interval<TimeUnit> getPredefinedTimeInterval() {
+		return timeInterval;
 	}
 
 	@Override

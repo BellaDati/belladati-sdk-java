@@ -3,6 +3,7 @@ package com.belladati.sdk.impl;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotEquals;
+import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
 import java.util.Collections;
@@ -176,11 +177,15 @@ public class ViewsTest extends SDKTest {
 		assertNotEquals(v1, v3);
 	}
 
-	/** no date/time definition means neither is supported */
+	/** no date/time definition means neither is supported, nothing is set */
 	public void noDateTimeDefinition() throws UnknownViewTypeException {
 		View view = ViewImpl.buildView(service, builder.buildViewNode(id, name, "chart"));
 		assertFalse(view.isDateIntervalSupported());
 		assertFalse(view.isTimeIntervalSupported());
+		assertFalse(view.hasPredefinedDateInterval());
+		assertFalse(view.hasPredefinedTimeInterval());
+		assertNull(view.getPredefinedDateInterval());
+		assertNull(view.getPredefinedTimeInterval());
 	}
 
 	/** neither is supported in the definition */
