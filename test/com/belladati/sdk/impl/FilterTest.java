@@ -178,7 +178,7 @@ public class FilterTest extends SDKTest {
 		});
 
 		view.loadContent(FilterOperation.IN.createFilter(attribute).addValue(value));
-		service.createViewLoader(viewId, ViewType.CHART).addFilter(FilterOperation.IN.createFilter(attribute).addValue(value))
+		service.createViewLoader(viewId, ViewType.CHART).addFilters(FilterOperation.IN.createFilter(attribute).addValue(value))
 			.loadContent();
 
 		server.assertRequestUris(viewsUri, viewsUri);
@@ -246,8 +246,8 @@ public class FilterTest extends SDKTest {
 		AttributeValue value2 = new AttributeValueImpl(builder.buildAttributeValueNode("another label", valueString2));
 		view.loadContent(FilterOperation.IN.createFilter(attribute).addValue(value), FilterOperation.IN.createFilter(attribute2)
 			.addValue(value2));
-		service.createViewLoader(viewId, ViewType.CHART).addFilter(FilterOperation.IN.createFilter(attribute).addValue(value))
-			.addFilter(FilterOperation.IN.createFilter(attribute2).addValue(value2)).loadContent();
+		service.createViewLoader(viewId, ViewType.CHART).addFilters(FilterOperation.IN.createFilter(attribute).addValue(value))
+			.addFilters(FilterOperation.IN.createFilter(attribute2).addValue(value2)).loadContent();
 
 		server.assertRequestUris(viewsUri, viewsUri);
 	}

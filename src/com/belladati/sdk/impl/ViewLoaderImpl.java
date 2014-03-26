@@ -25,6 +25,9 @@ public class ViewLoaderImpl implements ViewLoader {
 	private final ViewType viewType;
 	private final List<Filter<?>> filters = new ArrayList<Filter<?>>();
 
+	private Interval<DateUnit> dateInterval;
+	private Interval<TimeUnit> timeInterval;
+
 	public ViewLoaderImpl(BellaDatiServiceImpl service, String viewId, ViewType viewType) {
 		this.service = service;
 		this.viewId = viewId;
@@ -32,20 +35,24 @@ public class ViewLoaderImpl implements ViewLoader {
 	}
 
 	@Override
-	public ViewLoader setDateInterval(Interval<DateUnit> interval) {
-		// TODO Auto-generated method stub
+	public String getId() {
+		return viewId;
+	}
+
+	@Override
+	public ViewType getType() {
+		return viewType;
+	}
+
+	@Override
+	public ViewLoader setDateInterval(Interval<DateUnit> dateInterval) {
+		this.dateInterval = dateInterval;
 		return this;
 	}
 
 	@Override
-	public ViewLoader setTimeInterval(Interval<TimeUnit> interval) {
-		// TODO Auto-generated method stub
-		return this;
-	}
-
-	@Override
-	public ViewLoader addFilter(Filter<?> filter) {
-		filters.add(filter);
+	public ViewLoader setTimeInterval(Interval<TimeUnit> timeInterval) {
+		this.timeInterval = timeInterval;
 		return this;
 	}
 
@@ -64,7 +71,8 @@ public class ViewLoaderImpl implements ViewLoader {
 	public Object loadContent() {
 		try {
 			URIBuilder builder = new URIBuilder("api/reports/views/" + viewId + "/" + viewType.getUri());
-			JsonNode json = service.loadJson(service.appendFilter(builder, filters).build().toString());
+			JsonNode json = service.loadJson(service
+				.appendDateTime(service.appendFilter(builder, filters), dateInterval, timeInterval).build().toString());
 			if (viewType == ViewType.TABLE) {
 				return new TableImpl(service, viewId, json, filters);
 			}

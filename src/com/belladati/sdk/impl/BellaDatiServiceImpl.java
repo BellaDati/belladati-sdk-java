@@ -22,6 +22,9 @@ import com.belladati.sdk.dashboard.DashboardInfo;
 import com.belladati.sdk.exception.InternalConfigurationException;
 import com.belladati.sdk.filter.Filter;
 import com.belladati.sdk.impl.AttributeValueImpl.InvalidAttributeValueException;
+import com.belladati.sdk.intervals.DateUnit;
+import com.belladati.sdk.intervals.Interval;
+import com.belladati.sdk.intervals.TimeUnit;
 import com.belladati.sdk.report.AttributeValue;
 import com.belladati.sdk.report.Comment;
 import com.belladati.sdk.report.Report;
@@ -182,6 +185,29 @@ class BellaDatiServiceImpl implements BellaDatiService {
 			ObjectNode drilldownNode = new ObjectMapper().createObjectNode();
 			drilldownNode.put("drilldown", filterNode);
 			builder.addParameter("filter", drilldownNode.toString());
+		}
+		return builder;
+	}
+
+	/**
+	 * Appends a date/time definition parameter to the URI builder. Won't do
+	 * anything if both intervals are <tt>null</tt>.
+	 * 
+	 * @param builder the builder to append to
+	 * @param dateInterval date interval to append, or <tt>null</tt>
+	 * @param timeInterval time interval to append, or <tt>null</tt>
+	 * @return the same builder, for chaining
+	 */
+	URIBuilder appendDateTime(URIBuilder builder, Interval<DateUnit> dateInterval, Interval<TimeUnit> timeInterval) {
+		if (dateInterval != null || timeInterval != null) {
+			ObjectNode dateTimeNode = new ObjectMapper().createObjectNode();
+			if (dateInterval != null) {
+				dateTimeNode.setAll(dateInterval.toJson());
+			}
+			if (timeInterval != null) {
+				dateTimeNode.setAll(timeInterval.toJson());
+			}
+			builder.addParameter("dateTimeDefinition", dateTimeNode.toString());
 		}
 		return builder;
 	}
