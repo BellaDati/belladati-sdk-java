@@ -310,7 +310,7 @@ public class TableViewsTest extends SDKTest {
 	/** Left header is loaded correctly. */
 	@Test(dataProvider = "firstLastProvider")
 	public void loadLeftHeader(final int firstRow, final int lastRow) {
-		Table table = new TableViewImpl.TableImpl(service, id, builder.buildTableNode(10, 10, 2, 2));
+		Table table = new TableViewImpl.TableImpl(service, id, builder.buildTableNode(10, 5, 2, 2));
 
 		final JsonNode result = new ObjectMapper().createObjectNode().put("content", "some content");
 		server.register(viewsUri + id + "/table/leftHeader", new TestRequestHandler() {
@@ -331,7 +331,7 @@ public class TableViewsTest extends SDKTest {
 	/** Top header is loaded correctly. */
 	@Test(dataProvider = "firstLastProvider")
 	public void loadTopHeader(final int firstCol, final int lastCol) {
-		Table table = new TableViewImpl.TableImpl(service, id, builder.buildTableNode(10, 10, 2, 2));
+		Table table = new TableViewImpl.TableImpl(service, id, builder.buildTableNode(5, 10, 2, 2));
 
 		final JsonNode result = new ObjectMapper().createObjectNode().put("content", "some content");
 		server.register(viewsUri + id + "/table/topHeader", new TestRequestHandler() {
@@ -351,13 +351,36 @@ public class TableViewsTest extends SDKTest {
 
 	@DataProvider(name = "doubleFirstLastProvider")
 	public Object[][] provideDoubleFirstLast() {
-		return new Object[][] { { 3, 8, 4, 9 }, { 10, 10, 10, 10 } };
+		return new Object[][] { { 3, 6, 4, 9 }, { 8, 8, 10, 10 } };
 	}
 
-	/** Data is loaded correctly. */
+	/** Data is loaded correctly when there are more rows than columns. */
 	@Test(dataProvider = "doubleFirstLastProvider")
-	public void loadData(final int firstRow, final int lastRow, final int firstCol, final int lastCol) {
-		Table table = new TableViewImpl.TableImpl(service, id, builder.buildTableNode(10, 10, 2, 2));
+	public void loadDataMoreRows(final int firstCol, final int lastCol, final int firstRow, final int lastRow) {
+		Table table = new TableViewImpl.TableImpl(service, id, builder.buildTableNode(10, 8, 2, 2));
+
+		final JsonNode result = new ObjectMapper().createObjectNode().put("content", "some content");
+		server.register(viewsUri + id + "/table/data", new TestRequestHandler() {
+			@Override
+			protected void handle(HttpHolder holder) throws IOException {
+				Map<String, String> expectedParams = new HashMap<String, String>();
+				expectedParams.put("rowsFrom", "" + firstRow);
+				expectedParams.put("rowsTo", "" + lastRow);
+				expectedParams.put("columnsFrom", "" + firstCol);
+				expectedParams.put("columnsTo", "" + lastCol);
+				assertEquals(holder.getUrlParameters(), expectedParams);
+				holder.response.setEntity(new StringEntity(result.toString()));
+			}
+		});
+
+		assertEquals(table.loadData(firstRow, lastRow, firstCol, lastCol), result);
+		server.assertRequestUris(viewsUri + id + "/table/data");
+	}
+
+	/** Data is loaded correctly when there are more columns than rows. */
+	@Test(dataProvider = "doubleFirstLastProvider")
+	public void loadDataMoreColumns(final int firstRow, final int lastRow, final int firstCol, final int lastCol) {
+		Table table = new TableViewImpl.TableImpl(service, id, builder.buildTableNode(8, 10, 2, 2));
 
 		final JsonNode result = new ObjectMapper().createObjectNode().put("content", "some content");
 		server.register(viewsUri + id + "/table/data", new TestRequestHandler() {
