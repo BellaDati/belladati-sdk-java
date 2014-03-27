@@ -2,6 +2,7 @@ package com.belladati.sdk.impl;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNotEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
@@ -711,6 +712,26 @@ public class IntervalTest extends SDKTest {
 
 		assertTrue(view.hasPredefinedDateInterval());
 		assertTrue(view.hasPredefinedTimeInterval());
+	}
+
+	/** two intervals with same parameters are equal */
+	public void intervalEquals() {
+		assertEquals(new RelativeInterval<IntervalUnit>(DateUnit.DAY, -1, 1), new RelativeInterval<IntervalUnit>(DateUnit.DAY,
+			-1, 1));
+		assertEquals(new AbsoluteInterval<IntervalUnit>(DateUnit.DAY, start, end), new AbsoluteInterval<IntervalUnit>(
+			DateUnit.DAY, start, end));
+		assertEquals(new AbsoluteInterval<IntervalUnit>(DateUnit.DAY, Calendar.getInstance(), Calendar.getInstance()),
+			new AbsoluteInterval<IntervalUnit>(DateUnit.DAY, Calendar.getInstance(), Calendar.getInstance()));
+
+		assertNotEquals(new RelativeInterval<IntervalUnit>(DateUnit.DAY, -1, 1), new RelativeInterval<IntervalUnit>(DateUnit.DAY,
+			-1, -1));
+		assertNotEquals(new AbsoluteInterval<IntervalUnit>(DateUnit.DAY, start, end), new AbsoluteInterval<IntervalUnit>(
+			DateUnit.DAY, start, start));
+
+		assertNotEquals(new RelativeInterval<IntervalUnit>(DateUnit.DAY, -1, 1), new RelativeInterval<IntervalUnit>(
+			DateUnit.MONTH, -1, 1));
+		assertNotEquals(new AbsoluteInterval<IntervalUnit>(DateUnit.DAY, start, end), new AbsoluteInterval<IntervalUnit>(
+			DateUnit.MONTH, start, end));
 	}
 
 	@DataProvider(name = "intervalUnitProvider")
