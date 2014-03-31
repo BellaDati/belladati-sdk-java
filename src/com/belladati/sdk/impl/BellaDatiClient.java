@@ -18,6 +18,7 @@ import oauth.signpost.OAuth;
 import oauth.signpost.exception.OAuthException;
 import oauth.signpost.http.HttpParameters;
 
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;
@@ -154,9 +155,11 @@ class BellaDatiClient implements Serializable {
 			tokenHolder.createConsumer().sign(request);
 			HttpResponse response = client.execute(request);
 			int statusCode = response.getStatusLine().getStatusCode();
-			byte[] content = readBytes(response.getEntity().getContent());
+			HttpEntity entity = response.getEntity();
+			byte[] content = entity != null ? readBytes(entity.getContent()) : new byte[0];
 			switch (statusCode) {
 			case 200:
+			case 204:
 				// all is well, return
 				return content;
 				// there was some sort of error - throw the right exception

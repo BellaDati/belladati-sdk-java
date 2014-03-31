@@ -235,6 +235,22 @@ public class UserTest extends SDKTest {
 		userInfo.loadImage();
 	}
 
+	/** Empty content for image results in exception. */
+	@Test(expectedExceptions = IOException.class)
+	public void loadEmptyContentImage() throws IOException {
+		UserInfo userInfo = new UserInfoImpl(service, id, "");
+
+		server.register(usersUri + "/" + id + "/image", new TestRequestHandler() {
+			@Override
+			protected void handle(HttpHolder holder) throws IOException {
+				holder.response.setStatusCode(204);
+				holder.response.setEntity(null);
+			}
+		});
+
+		userInfo.loadImage();
+	}
+
 	/** equals/hashcode for UserInfo */
 	public void userInfoEquality() {
 		UserInfo u1 = new UserInfoImpl(service, id, givenName);
