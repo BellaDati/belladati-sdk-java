@@ -1,5 +1,7 @@
 package com.belladati.sdk.impl;
 
+import java.util.Locale;
+
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
@@ -24,6 +26,9 @@ public class SDKTest {
 	/** builds JSON objects */
 	protected final JsonBuilder builder = new JsonBuilder();
 
+	/** system default locale */
+	private static final Locale DEFAULT_LOCALE = Locale.getDefault();
+
 	@BeforeMethod(alwaysRun = true)
 	protected void setupServer() throws Exception {
 		server = new RequestTrackingServer();
@@ -36,6 +41,12 @@ public class SDKTest {
 	@AfterMethod(alwaysRun = true)
 	protected void tearDownServer() throws Exception {
 		server.stop();
+	}
+
+	/** resets the locale back to what it was */
+	@AfterMethod(groups = "locale")
+	protected void resetLocale() {
+		Locale.setDefault(DEFAULT_LOCALE);
 	}
 
 	@DataProvider(name = "viewTypes")

@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.List;
+import java.util.Locale;
 
 import org.apache.http.entity.StringEntity;
 import org.testng.annotations.DataProvider;
@@ -732,6 +733,31 @@ public class IntervalTest extends SDKTest {
 			DateUnit.MONTH, -1, 1));
 		assertNotEquals(new AbsoluteInterval<IntervalUnit>(DateUnit.DAY, start, end), new AbsoluteInterval<IntervalUnit>(
 			DateUnit.MONTH, start, end));
+	}
+
+	/** system locale doesn't affect upper/lowercase conversion */
+	@Test(dataProvider = "intervalUnitProvider", groups = "locale")
+	public void localeCaseConversion(IntervalUnit unit) throws UnknownViewTypeException {
+		Locale.setDefault(new Locale("tr"));
+		ObjectNode viewNode = builder.buildViewNode(viewId, viewName, "chart");
+		ObjectNode intervalNode = buildIntervalNode(unit, new TextNode("-3.0"), new IntNode(3), "relative");
+
+		// set the aggregation type to lower case in English conversion
+		// when converted back using Turkish, i will not become I
+		String unitType = unit instanceof DateUnit ? "dateInterval" : "timeInterval";
+		ObjectNode typeNode = (ObjectNode) intervalNode.get(unitType);
+		typeNode.put("aggregationType", typeNode.get("aggregationType").asText().toLowerCase(Locale.ENGLISH));
+
+		viewNode.put("dateTimeDefinition", intervalNode);
+		View view = ViewImpl.buildView(service, viewNode);
+
+		if (unit instanceof DateUnit) {
+			assertTrue(view.hasPredefinedDateInterval());
+			assertFalse(view.hasPredefinedTimeInterval());
+		} else {
+			assertFalse(view.hasPredefinedDateInterval());
+			assertTrue(view.hasPredefinedTimeInterval());
+		}
 	}
 
 	@DataProvider(name = "intervalUnitProvider")

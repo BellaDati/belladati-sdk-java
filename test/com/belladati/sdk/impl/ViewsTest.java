@@ -7,6 +7,7 @@ import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
 import java.util.Collections;
+import java.util.Locale;
 
 import org.testng.annotations.Test;
 
@@ -218,5 +219,13 @@ public class ViewsTest extends SDKTest {
 			builder.insertViewDateTimeDefinition(true, true, builder.buildViewNode(id, name, "chart")));
 		assertTrue(view.isDateIntervalSupported());
 		assertTrue(view.isTimeIntervalSupported());
+	}
+
+	/** system locale doesn't affect upper/lowercase conversion */
+	@Test(dataProvider = "viewTypes", groups = "locale")
+	public void localeCaseConversion(String stringType, ViewType viewType) throws UnknownViewTypeException {
+		Locale.setDefault(new Locale("tr"));
+		View view = ViewImpl.buildView(service, builder.buildViewNode(id, name, stringType));
+		assertEquals(view.getType(), viewType);
 	}
 }

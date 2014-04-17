@@ -1,6 +1,7 @@
 package com.belladati.sdk.impl;
 
 import java.util.Collection;
+import java.util.Locale;
 
 import com.belladati.sdk.exception.interval.InvalidIntervalException;
 import com.belladati.sdk.filter.Filter;
@@ -40,7 +41,7 @@ abstract class ViewImpl implements View {
 	private static ViewType parseType(JsonNode node) throws UnknownViewTypeException {
 		if (node.hasNonNull("type")) {
 			try {
-				return ViewType.valueOf(node.get("type").asText().toUpperCase());
+				return ViewType.valueOf(node.get("type").asText().toUpperCase(Locale.ENGLISH));
 			} catch (IllegalArgumentException e) {
 				throw new UnknownViewTypeException(node.get("type").asText());
 			}
@@ -60,9 +61,9 @@ abstract class ViewImpl implements View {
 		try {
 			if (node.hasNonNull("dateInterval") && node.get("dateInterval").hasNonNull("aggregationType")) {
 				JsonNode dateInterval = node.get("dateInterval");
-				DateUnit unit = DateUnit.valueOf(dateInterval.get("aggregationType").asText().toUpperCase());
+				DateUnit unit = DateUnit.valueOf(dateInterval.get("aggregationType").asText().toUpperCase(Locale.ENGLISH));
 				JsonNode interval = dateInterval.get("interval");
-				String type = interval.get("type").asText().toLowerCase();
+				String type = interval.get("type").asText().toLowerCase(Locale.ENGLISH);
 				if ("relative".equals(type)) {
 					// the server may send numbers inside strings
 					// or numbers as decimals, e.g. 3.0
@@ -97,9 +98,9 @@ abstract class ViewImpl implements View {
 		try {
 			if (node.hasNonNull("timeInterval") && node.get("timeInterval").hasNonNull("aggregationType")) {
 				JsonNode timeInterval = node.get("timeInterval");
-				TimeUnit unit = TimeUnit.valueOf(timeInterval.get("aggregationType").asText().toUpperCase());
+				TimeUnit unit = TimeUnit.valueOf(timeInterval.get("aggregationType").asText().toUpperCase(Locale.ENGLISH));
 				JsonNode interval = timeInterval.get("interval");
-				String type = interval.get("type").asText().toLowerCase();
+				String type = interval.get("type").asText().toLowerCase(Locale.ENGLISH);
 				if ("relative".equals(type)) {
 					// the server may send numbers inside strings
 					// or numbers as decimals, e.g. 3.0
