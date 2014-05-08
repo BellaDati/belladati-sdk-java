@@ -98,6 +98,13 @@ public class ExceptionTest extends SDKTest {
 		assertAuthException(Reason.TOKEN_INVALID);
 	}
 
+	/** current actual server response for secret mismatch */
+	public void secretMismatchReversed() {
+		registerOAuthProblem(403, "signature_invalid");
+		service.tokenHolder.setToken("token", "secret");
+		assertAuthException(Reason.TOKEN_INVALID);
+	}
+
 	/** domain has expired */
 	public void domainExpired() {
 		registerOAuthProblem(403, "domain_expired");

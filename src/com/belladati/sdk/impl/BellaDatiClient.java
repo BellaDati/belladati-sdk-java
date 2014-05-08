@@ -199,7 +199,7 @@ class BellaDatiClient implements Serializable {
 				String problem = oauthParams.getFirst("oauth_problem");
 				if ("missing_consumer".equals(problem) || "invalid_consumer".equals(problem)) {
 					return new AuthorizationException(Reason.CONSUMER_KEY_UNKNOWN);
-				} else if ("invalid_signature".equals(problem)) {
+				} else if ("invalid_signature".equals(problem) || "signature_invalid".equals(problem)) {
 					return new AuthorizationException(hasToken ? Reason.TOKEN_INVALID : Reason.CONSUMER_SECRET_INVALID);
 				} else if ("domain_expired".equals(problem)) {
 					return new AuthorizationException(Reason.DOMAIN_EXPIRED);
