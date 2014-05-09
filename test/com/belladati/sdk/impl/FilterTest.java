@@ -12,6 +12,7 @@ import org.apache.http.entity.StringEntity;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import com.belladati.sdk.dataset.Attribute;
 import com.belladati.sdk.filter.Filter;
 import com.belladati.sdk.filter.Filter.MultiValueFilter;
 import com.belladati.sdk.filter.Filter.NoValueFilter;
@@ -20,7 +21,6 @@ import com.belladati.sdk.filter.FilterValue;
 import com.belladati.sdk.impl.AttributeImpl.InvalidAttributeException;
 import com.belladati.sdk.impl.AttributeValueImpl.InvalidAttributeValueException;
 import com.belladati.sdk.impl.ViewImpl.UnknownViewTypeException;
-import com.belladati.sdk.report.Attribute;
 import com.belladati.sdk.report.AttributeValue;
 import com.belladati.sdk.test.TestRequestHandler;
 import com.belladati.sdk.view.TableView.Table;
@@ -207,7 +207,8 @@ public class FilterTest extends SDKTest {
 			}
 		});
 
-		Attribute attribute2 = new AttributeImpl(service, "", builder.buildReportAttributeNode("another name", code2));
+		Attribute attribute2 = new AttributeImpl(service, "", builder.buildAttributeNode("another ID", "another name",
+			code2, "string"));
 		AttributeValue value2 = new AttributeValueImpl(builder.buildAttributeValueNode("another label", valueString2));
 		view.loadContent(FilterOperation.IN.createFilter(attribute).addValue(value), FilterOperation.IN.createFilter(attribute2)
 			.addValue(value2));
@@ -242,7 +243,8 @@ public class FilterTest extends SDKTest {
 			}
 		});
 
-		Attribute attribute2 = new AttributeImpl(service, "", builder.buildReportAttributeNode("another name", code2));
+		Attribute attribute2 = new AttributeImpl(service, "", builder.buildAttributeNode("another id", "another name",
+			code2, "string"));
 		AttributeValue value2 = new AttributeValueImpl(builder.buildAttributeValueNode("another label", valueString2));
 		view.loadContent(FilterOperation.IN.createFilter(attribute).addValue(value), FilterOperation.IN.createFilter(attribute2)
 			.addValue(value2));
@@ -326,8 +328,8 @@ public class FilterTest extends SDKTest {
 		Filter<?> f1 = FilterOperation.NULL.createFilter(attribute);
 		Filter<?> f2 = FilterOperation.NULL.createFilter(attribute);
 		Filter<?> f3 = FilterOperation.NOT_NULL.createFilter(attribute);
-		Filter<?> f4 = FilterOperation.NULL.createFilter(new AttributeImpl(service, reportId, builder.buildReportAttributeNode(name,
-			"otherCode")));
+		Filter<?> f4 = FilterOperation.NULL.createFilter(new AttributeImpl(service, reportId, builder.buildAttributeNode(
+			"otherId", name, code, "string")));
 
 		assertEquals(f1, f2);
 		assertEquals(f1.hashCode(), f2.hashCode());
@@ -342,7 +344,8 @@ public class FilterTest extends SDKTest {
 		Filter<?> f2 = FilterOperation.IN.createFilter(attribute).addValue(value);
 		Filter<?> f3 = FilterOperation.NOT_IN.createFilter(attribute).addValue(value);
 		Filter<?> f4 = FilterOperation.IN.createFilter(
-			new AttributeImpl(service, reportId, builder.buildReportAttributeNode(name, "otherCode"))).addValue(value);
+			new AttributeImpl(service, reportId, builder.buildAttributeNode("other id", name, code, "string"))).addValue(
+			value);
 		Filter<?> f5 = FilterOperation.IN.createFilter(attribute).addValue(
 			new AttributeValueImpl(builder.buildAttributeValueNode(label, "other value")));
 
@@ -370,7 +373,7 @@ public class FilterTest extends SDKTest {
 
 	@BeforeMethod
 	protected void setupAttribute() throws InvalidAttributeException, InvalidAttributeValueException {
-		attribute = new AttributeImpl(service, reportId, builder.buildReportAttributeNode(name, code));
+		attribute = new AttributeImpl(service, reportId, builder.buildAttributeNode("id", name, code, "string"));
 		value = new AttributeValueImpl(builder.buildAttributeValueNode(label, valueString));
 	}
 }

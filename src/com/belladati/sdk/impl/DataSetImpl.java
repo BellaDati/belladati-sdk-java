@@ -10,7 +10,7 @@ import java.util.List;
 import com.belladati.sdk.dataset.Attribute;
 import com.belladati.sdk.dataset.DataSet;
 import com.belladati.sdk.dataset.Indicator;
-import com.belladati.sdk.impl.DataSetAttributeImpl.InvalidAttributeException;
+import com.belladati.sdk.impl.AttributeImpl.InvalidAttributeException;
 import com.belladati.sdk.impl.IndicatorImpl.InvalidIndicatorException;
 import com.belladati.sdk.impl.ReportInfoImpl.InvalidReportException;
 import com.belladati.sdk.report.ReportInfo;
@@ -51,7 +51,7 @@ class DataSetImpl implements DataSet {
 		if (json.hasNonNull("attributes") && json.get("attributes") instanceof ArrayNode) {
 			for (JsonNode attribute : (ArrayNode) json.get("attributes")) {
 				try {
-					attributes.add(new DataSetAttributeImpl(attribute));
+					attributes.add(new AttributeImpl(service, null, attribute));
 				} catch (InvalidAttributeException e) {
 					// nothing to do, just ignore the attribute
 				}

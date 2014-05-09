@@ -7,10 +7,10 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
+import com.belladati.sdk.dataset.Attribute;
 import com.belladati.sdk.dataset.DataSetInfo;
 import com.belladati.sdk.impl.AttributeImpl.InvalidAttributeException;
 import com.belladati.sdk.impl.ViewImpl.UnknownViewTypeException;
-import com.belladati.sdk.report.Attribute;
 import com.belladati.sdk.report.Comment;
 import com.belladati.sdk.report.Report;
 import com.belladati.sdk.util.PaginatedList;

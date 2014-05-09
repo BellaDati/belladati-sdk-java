@@ -71,7 +71,7 @@ public class DataSetStructureTest extends SDKTest {
 	public void attributeTypes(String jsonType, AttributeType type) {
 		ObjectNode node = builder.buildDataSetNode(dataSetId, name, description, owner, lastChange);
 		node.put("attributes",
-			new ObjectMapper().createArrayNode().add(builder.buildDataSetAttributeNode(id, name, code, jsonType)));
+			new ObjectMapper().createArrayNode().add(builder.buildAttributeNode(id, name, code, jsonType)));
 		server.register(dataSetsUri + "/" + dataSetId, node.toString());
 		DataSet dataSet = service.loadDataSet(dataSetId);
 
@@ -89,7 +89,7 @@ public class DataSetStructureTest extends SDKTest {
 	public void loadAttributeValues() {
 		ObjectNode node = builder.buildDataSetNode(dataSetId, name, description, owner, lastChange);
 		node.put("attributes",
-			new ObjectMapper().createArrayNode().add(builder.buildDataSetAttributeNode(id, name, code, "string")));
+			new ObjectMapper().createArrayNode().add(builder.buildAttributeNode(id, name, code, "string")));
 		server.register(dataSetsUri + "/" + dataSetId, node.toString());
 		DataSet dataSet = service.loadDataSet(dataSetId);
 		Attribute attribute = dataSet.getAttributes().get(0);
@@ -153,7 +153,7 @@ public class DataSetStructureTest extends SDKTest {
 		ObjectNode node = builder.buildDataSetNode(dataSetId, name, description, owner, lastChange);
 		node.put("indicators",
 			new ObjectMapper().createArrayNode()
-				.add(builder.buildDataSetIndicatorNode(id, name, code, formula, "data_indicator")));
+				.add(builder.buildIndicatorNode(id, name, code, formula, "data_indicator")));
 		server.register(dataSetsUri + "/" + dataSetId, node.toString());
 		DataSet dataSet = service.loadDataSet(dataSetId);
 
@@ -173,7 +173,7 @@ public class DataSetStructureTest extends SDKTest {
 		node.put(
 			"indicators",
 			new ObjectMapper().createArrayNode().add(
-				builder.buildDataSetIndicatorNode(id, name, code, formula, "formula_indicator")));
+				builder.buildIndicatorNode(id, name, code, formula, "formula_indicator")));
 		server.register(dataSetsUri + "/" + dataSetId, node.toString());
 		DataSet dataSet = service.loadDataSet(dataSetId);
 
@@ -193,7 +193,7 @@ public class DataSetStructureTest extends SDKTest {
 		node.put(
 			"indicators",
 			new ObjectMapper().createArrayNode().add(
-				builder.buildDataSetIndicatorNode(id, name, code, formula, "indicator_group")));
+				builder.buildIndicatorNode(id, name, code, formula, "indicator_group")));
 		server.register(dataSetsUri + "/" + dataSetId, node.toString());
 		DataSet dataSet = service.loadDataSet(dataSetId);
 
@@ -215,15 +215,15 @@ public class DataSetStructureTest extends SDKTest {
 		String code = "code";
 		String type = "String";
 		// invalid is if code or name is null or doesn't exist
-		return new Object[][] { { builder.buildDataSetAttributeNode(null, name, code, type) },
-			{ builder.buildDataSetAttributeNode(id, null, code, type) },
-			{ builder.buildDataSetAttributeNode(id, name, null, type) },
-			{ builder.buildDataSetAttributeNode(id, name, code, null) },
-			{ builder.buildDataSetAttributeNode(id, name, code, type).retain("name", "code", "type") },
-			{ builder.buildDataSetAttributeNode(id, name, code, type).retain("id", "code", "type") },
-			{ builder.buildDataSetAttributeNode(id, name, code, type).retain("id", "name", "type") },
-			{ builder.buildDataSetAttributeNode(id, name, code, type).retain("id", "name", "code") },
-			{ builder.buildDataSetAttributeNode(id, name, code, "other_type") } };
+		return new Object[][] { { builder.buildAttributeNode(null, name, code, type) },
+			{ builder.buildAttributeNode(id, null, code, type) },
+			{ builder.buildAttributeNode(id, name, null, type) },
+			{ builder.buildAttributeNode(id, name, code, null) },
+			{ builder.buildAttributeNode(id, name, code, type).retain("name", "code", "type") },
+			{ builder.buildAttributeNode(id, name, code, type).retain("id", "code", "type") },
+			{ builder.buildAttributeNode(id, name, code, type).retain("id", "name", "type") },
+			{ builder.buildAttributeNode(id, name, code, type).retain("id", "name", "code") },
+			{ builder.buildAttributeNode(id, name, code, "other_type") } };
 	}
 
 	/** Provides attribute types and corresponding enum items. */
@@ -242,16 +242,16 @@ public class DataSetStructureTest extends SDKTest {
 		String formula = "formula";
 		String type = "indicator_group";
 		// invalid is if code or name is null or doesn't exist
-		return new Object[][] { { builder.buildDataSetIndicatorNode(null, name, code, formula, type) },
-			{ builder.buildDataSetIndicatorNode(id, null, code, formula, type) },
-			{ builder.buildDataSetIndicatorNode(id, name, null, formula, "data_indicator") },
-			{ builder.buildDataSetIndicatorNode(id, name, code, null, "formula_indicator") },
-			{ builder.buildDataSetIndicatorNode(id, name, code, formula, null) },
-			{ builder.buildDataSetIndicatorNode(id, name, code, formula, type).retain("name", "type") },
-			{ builder.buildDataSetIndicatorNode(id, name, code, formula, type).retain("id", "type") },
-			{ builder.buildDataSetIndicatorNode(id, name, code, formula, type).retain("id", "name") },
-			{ builder.buildDataSetIndicatorNode(id, name, code, formula, "data_indicator").retain("id", "name", "type") },
-			{ builder.buildDataSetIndicatorNode(id, name, code, formula, "formula_indicator").retain("id", "name", "type") },
-			{ builder.buildDataSetIndicatorNode(id, name, code, formula, "other_type") } };
+		return new Object[][] { { builder.buildIndicatorNode(null, name, code, formula, type) },
+			{ builder.buildIndicatorNode(id, null, code, formula, type) },
+			{ builder.buildIndicatorNode(id, name, null, formula, "data_indicator") },
+			{ builder.buildIndicatorNode(id, name, code, null, "formula_indicator") },
+			{ builder.buildIndicatorNode(id, name, code, formula, null) },
+			{ builder.buildIndicatorNode(id, name, code, formula, type).retain("name", "type") },
+			{ builder.buildIndicatorNode(id, name, code, formula, type).retain("id", "type") },
+			{ builder.buildIndicatorNode(id, name, code, formula, type).retain("id", "name") },
+			{ builder.buildIndicatorNode(id, name, code, formula, "data_indicator").retain("id", "name", "type") },
+			{ builder.buildIndicatorNode(id, name, code, formula, "formula_indicator").retain("id", "name", "type") },
+			{ builder.buildIndicatorNode(id, name, code, formula, "other_type") } };
 	}
 }

@@ -1,6 +1,8 @@
 package com.belladati.sdk.impl;
 
-import com.belladati.sdk.report.Attribute;
+import com.belladati.sdk.dataset.Attribute;
+import com.belladati.sdk.dataset.AttributeType;
+import com.belladati.sdk.exception.BellaDatiRuntimeException;
 import com.belladati.sdk.report.AttributeValue;
 import com.belladati.sdk.util.CachedList;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -10,19 +12,31 @@ class AttributeImpl implements Attribute {
 	private final BellaDatiServiceImpl service;
 	private final String reportId;
 
+	private final String id;
 	private final String name;
 	private final String code;
+	private final AttributeType type;
 
 	AttributeImpl(BellaDatiServiceImpl service, String reportId, JsonNode node) throws InvalidAttributeException {
 		this.service = service;
 		this.reportId = reportId;
 
-		if (node.hasNonNull("name") && node.hasNonNull("code")) {
+		if (node.hasNonNull("id") && node.hasNonNull("name") && node.hasNonNull("code") && node.hasNonNull("type")) {
+			this.id = node.get("id").asText();
 			this.name = node.get("name").asText();
 			this.code = node.get("code").asText();
+			this.type = AttributeType.valueOfJson(node.get("type").asText());
+			if (this.type == null) {
+				throw new InvalidAttributeException(node);
+			}
 		} else {
 			throw new InvalidAttributeException(node);
 		}
+	}
+
+	@Override
+	public String getId() {
+		return id;
 	}
 
 	@Override
@@ -36,7 +50,15 @@ class AttributeImpl implements Attribute {
 	}
 
 	@Override
+	public AttributeType getType() {
+		return type;
+	}
+
+	@Override
 	public CachedList<AttributeValue> getValues() {
+		if (reportId == null) {
+			throw new AttributeValueLoadException();
+		}
 		return service.getAttributeValues(reportId, code);
 	}
 
@@ -48,14 +70,14 @@ class AttributeImpl implements Attribute {
 	@Override
 	public boolean equals(Object obj) {
 		if (obj instanceof AttributeImpl) {
-			return code.equals(((AttributeImpl) obj).code) && reportId.equals(((AttributeImpl) obj).reportId);
+			return id.equals(((AttributeImpl) obj).id);
 		}
 		return false;
 	}
 
 	@Override
 	public int hashCode() {
-		return code.hashCode() ^ reportId.hashCode();
+		return id.hashCode();
 	}
 
 	class InvalidAttributeException extends Exception {
@@ -64,6 +86,15 @@ class AttributeImpl implements Attribute {
 
 		public InvalidAttributeException(JsonNode node) {
 			super("Invalid attribute JSON: " + node.toString());
+		}
+	}
+
+	class AttributeValueLoadException extends BellaDatiRuntimeException {
+		/** The serialVersionUID */
+		private static final long serialVersionUID = 4392730653489014114L;
+
+		public AttributeValueLoadException() {
+			super("Value loading for data set attributes is currently unsupported.");
 		}
 	}
 }

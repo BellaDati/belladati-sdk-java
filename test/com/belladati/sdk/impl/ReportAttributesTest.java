@@ -12,9 +12,9 @@ import org.apache.http.entity.StringEntity;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import com.belladati.sdk.dataset.Attribute;
 import com.belladati.sdk.impl.AttributeImpl.InvalidAttributeException;
 import com.belladati.sdk.impl.AttributeValueImpl.InvalidAttributeValueException;
-import com.belladati.sdk.report.Attribute;
 import com.belladati.sdk.report.AttributeValue;
 import com.belladati.sdk.report.Report;
 import com.belladati.sdk.test.TestRequestHandler;
@@ -30,11 +30,13 @@ public class ReportAttributesTest extends SDKTest {
 	private final String valuesUri = "/api/reports/%s/filter/drilldownAttributeValues";
 
 	private final String reportId = "123";
+	private final String id = "id";
 	private final String name = "name";
 	private final String description = "report description";
 	private final String owner = "report owner";
 	private final String lastChange = "Mon, 16 Apr 2012 10:17:26 GMT";
 	private final String code = "code";
+	private final String type = "string";
 
 	/** No data set field means no attributes. */
 	public void reportWithoutDataSet() {
@@ -68,10 +70,12 @@ public class ReportAttributesTest extends SDKTest {
 
 	/** Report attributes are loaded. */
 	public void reportWithAttribute() {
+		String attId = "attribute id";
 		String attName = "attribute name";
 		String attCode = "attribute code";
 		ObjectNode node = builder.buildReportNode(reportId, name, description, owner, lastChange);
-		((ArrayNode) node.get("dataSet").get("drilldownAttributes")).add(builder.buildReportAttributeNode(attName, attCode));
+		((ArrayNode) node.get("dataSet").get("drilldownAttributes")).add(builder.buildAttributeNode(attId, attName,
+			attCode, type));
 		server.register(reportsUri + "/" + reportId, node.toString());
 		Report report = service.loadReport(reportId);
 
@@ -93,7 +97,7 @@ public class ReportAttributesTest extends SDKTest {
 
 	/** Missing values attribute means no attribute values. */
 	public void valuesWithoutValues() throws InvalidAttributeException {
-		Attribute attribute = new AttributeImpl(service, reportId, builder.buildReportAttributeNode(name, code));
+		Attribute attribute = new AttributeImpl(service, reportId, builder.buildAttributeNode(id, name, code, type));
 		registerValues(new ObjectMapper().createObjectNode());
 
 		assertEquals(attribute.getValues().load().get(), Collections.emptyList());
@@ -101,7 +105,7 @@ public class ReportAttributesTest extends SDKTest {
 
 	/** Null values attribute means no attribute values. */
 	public void valuesNull() throws InvalidAttributeException {
-		Attribute attribute = new AttributeImpl(service, reportId, builder.buildReportAttributeNode(name, code));
+		Attribute attribute = new AttributeImpl(service, reportId, builder.buildAttributeNode(id, name, code, type));
 		registerValues(new ObjectMapper().createObjectNode().put("values", (String) null));
 
 		assertEquals(attribute.getValues().load().get(), Collections.emptyList());
@@ -109,7 +113,7 @@ public class ReportAttributesTest extends SDKTest {
 
 	/** Values attribute not an array means no attribute values. */
 	public void valuesNotArray() throws InvalidAttributeException {
-		Attribute attribute = new AttributeImpl(service, reportId, builder.buildReportAttributeNode(name, code));
+		Attribute attribute = new AttributeImpl(service, reportId, builder.buildAttributeNode(id, name, code, type));
 		registerValues(new ObjectMapper().createObjectNode().put("values", "not an array"));
 
 		assertEquals(attribute.getValues().load().get(), Collections.emptyList());
@@ -117,7 +121,7 @@ public class ReportAttributesTest extends SDKTest {
 
 	/** Values attribute empty means no attribute values. */
 	public void valuesEmpty() throws InvalidAttributeException {
-		Attribute attribute = new AttributeImpl(service, reportId, builder.buildReportAttributeNode(name, code));
+		Attribute attribute = new AttributeImpl(service, reportId, builder.buildAttributeNode(id, name, code, type));
 		ObjectNode node = new ObjectMapper().createObjectNode();
 		node.put("values", new ObjectMapper().createArrayNode());
 		registerValues(node);
@@ -129,7 +133,7 @@ public class ReportAttributesTest extends SDKTest {
 	public void valueValid() throws InvalidAttributeException {
 		String label = "label";
 		String value = "value";
-		Attribute attribute = new AttributeImpl(service, reportId, builder.buildReportAttributeNode(name, code));
+		Attribute attribute = new AttributeImpl(service, reportId, builder.buildAttributeNode(id, name, code, type));
 		ObjectNode node = new ObjectMapper().createObjectNode();
 		node.put("values", new ObjectMapper().createArrayNode().add(builder.buildAttributeValueNode(label, value)));
 		registerValues(node);
@@ -147,7 +151,7 @@ public class ReportAttributesTest extends SDKTest {
 	/** Invalid values in values attribute are ignored. */
 	@Test(dataProvider = "invalidValues")
 	public void valueInvalid(JsonNode value) throws InvalidAttributeException {
-		Attribute attribute = new AttributeImpl(service, reportId, builder.buildReportAttributeNode(name, code));
+		Attribute attribute = new AttributeImpl(service, reportId, builder.buildAttributeNode(id, name, code, type));
 		ObjectNode node = new ObjectMapper().createObjectNode();
 		node.put("values", new ObjectMapper().createArrayNode().add(value));
 		registerValues(node);
@@ -157,7 +161,7 @@ public class ReportAttributesTest extends SDKTest {
 
 	/** getValues() always returns the same object. */
 	public void cacheSame() throws InvalidAttributeException {
-		Attribute attribute = new AttributeImpl(service, reportId, builder.buildReportAttributeNode(name, code));
+		Attribute attribute = new AttributeImpl(service, reportId, builder.buildAttributeNode(id, name, code, type));
 
 		assertSame(attribute.getValues(), attribute.getValues());
 	}
@@ -167,23 +171,23 @@ public class ReportAttributesTest extends SDKTest {
 	 * from attribute.
 	 */
 	public void cacheFromServiceSame() throws InvalidAttributeException {
-		Attribute attribute = new AttributeImpl(service, reportId, builder.buildReportAttributeNode(name, code));
+		Attribute attribute = new AttributeImpl(service, reportId, builder.buildAttributeNode(id, name, code, type));
 
 		assertSame(service.getAttributeValues(reportId, code), attribute.getValues());
 	}
 
 	/** equals and hashcode work as expected for attributes */
 	public void attributeEquality() throws InvalidAttributeException {
-		Attribute att1 = new AttributeImpl(service, reportId, builder.buildReportAttributeNode("1", code));
-		Attribute att2 = new AttributeImpl(service, reportId, builder.buildReportAttributeNode("2", code));
-		Attribute att3 = new AttributeImpl(service, reportId, builder.buildReportAttributeNode("3", "3"));
-		Attribute att4 = new AttributeImpl(service, "4", builder.buildReportAttributeNode("4", code));
+		Attribute att1 = new AttributeImpl(service, reportId, builder.buildAttributeNode(id, "1", "1", type));
+		Attribute att2 = new AttributeImpl(service, reportId, builder.buildAttributeNode(id, "2", "2", type));
+		Attribute att3 = new AttributeImpl(service, reportId, builder.buildAttributeNode("other", "3", "3", type));
+		Attribute att4 = new AttributeImpl(service, "4", builder.buildAttributeNode(id, name, code, type));
 
 		assertEquals(att1, att2);
 		assertEquals(att1.hashCode(), att2.hashCode());
 
 		assertNotEquals(att1, att3);
-		assertNotEquals(att1, att4);
+		assertEquals(att1, att4);
 	}
 
 	/** equals and hashcode work as expected for attribute values */
@@ -203,9 +207,15 @@ public class ReportAttributesTest extends SDKTest {
 	@DataProvider(name = "invalidAttributes")
 	protected Object[][] invalidAttributeProvider() {
 		// invalid is if code or name is null or doesn't exist
-		return new Object[][] { { builder.buildReportAttributeNode(null, "code") }, { builder.buildReportAttributeNode("name", null) },
-			{ builder.buildReportAttributeNode("name", "code").retain("name") },
-			{ builder.buildReportAttributeNode("name", "code").retain("code") } };
+		return new Object[][] { { builder.buildAttributeNode(null, name, code, type) },
+			{ builder.buildAttributeNode(id, null, code, type) },
+			{ builder.buildAttributeNode(id, name, null, type) },
+			{ builder.buildAttributeNode(id, name, code, null) },
+			{ builder.buildAttributeNode(id, name, code, type).retain("name", "code", "type") },
+			{ builder.buildAttributeNode(id, name, code, type).retain("id", "code", "type") },
+			{ builder.buildAttributeNode(id, name, code, type).retain("id", "name", "type") },
+			{ builder.buildAttributeNode(id, name, code, type).retain("id", "name", "code") },
+			{ builder.buildAttributeNode(id, name, code, "other_type") } };
 	}
 
 	/** Provides attribute value JSON that's invalid in some way. */
