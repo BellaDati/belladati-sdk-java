@@ -2,6 +2,7 @@ package com.belladati.sdk.impl;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotEquals;
+import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertSame;
 
@@ -14,6 +15,7 @@ import java.util.TimeZone;
 import org.apache.http.entity.InputStreamEntity;
 import org.testng.annotations.Test;
 
+import com.belladati.sdk.dataset.DataSetInfo;
 import com.belladati.sdk.report.Report;
 import com.belladati.sdk.report.ReportInfo;
 import com.belladati.sdk.test.TestRequestHandler;
@@ -265,6 +267,62 @@ public class ReportsTest extends SDKTest {
 		assertEquals(r1.hashCode(), r2.hashCode());
 
 		assertNotEquals(r1, r3);
+	}
+
+	/** underlying data sets are loaded for reports */
+	public void reportDataSet() {
+		String idDS = "id2";
+		String nameDS = "name2";
+		String descDS = "desc2";
+		String ownerDS = "owner2";
+		String lastChangeDS = "Tue, 17 Apr 2012 11:18:27 GMT";
+		ObjectNode reportNode = builder.buildReportNode(id, name, description, owner, lastChange);
+		ObjectNode dataSetNode = builder.buildDataSetNode(idDS, nameDS, descDS, ownerDS, lastChangeDS);
+		((ObjectNode) reportNode.get("dataSet")).putAll(dataSetNode);
+
+		server.register(reportsUri + "/" + id, reportNode.toString());
+		Report report = service.loadReport(id);
+
+		DataSetInfo dataSet = report.getDataSet();
+
+		assertEquals(dataSet.getId(), idDS);
+		assertEquals(dataSet.getName(), nameDS);
+		assertEquals(dataSet.getDescription(), descDS);
+		assertEquals(dataSet.getOwnerName(), ownerDS);
+		Calendar expectedChange = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
+		expectedChange.set(2012, 3, 17, 11, 18, 27);
+		expectedChange.set(Calendar.MILLISECOND, 0);
+		assertEquals(dataSet.getLastChange(), expectedChange.getTime());
+	}
+
+	/** incomplete data set information is ignored */
+	public void incompleteDataSet() {
+		server.register(reportsUri + "/" + id, builder.buildReportNode(id, name, description, owner, lastChange).toString());
+		assertNull(service.loadReport(id).getDataSet());
+	}
+
+	/** missing data set information is ignored */
+	public void missingDataSet() {
+		ObjectNode reportNode = builder.buildReportNode(id, name, description, owner, lastChange);
+		reportNode.remove("dataSet");
+		server.register(reportsUri + "/" + id, reportNode.toString());
+		assertNull(service.loadReport(id).getDataSet());
+	}
+
+	/** data set details can be loaded from a report's data set info */
+	public void reportDataSetLoadDetails() {
+		ObjectNode reportNode = builder.buildReportNode(id, name, description, owner, lastChange);
+		ObjectNode dataSetNode = builder.buildDataSetNode(id, name, description, owner, lastChange);
+		((ObjectNode) reportNode.get("dataSet")).putAll(dataSetNode);
+
+		server.register(reportsUri + "/" + id, reportNode.toString());
+		server.register("/api/dataSets/" + id, dataSetNode.toString());
+		Report report = service.loadReport(id);
+
+		DataSetInfo dataSet = report.getDataSet();
+		assertNotNull(dataSet.loadDetails());
+
+		server.assertRequestUris(reportsUri + "/" + id, "/api/dataSets/" + id);
 	}
 
 	/**

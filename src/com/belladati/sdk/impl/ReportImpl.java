@@ -7,6 +7,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
+import com.belladati.sdk.dataset.DataSetInfo;
 import com.belladati.sdk.impl.AttributeImpl.InvalidAttributeException;
 import com.belladati.sdk.impl.ViewImpl.UnknownViewTypeException;
 import com.belladati.sdk.report.Attribute;
@@ -28,6 +29,7 @@ class ReportImpl implements Report {
 	private final Date lastChange;
 	private final List<View> viewInfos;
 	private final List<Attribute> attributes;
+	private final DataSetInfo dataSet;
 
 	ReportImpl(BellaDatiServiceImpl service, JsonNode json) {
 		this.service = service;
@@ -74,6 +76,12 @@ class ReportImpl implements Report {
 			}
 		}
 		this.attributes = Collections.unmodifiableList(attributes);
+
+		if (json.hasNonNull("dataSet") && json.get("dataSet").hasNonNull("id")) {
+			this.dataSet = new DataSetInfoImpl(service, json.get("dataSet"));
+		} else {
+			this.dataSet = null;
+		}
 	}
 
 	@Override
@@ -137,5 +145,10 @@ class ReportImpl implements Report {
 	@Override
 	public int hashCode() {
 		return id.hashCode();
+	}
+
+	@Override
+	public DataSetInfo getDataSet() {
+		return dataSet;
 	}
 }

@@ -46,7 +46,7 @@ public class JsonBuilder {
 	}
 
 	/** Builds a JSON node representing a report attribute. */
-	public ObjectNode buildAttributeNode(String name, String code) {
+	public ObjectNode buildReportAttributeNode(String name, String code) {
 		return new ObjectMapper().createObjectNode().put("name", name).put("code", code);
 	}
 
@@ -72,5 +72,23 @@ public class JsonBuilder {
 	public ObjectNode buildTableNode(int rows, int columns, int leftHeaderColumns, int topHeaderRows) {
 		return new ObjectMapper().createObjectNode().put("rowsCount", rows).put("columnsCount", columns)
 			.put("topHeaderRowsCount", topHeaderRows).put("leftHeaderColumnsCount", leftHeaderColumns);
+	}
+
+	/** Builds a JSON node representing a data set or data set info item. */
+	public ObjectNode buildDataSetNode(String id, String name, String description, String owner, String lastChange) {
+		ObjectNode dataSet = new ObjectMapper().createObjectNode();
+		dataSet.put("id", id).put("name", name).put("description", description).put("owner", owner).put("lastChange", lastChange);
+		return dataSet;
+	}
+
+	/** Builds a JSON node representing a data set attribute. */
+	public ObjectNode buildDataSetAttributeNode(String id, String name, String code, String type) {
+		return new ObjectMapper().createObjectNode().put("id", id).put("name", name).put("code", code).put("type", type);
+	}
+
+	/** Builds a JSON node representing a data set indicator. */
+	public ObjectNode buildDataSetIndicatorNode(String id, String name, String code, String formula, String type) {
+		return new ObjectMapper().createObjectNode().put("id", id).put("name", name).put("code", code).put("formula", formula)
+			.put("type", type);
 	}
 }

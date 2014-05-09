@@ -1,18 +1,14 @@
 package com.belladati.sdk.impl;
 
-import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import com.belladati.sdk.exception.BellaDatiRuntimeException;
-import com.belladati.sdk.report.Comment;
-import com.belladati.sdk.report.Report;
-import com.belladati.sdk.report.ReportInfo;
-import com.belladati.sdk.util.PaginatedList;
+import com.belladati.sdk.dataset.DataSet;
+import com.belladati.sdk.dataset.DataSetInfo;
 import com.fasterxml.jackson.databind.JsonNode;
 
-class ReportInfoImpl implements ReportInfo {
+class DataSetInfoImpl implements DataSetInfo {
 
 	private final BellaDatiServiceImpl service;
 
@@ -22,10 +18,7 @@ class ReportInfoImpl implements ReportInfo {
 	private final String ownerName;
 	private final Date lastChange;
 
-	ReportInfoImpl(BellaDatiServiceImpl service, JsonNode json) {
-		if (!json.hasNonNull("id") || !json.hasNonNull("name") || !json.hasNonNull("owner")) {
-			throw new InvalidReportException(json);
-		}
+	DataSetInfoImpl(BellaDatiServiceImpl service, JsonNode json) {
 		this.service = service;
 
 		this.id = json.get("id").asText();
@@ -73,23 +66,8 @@ class ReportInfoImpl implements ReportInfo {
 	}
 
 	@Override
-	public Report loadDetails() {
-		return service.loadReport(id);
-	}
-
-	@Override
-	public Object loadThumbnail() throws IOException {
-		return service.loadReportThumbnail(id);
-	}
-
-	@Override
-	public PaginatedList<Comment> getComments() {
-		return service.getReportComments(id);
-	}
-
-	@Override
-	public void postComment(String text) {
-		service.postComment(id, text);
+	public DataSet loadDetails() {
+		return service.loadDataSet(id);
 	}
 
 	@Override
@@ -99,8 +77,8 @@ class ReportInfoImpl implements ReportInfo {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (obj instanceof ReportInfoImpl) {
-			return id.equals(((ReportInfoImpl) obj).id);
+		if (obj instanceof DataSetInfoImpl) {
+			return id.equals(((DataSetInfoImpl) obj).id);
 		}
 		return false;
 	}
@@ -108,14 +86,5 @@ class ReportInfoImpl implements ReportInfo {
 	@Override
 	public int hashCode() {
 		return id.hashCode();
-	}
-
-	class InvalidReportException extends BellaDatiRuntimeException {
-		/** The serialVersionUID */
-		private static final long serialVersionUID = -4920843734203654180L;
-
-		public InvalidReportException(JsonNode node) {
-			super("Invalid report JSON: " + node.toString());
-		}
 	}
 }

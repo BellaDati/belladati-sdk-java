@@ -207,7 +207,7 @@ public class FilterTest extends SDKTest {
 			}
 		});
 
-		Attribute attribute2 = new AttributeImpl(service, "", builder.buildAttributeNode("another name", code2));
+		Attribute attribute2 = new AttributeImpl(service, "", builder.buildReportAttributeNode("another name", code2));
 		AttributeValue value2 = new AttributeValueImpl(builder.buildAttributeValueNode("another label", valueString2));
 		view.loadContent(FilterOperation.IN.createFilter(attribute).addValue(value), FilterOperation.IN.createFilter(attribute2)
 			.addValue(value2));
@@ -242,7 +242,7 @@ public class FilterTest extends SDKTest {
 			}
 		});
 
-		Attribute attribute2 = new AttributeImpl(service, "", builder.buildAttributeNode("another name", code2));
+		Attribute attribute2 = new AttributeImpl(service, "", builder.buildReportAttributeNode("another name", code2));
 		AttributeValue value2 = new AttributeValueImpl(builder.buildAttributeValueNode("another label", valueString2));
 		view.loadContent(FilterOperation.IN.createFilter(attribute).addValue(value), FilterOperation.IN.createFilter(attribute2)
 			.addValue(value2));
@@ -326,7 +326,7 @@ public class FilterTest extends SDKTest {
 		Filter<?> f1 = FilterOperation.NULL.createFilter(attribute);
 		Filter<?> f2 = FilterOperation.NULL.createFilter(attribute);
 		Filter<?> f3 = FilterOperation.NOT_NULL.createFilter(attribute);
-		Filter<?> f4 = FilterOperation.NULL.createFilter(new AttributeImpl(service, reportId, builder.buildAttributeNode(name,
+		Filter<?> f4 = FilterOperation.NULL.createFilter(new AttributeImpl(service, reportId, builder.buildReportAttributeNode(name,
 			"otherCode")));
 
 		assertEquals(f1, f2);
@@ -342,7 +342,7 @@ public class FilterTest extends SDKTest {
 		Filter<?> f2 = FilterOperation.IN.createFilter(attribute).addValue(value);
 		Filter<?> f3 = FilterOperation.NOT_IN.createFilter(attribute).addValue(value);
 		Filter<?> f4 = FilterOperation.IN.createFilter(
-			new AttributeImpl(service, reportId, builder.buildAttributeNode(name, "otherCode"))).addValue(value);
+			new AttributeImpl(service, reportId, builder.buildReportAttributeNode(name, "otherCode"))).addValue(value);
 		Filter<?> f5 = FilterOperation.IN.createFilter(attribute).addValue(
 			new AttributeValueImpl(builder.buildAttributeValueNode(label, "other value")));
 
@@ -370,7 +370,7 @@ public class FilterTest extends SDKTest {
 
 	@BeforeMethod
 	protected void setupAttribute() throws InvalidAttributeException, InvalidAttributeValueException {
-		attribute = new AttributeImpl(service, reportId, builder.buildAttributeNode(name, code));
+		attribute = new AttributeImpl(service, reportId, builder.buildReportAttributeNode(name, code));
 		value = new AttributeValueImpl(builder.buildAttributeValueNode(label, valueString));
 	}
 }

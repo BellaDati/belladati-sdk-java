@@ -19,7 +19,10 @@ import org.apache.http.message.BasicNameValuePair;
 import com.belladati.sdk.BellaDatiService;
 import com.belladati.sdk.dashboard.Dashboard;
 import com.belladati.sdk.dashboard.DashboardInfo;
+import com.belladati.sdk.dataset.DataSet;
+import com.belladati.sdk.dataset.DataSetInfo;
 import com.belladati.sdk.exception.InternalConfigurationException;
+import com.belladati.sdk.exception.server.NotFoundException;
 import com.belladati.sdk.filter.Filter;
 import com.belladati.sdk.impl.AttributeValueImpl.InvalidAttributeValueException;
 import com.belladati.sdk.intervals.DateUnit;
@@ -50,6 +53,8 @@ class BellaDatiServiceImpl implements BellaDatiService {
 	private final transient PaginatedIdList<DashboardInfo> dashboardList = new DashboardList();
 
 	private final transient PaginatedIdList<ReportInfo> reportList = new ReportList();
+
+	private final transient PaginatedIdList<DataSetInfo> dataSetList = new DataSetList();
 
 	private final transient Map<String, PaginatedList<Comment>> commentLists = Collections
 		.synchronizedMap(new HashMap<String, PaginatedList<Comment>>());
@@ -256,6 +261,16 @@ class BellaDatiServiceImpl implements BellaDatiService {
 			+ tokenHolder.getToken() + ")";
 	}
 
+	@Override
+	public PaginatedIdList<DataSetInfo> getDataSetInfo() {
+		return dataSetList;
+	}
+
+	@Override
+	public DataSet loadDataSet(String id) throws NotFoundException {
+		return new DataSetImpl(this, loadJson("api/dataSets/" + id));
+	}
+
 	/** Deserialization. Sets up the element lists and maps as empty objects. */
 	private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
 		in.defaultReadObject();
@@ -307,6 +322,18 @@ class BellaDatiServiceImpl implements BellaDatiService {
 		@Override
 		protected ReportInfo parse(BellaDatiServiceImpl service, JsonNode node) {
 			return new ReportInfoImpl(service, node);
+		}
+	}
+
+	/** Paginated list class for data sets. */
+	private class DataSetList extends PaginatedIdListImpl<DataSetInfo> {
+		public DataSetList() {
+			super(BellaDatiServiceImpl.this, "api/dataSets", "dataSets");
+		}
+
+		@Override
+		protected DataSetInfo parse(BellaDatiServiceImpl service, JsonNode node) {
+			return new DataSetInfoImpl(service, node);
 		}
 	}
 }
