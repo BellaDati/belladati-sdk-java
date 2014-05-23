@@ -86,6 +86,23 @@ public class RequestTrackingServer extends LocalTestServer {
 	}
 
 	/**
+	 * Tells the server to return the specified error code and content.
+	 * 
+	 * @param pattern URI pattern to register
+	 * @param code HTTP status code to return
+	 * @param content the content to return
+	 */
+	public void registerError(String pattern, final int code, final String content) {
+		register(pattern, new TestRequestHandler() {
+			@Override
+			protected void handle(HttpHolder holder) throws IOException {
+				holder.response.setStatusCode(code);
+				holder.response.setEntity(new StringEntity(content));
+			}
+		});
+	}
+
+	/**
 	 * Returns all request URIs queried.
 	 * 
 	 * @return all request URIs queried

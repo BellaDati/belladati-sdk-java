@@ -29,6 +29,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.conn.ssl.SSLContexts;
 import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.cache.CacheConfig;
 import org.apache.http.impl.client.cache.CachingHttpClientBuilder;
 
@@ -41,7 +42,7 @@ import com.belladati.sdk.exception.auth.InvalidTimestampException;
 import com.belladati.sdk.exception.server.InternalErrorException;
 import com.belladati.sdk.exception.server.InvalidJsonException;
 import com.belladati.sdk.exception.server.NotFoundException;
-import com.belladati.sdk.exception.server.ServerResponseException;
+import com.belladati.sdk.exception.server.UnexpectedResponseException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -116,6 +117,18 @@ class BellaDatiClient implements Serializable {
 		return doRequest(post, tokenHolder);
 	}
 
+	public byte[] postUpload(String relativeUrl, TokenHolder tokenHolder, String content) {
+		HttpPost post = new HttpPost(baseUrl + relativeUrl);
+		try {
+			StringEntity entity = new StringEntity(content, "UTF-8");
+			entity.setContentType("application/octet-stream");
+			post.setEntity(entity);
+		} catch (UnsupportedEncodingException e) {
+			throw new IllegalArgumentException("Invalid URL encoding", e);
+		}
+		return doRequest(post, tokenHolder);
+	}
+
 	public TokenHolder postToken(String relativeUrl, TokenHolder tokenHolder) {
 		return postToken(relativeUrl, tokenHolder, Collections.<NameValuePair> emptyList());
 	}
@@ -166,13 +179,13 @@ class BellaDatiClient implements Serializable {
 			case 400:
 			case 401:
 			case 403:
-				throw buildException(content, tokenHolder.hasToken());
+				throw buildException(statusCode, content, tokenHolder.hasToken());
 			case 404:
 				throw new NotFoundException(request.getRequestLine().getUri());
 			case 500:
 				throw new InternalErrorException();
 			default:
-				throw new ServerResponseException("Unknown error, status: " + statusCode + ", content: " + new String(content));
+				throw new UnexpectedResponseException(statusCode, new String(content));
 			}
 		} catch (OAuthException e) {
 			throw new InternalConfigurationException("Failed to create OAuth signature", e);
@@ -187,12 +200,13 @@ class BellaDatiClient implements Serializable {
 	 * Builds an exception based on the given content, assuming that it has been
 	 * returned as an error from the server.
 	 * 
+	 * @param code response code returned by the server
 	 * @param content content returned by the server
 	 * @param hasToken <tt>true</tt> if the request was made using a request or
 	 *            access token
 	 * @return an exception to throw for the given content
 	 */
-	private BellaDatiRuntimeException buildException(byte[] content, boolean hasToken) {
+	private BellaDatiRuntimeException buildException(int code, byte[] content, boolean hasToken) {
 		try {
 			HttpParameters oauthParams = OAuth.decodeForm(new ByteArrayInputStream(content));
 			if (oauthParams.containsKey("oauth_problem")) {
@@ -229,9 +243,9 @@ class BellaDatiClient implements Serializable {
 				}
 				return new AuthorizationException(Reason.OTHER, problem);
 			}
-			return new ServerResponseException("Unexpected server response: " + new String(content));
+			return new UnexpectedResponseException(code, new String(content));
 		} catch (IOException e) {
-			throw new ServerResponseException("Response didn't contain valid error content, was " + new String(content), e);
+			throw new UnexpectedResponseException(code, new String(content), e);
 		}
 
 	}

@@ -4,9 +4,6 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
-import java.io.IOException;
-
-import org.apache.http.entity.StringEntity;
 import org.testng.annotations.Test;
 
 import com.belladati.sdk.BellaDati;
@@ -17,7 +14,7 @@ import com.belladati.sdk.exception.auth.InvalidTimestampException;
 import com.belladati.sdk.exception.server.InternalErrorException;
 import com.belladati.sdk.exception.server.NotFoundException;
 import com.belladati.sdk.exception.server.ServerResponseException;
-import com.belladati.sdk.test.TestRequestHandler;
+import com.belladati.sdk.exception.server.UnexpectedResponseException;
 
 /**
  * Verifies that various exception cases are treated correctly.
@@ -57,7 +54,7 @@ public class ExceptionTest extends SDKTest {
 
 	/** secret didn't match key during OAuth request token request */
 	public void secretMismatchOAuth1() {
-		registerError("/oauth/requestToken", 400, "oauth_problem=invalid_signature");
+		server.registerError("/oauth/requestToken", 400, "oauth_problem=invalid_signature");
 
 		try {
 			BellaDati.connect(server.getHttpURL()).oAuth("key", "secret");
@@ -69,7 +66,7 @@ public class ExceptionTest extends SDKTest {
 
 	/** secret didn't match key during OAuth access token request */
 	public void secretMismatchOAuth2() {
-		registerError("/oauth/accessToken", 400, "oauth_problem=invalid_signature");
+		server.registerError("/oauth/accessToken", 400, "oauth_problem=invalid_signature");
 		service.tokenHolder.setToken("token", "secret");
 		try {
 			new OAuthRequestImpl(service.client, service.tokenHolder).requestAccess();
@@ -81,7 +78,7 @@ public class ExceptionTest extends SDKTest {
 
 	/** secret didn't match key during xAuth token request */
 	public void secretMismatchxAuth() {
-		registerError("/oauth/accessToken", 400, "oauth_problem=invalid_signature");
+		server.registerError("/oauth/accessToken", 400, "oauth_problem=invalid_signature");
 
 		try {
 			BellaDati.connect(server.getHttpURL()).xAuth("key", "secret", "username", "password");
@@ -221,7 +218,7 @@ public class ExceptionTest extends SDKTest {
 			service.client.get(uri, service.tokenHolder);
 			fail("Didn't throw response exception");
 		} catch (ServerResponseException e) {
-			assertEquals(e.getClass(), ServerResponseException.class);
+			assertEquals(e.getClass(), UnexpectedResponseException.class);
 		}
 	}
 
@@ -232,22 +229,12 @@ public class ExceptionTest extends SDKTest {
 			service.client.get(uri, service.tokenHolder);
 			fail("Didn't throw response exception");
 		} catch (ServerResponseException e) {
-			assertEquals(e.getClass(), ServerResponseException.class);
+			assertEquals(e.getClass(), UnexpectedResponseException.class);
 		}
 	}
 
-	private void registerError(String uri, final int status, final String content) {
-		server.register(uri, new TestRequestHandler() {
-			@Override
-			protected void handle(HttpHolder holder) throws IOException {
-				holder.response.setStatusCode(status);
-				holder.response.setEntity(new StringEntity(content));
-			}
-		});
-	}
-
 	private void registerError(final int status, final String content) {
-		registerError("/" + uri, status, content);
+		server.registerError("/" + uri, status, content);
 	}
 
 	private void registerOAuthProblem(final int status, final String problem) {

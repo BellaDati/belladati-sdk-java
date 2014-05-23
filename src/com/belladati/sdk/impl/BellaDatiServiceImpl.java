@@ -9,7 +9,10 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.imageio.ImageIO;
 
@@ -21,9 +24,12 @@ import com.belladati.sdk.dashboard.Dashboard;
 import com.belladati.sdk.dashboard.DashboardInfo;
 import com.belladati.sdk.dataset.DataSet;
 import com.belladati.sdk.dataset.DataSetInfo;
+import com.belladati.sdk.dataset.data.DataRow;
 import com.belladati.sdk.dataset.data.DataTable;
 import com.belladati.sdk.exception.InternalConfigurationException;
+import com.belladati.sdk.exception.dataset.data.UnknownServerColumnException;
 import com.belladati.sdk.exception.server.NotFoundException;
+import com.belladati.sdk.exception.server.UnexpectedResponseException;
 import com.belladati.sdk.filter.Filter;
 import com.belladati.sdk.impl.AttributeValueImpl.InvalidAttributeValueException;
 import com.belladati.sdk.intervals.DateUnit;
@@ -274,7 +280,63 @@ class BellaDatiServiceImpl implements BellaDatiService {
 
 	@Override
 	public void uploadData(String id, DataTable data) {
-		// TODO implement
+		List<DataRow> rows = data.getRows();
+		if (rows.size() == 0) {
+			// if we don't have data, do nothing
+			return;
+		}
+		StringBuilder mappingBuilder = new StringBuilder();
+		List<String> columns = data.getColumns();
+		for (int i = 0; i < columns.size(); i++) {
+			String column = columns.get(i);
+			mappingBuilder.append(column);
+			if (i < columns.size() - 1) {
+				mappingBuilder.append(";");
+			}
+		}
+		StringBuilder csvBuilder = new StringBuilder();
+		for (int i = 0; i < rows.size(); i++) {
+			DataRow row = rows.get(i);
+			csvBuilder.append(rowToCSV(row));
+			if (i < rows.size() - 1) {
+				csvBuilder.append("\n");
+			}
+		}
+		try {
+			client.postUpload("api/import/csv/" + id + "/" + mappingBuilder.toString(), tokenHolder, csvBuilder.toString());
+		} catch (UnexpectedResponseException e) {
+			if (e.getResponseCode() == 400) {
+				Pattern codePattern = Pattern.compile(".*?'(.*?)'.*");
+				Matcher codeMatcher = codePattern.matcher(e.getResponseContent());
+				if (codeMatcher.matches()) {
+					throw new UnknownServerColumnException(id, codeMatcher.group(1));
+				}
+			}
+			throw new UnexpectedResponseException(e.getResponseCode(), e.getResponseContent(), e);
+		}
+	}
+
+	/**
+	 * Converts the given row into CSV. Done manually to avoid introducing an
+	 * additional library dependency.
+	 * 
+	 * @param row the row to convert
+	 * @return the resulting row of CSV data
+	 */
+	private String rowToCSV(DataRow row) {
+		List<String> allValues = row.getAll();
+		StringBuilder rowBuilder = new StringBuilder();
+		for (int i = 0; i < allValues.size(); i++) {
+			if (allValues.get(i) != null) {
+				rowBuilder.append("\"");
+				rowBuilder.append(allValues.get(i).replace("\"", "\"\""));
+				rowBuilder.append("\"");
+			}
+			if (i < allValues.size() - 1) {
+				rowBuilder.append(";");
+			}
+		}
+		return rowBuilder.toString();
 	}
 
 	/** Deserialization. Sets up the element lists and maps as empty objects. */
