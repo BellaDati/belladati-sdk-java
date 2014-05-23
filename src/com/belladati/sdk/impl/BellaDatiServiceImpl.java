@@ -21,6 +21,7 @@ import com.belladati.sdk.dashboard.Dashboard;
 import com.belladati.sdk.dashboard.DashboardInfo;
 import com.belladati.sdk.dataset.DataSet;
 import com.belladati.sdk.dataset.DataSetInfo;
+import com.belladati.sdk.dataset.data.DataTable;
 import com.belladati.sdk.exception.InternalConfigurationException;
 import com.belladati.sdk.exception.server.NotFoundException;
 import com.belladati.sdk.filter.Filter;
@@ -269,6 +270,11 @@ class BellaDatiServiceImpl implements BellaDatiService {
 	@Override
 	public DataSet loadDataSet(String id) throws NotFoundException {
 		return new DataSetImpl(this, loadJson("api/dataSets/" + id));
+	}
+
+	@Override
+	public void uploadData(String id, DataTable data) {
+		// TODO implement
 	}
 
 	/** Deserialization. Sets up the element lists and maps as empty objects. */

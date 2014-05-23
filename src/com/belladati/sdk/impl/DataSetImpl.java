@@ -10,6 +10,7 @@ import java.util.List;
 import com.belladati.sdk.dataset.Attribute;
 import com.belladati.sdk.dataset.DataSet;
 import com.belladati.sdk.dataset.Indicator;
+import com.belladati.sdk.dataset.data.DataTable;
 import com.belladati.sdk.impl.AttributeImpl.InvalidAttributeException;
 import com.belladati.sdk.impl.IndicatorImpl.InvalidIndicatorException;
 import com.belladati.sdk.impl.ReportInfoImpl.InvalidReportException;
@@ -140,5 +141,23 @@ class DataSetImpl implements DataSet {
 	@Override
 	public List<ReportInfo> getReports() {
 		return reports;
+	}
+
+	@Override
+	public DataTable createDataTable() {
+		List<String> columns = new ArrayList<String>();
+		for (Attribute attribute : attributes) {
+			columns.add(attribute.getCode());
+		}
+		for (Indicator indicator : indicators) {
+			columns.add(indicator.getCode());
+		}
+		return new DataTable(columns);
+	}
+
+	@Override
+	public DataSet uploadData(DataTable data) {
+		// TODO implement
+		return this;
 	}
 }

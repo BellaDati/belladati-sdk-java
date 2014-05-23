@@ -3,6 +3,7 @@ package com.belladati.sdk.impl;
 import static org.testng.Assert.assertEquals;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -15,7 +16,9 @@ import com.belladati.sdk.dataset.AttributeType;
 import com.belladati.sdk.dataset.DataSet;
 import com.belladati.sdk.dataset.Indicator;
 import com.belladati.sdk.dataset.IndicatorType;
+import com.belladati.sdk.dataset.data.DataTable;
 import com.belladati.sdk.exception.BellaDatiRuntimeException;
+import com.belladati.sdk.exception.dataset.data.NoColumnsException;
 import com.belladati.sdk.report.AttributeValue;
 import com.belladati.sdk.test.TestRequestHandler;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -70,8 +73,7 @@ public class DataSetStructureTest extends SDKTest {
 	@Test(dataProvider = "attributeTypes")
 	public void attributeTypes(String jsonType, AttributeType type) {
 		ObjectNode node = builder.buildDataSetNode(dataSetId, name, description, owner, lastChange);
-		node.put("attributes",
-			new ObjectMapper().createArrayNode().add(builder.buildAttributeNode(id, name, code, jsonType)));
+		node.put("attributes", new ObjectMapper().createArrayNode().add(builder.buildAttributeNode(id, name, code, jsonType)));
 		server.register(dataSetsUri + "/" + dataSetId, node.toString());
 		DataSet dataSet = service.loadDataSet(dataSetId);
 
@@ -88,8 +90,7 @@ public class DataSetStructureTest extends SDKTest {
 	@Test(expectedExceptions = BellaDatiRuntimeException.class)
 	public void loadAttributeValues() {
 		ObjectNode node = builder.buildDataSetNode(dataSetId, name, description, owner, lastChange);
-		node.put("attributes",
-			new ObjectMapper().createArrayNode().add(builder.buildAttributeNode(id, name, code, "string")));
+		node.put("attributes", new ObjectMapper().createArrayNode().add(builder.buildAttributeNode(id, name, code, "string")));
 		server.register(dataSetsUri + "/" + dataSetId, node.toString());
 		DataSet dataSet = service.loadDataSet(dataSetId);
 		Attribute attribute = dataSet.getAttributes().get(0);
@@ -152,8 +153,7 @@ public class DataSetStructureTest extends SDKTest {
 	public void dataIndicator() {
 		ObjectNode node = builder.buildDataSetNode(dataSetId, name, description, owner, lastChange);
 		node.put("indicators",
-			new ObjectMapper().createArrayNode()
-				.add(builder.buildIndicatorNode(id, name, code, formula, "data_indicator")));
+			new ObjectMapper().createArrayNode().add(builder.buildIndicatorNode(id, name, code, formula, "data_indicator")));
 		server.register(dataSetsUri + "/" + dataSetId, node.toString());
 		DataSet dataSet = service.loadDataSet(dataSetId);
 
@@ -170,10 +170,8 @@ public class DataSetStructureTest extends SDKTest {
 	/** Formula indicators are parsed correctly. */
 	public void formulaIndicator() {
 		ObjectNode node = builder.buildDataSetNode(dataSetId, name, description, owner, lastChange);
-		node.put(
-			"indicators",
-			new ObjectMapper().createArrayNode().add(
-				builder.buildIndicatorNode(id, name, code, formula, "formula_indicator")));
+		node.put("indicators",
+			new ObjectMapper().createArrayNode().add(builder.buildIndicatorNode(id, name, code, formula, "formula_indicator")));
 		server.register(dataSetsUri + "/" + dataSetId, node.toString());
 		DataSet dataSet = service.loadDataSet(dataSetId);
 
@@ -190,10 +188,8 @@ public class DataSetStructureTest extends SDKTest {
 	/** Indicator groups are parsed correctly. */
 	public void groupIndicator() {
 		ObjectNode node = builder.buildDataSetNode(dataSetId, name, description, owner, lastChange);
-		node.put(
-			"indicators",
-			new ObjectMapper().createArrayNode().add(
-				builder.buildIndicatorNode(id, name, code, formula, "indicator_group")));
+		node.put("indicators",
+			new ObjectMapper().createArrayNode().add(builder.buildIndicatorNode(id, name, code, formula, "indicator_group")));
 		server.register(dataSetsUri + "/" + dataSetId, node.toString());
 		DataSet dataSet = service.loadDataSet(dataSetId);
 
@@ -207,6 +203,28 @@ public class DataSetStructureTest extends SDKTest {
 		assertEquals(indicator.getType(), IndicatorType.GROUP);
 	}
 
+	/** data set without columns can't create import table */
+	@Test(expectedExceptions = NoColumnsException.class)
+	public void emptyDataSetTable() {
+		DataSet dataSet = new DataSetImpl(service, builder.buildDataSetNode(id, name, description, owner, lastChange));
+		dataSet.createDataTable();
+	}
+
+	/** data set can create import table */
+	public void dataSetTable() {
+		String attributeCode = "A";
+		String indicatorCode = "I";
+		ObjectNode node = builder.buildDataSetNode(dataSetId, name, description, owner, lastChange);
+		node.put("attributes",
+			new ObjectMapper().createArrayNode().add(builder.buildAttributeNode(id, name, attributeCode, "String")));
+		node.put(
+			"indicators",
+			new ObjectMapper().createArrayNode().add(
+				builder.buildIndicatorNode(id, name, indicatorCode, formula, "data_indicator")));
+		DataTable table = new DataSetImpl(service, node).createDataTable();
+		assertEquals(table.getColumns(), Arrays.asList(attributeCode, indicatorCode));
+	}
+
 	/** Provides attribute JSON that's invalid in some way. */
 	@DataProvider(name = "invalidAttributes")
 	protected Object[][] invalidAttributeProvider() {
@@ -216,8 +234,7 @@ public class DataSetStructureTest extends SDKTest {
 		String type = "String";
 		// invalid is if code or name is null or doesn't exist
 		return new Object[][] { { builder.buildAttributeNode(null, name, code, type) },
-			{ builder.buildAttributeNode(id, null, code, type) },
-			{ builder.buildAttributeNode(id, name, null, type) },
+			{ builder.buildAttributeNode(id, null, code, type) }, { builder.buildAttributeNode(id, name, null, type) },
 			{ builder.buildAttributeNode(id, name, code, null) },
 			{ builder.buildAttributeNode(id, name, code, type).retain("name", "code", "type") },
 			{ builder.buildAttributeNode(id, name, code, type).retain("id", "code", "type") },

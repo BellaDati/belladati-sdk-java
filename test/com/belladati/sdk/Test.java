@@ -1,19 +1,13 @@
 package com.belladati.sdk;
 
 import com.belladati.sdk.auth.OAuthRequest;
-import com.belladati.sdk.report.Report;
-import com.belladati.sdk.report.ReportInfo;
-import com.belladati.sdk.util.PaginatedList;
 
 public class Test {
 
 	public static void main(String[] args) throws Exception {
-		BellaDatiService service = xAuth();
+		BellaDatiService service = xAuthLocal();
 
-		System.out.println("Loading reports...");
-		PaginatedList<ReportInfo> infos = service.getReportInfo().load();
-		Report report = infos.get(0).loadDetails();
-		System.out.println(report.getAttributes());
+		service.uploadData("81", null);
 	}
 
 	public static BellaDatiService oAuth() throws Exception {
@@ -31,5 +25,9 @@ public class Test {
 	public static BellaDatiService xAuth() throws Exception {
 		return BellaDati.connectInsecure("https://service-test.belladati.com").xAuth("chkey", "chsecret",
 			"christian.hennigfeld@belladati.com", "Support01");
+	}
+
+	public static BellaDatiService xAuthLocal() throws Exception {
+		return BellaDati.connectInsecure("http://127.0.0.1:8080/belladati").xAuth("chkey", "chsecret", "ch", "Support01");
 	}
 }
