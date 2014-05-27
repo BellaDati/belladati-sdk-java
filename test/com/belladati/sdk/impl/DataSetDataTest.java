@@ -7,6 +7,7 @@ import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertSame;
 
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
 
@@ -15,6 +16,7 @@ import org.testng.annotations.Test;
 import com.belladati.sdk.dataset.data.DataColumn;
 import com.belladati.sdk.dataset.data.DataRow;
 import com.belladati.sdk.dataset.data.DataTable;
+import com.belladati.sdk.dataset.data.OverwritePolicy;
 import com.belladati.sdk.exception.dataset.data.NoColumnsException;
 import com.belladati.sdk.exception.dataset.data.TooManyColumnsException;
 import com.belladati.sdk.exception.dataset.data.UnknownColumnException;
@@ -301,5 +303,51 @@ public class DataSetDataTest extends SDKTest {
 		ArrayNode rows = (ArrayNode) tableJson.get("data");
 		assertEquals(rows.get(0), row1.toJson());
 		assertEquals(rows.get(1), row2.toJson());
+	}
+
+	/** correct default overwrite policy */
+	public void defaultOverwritePolicy() {
+		DataTable table = DataTable.createBasicInstance(column);
+		assertEquals(table.getOverwritePolicy(), OverwritePolicy.deleteNone());
+	}
+
+	/** convert table policy */
+	public void tablePolicy() {
+		DataTable table = DataTable.createBasicInstance(column);
+		assertEquals(table.toJson().get("overwrite"), table.getOverwritePolicy().toJson());
+	}
+
+	/** overwrite policy can be changed */
+	public void setOverwritePolicy() {
+		DataTable table = DataTable.createBasicInstance(column);
+		table.setOverwritePolicy(OverwritePolicy.deleteAll());
+		assertNotEquals(table.getOverwritePolicy(), OverwritePolicy.deleteNone());
+		assertEquals(table.getOverwritePolicy(), OverwritePolicy.deleteAll());
+	}
+
+	/** attribute policy uses unknown attribute */
+	@Test(expectedExceptions = UnknownColumnException.class)
+	public void attributePolicyMismatch() {
+		DataTable.createBasicInstance(column).setOverwritePolicy(OverwritePolicy.byAttributes("other"));
+	}
+
+	/** attribute policy uses known attribute */
+	public void attributePolicyMatch() {
+		OverwritePolicy policy = OverwritePolicy.byAttributes(column);
+		DataTable table = DataTable.createBasicInstance(column).setOverwritePolicy(policy);
+		assertSame(table.getOverwritePolicy(), policy);
+	}
+
+	/** date policy uses unknown attribute */
+	@Test(expectedExceptions = UnknownColumnException.class)
+	public void datePolicyMismatch() {
+		DataTable.createBasicInstance(column).setOverwritePolicy(OverwritePolicy.byDateFrom("other", Calendar.getInstance()));
+	}
+
+	/** date policy uses known attribute */
+	public void datePolicyMatch() {
+		OverwritePolicy policy = OverwritePolicy.byDateFrom(column, Calendar.getInstance());
+		DataTable table = DataTable.createBasicInstance(column).setOverwritePolicy(policy);
+		assertSame(table.getOverwritePolicy(), policy);
 	}
 }
