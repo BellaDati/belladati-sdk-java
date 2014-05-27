@@ -20,6 +20,8 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 
 class DataSetImpl implements DataSet {
 
+	private final BellaDatiServiceImpl service;
+
 	private final String id;
 	private final String name;
 	private final String description;
@@ -30,6 +32,8 @@ class DataSetImpl implements DataSet {
 	private final List<ReportInfo> reports;
 
 	DataSetImpl(BellaDatiServiceImpl service, JsonNode json) {
+		this.service = service;
+
 		this.id = json.get("id").asText();
 		this.name = json.get("name").asText();
 		this.description = json.hasNonNull("description") ? json.get("description").asText() : "";
@@ -152,12 +156,12 @@ class DataSetImpl implements DataSet {
 		for (Indicator indicator : indicators) {
 			columns.add(indicator.getCode());
 		}
-		return new DataTable(columns);
+		return DataTable.createBasicInstance(columns);
 	}
 
 	@Override
 	public DataSet uploadData(DataTable data) {
-		// TODO implement
+		service.uploadData(id, data);
 		return this;
 	}
 }

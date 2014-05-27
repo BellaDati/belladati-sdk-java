@@ -16,6 +16,7 @@ import com.belladati.sdk.dataset.AttributeType;
 import com.belladati.sdk.dataset.DataSet;
 import com.belladati.sdk.dataset.Indicator;
 import com.belladati.sdk.dataset.IndicatorType;
+import com.belladati.sdk.dataset.data.DataColumn;
 import com.belladati.sdk.dataset.data.DataTable;
 import com.belladati.sdk.exception.BellaDatiRuntimeException;
 import com.belladati.sdk.exception.dataset.data.NoColumnsException;
@@ -222,7 +223,7 @@ public class DataSetStructureTest extends SDKTest {
 			new ObjectMapper().createArrayNode().add(
 				builder.buildIndicatorNode(id, name, indicatorCode, formula, "data_indicator")));
 		DataTable table = new DataSetImpl(service, node).createDataTable();
-		assertEquals(table.getColumns(), Arrays.asList(attributeCode, indicatorCode));
+		assertEquals(table.getColumns(), Arrays.asList(new DataColumn(attributeCode), new DataColumn(indicatorCode)));
 	}
 
 	/** Provides attribute JSON that's invalid in some way. */
