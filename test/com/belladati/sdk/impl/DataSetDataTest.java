@@ -14,6 +14,8 @@ import com.belladati.sdk.dataset.data.DataTable;
 import com.belladati.sdk.exception.dataset.data.NoColumnsException;
 import com.belladati.sdk.exception.dataset.data.TooManyColumnsException;
 import com.belladati.sdk.exception.dataset.data.UnknownColumnException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 
 @Test
 public class DataSetDataTest extends SDKTest {
@@ -179,5 +181,63 @@ public class DataSetDataTest extends SDKTest {
 	@Test(expectedExceptions = UnknownColumnException.class)
 	public void setUnknownColumn() {
 		new DataTable(column).createRow().set("unknown", "abc");
+	}
+
+	/** convert row to JSON */
+	public void rowJson() {
+		String column2 = "other";
+		final String content1 = "content1";
+		final String content2 = "content2";
+
+		DataRow row = new DataTable(column, column2).createRow().setAll(content1, content2);
+		ArrayNode rowJson = (ArrayNode) row.toJson();
+
+		assertEquals(rowJson.size(), 2);
+		assertEquals(rowJson.get(0).asText(), content1);
+		assertEquals(rowJson.get(1).asText(), content2);
+	}
+
+	/** convert row to JSON with reserved characters */
+	public void rowJsonEscape() {
+		String col2 = "col2";
+		String col3 = "col3";
+		final String val1 = "\"I'm a text with ; and , in it\"";
+		final String val2 = "\"I'm more text with ; and , in it\"";
+		final String val3 = "nothing special here";
+
+		DataRow row = new DataTable(column, col2, col3).createRow().setAll(val1, val2, val3);
+		ArrayNode rowJson = (ArrayNode) row.toJson();
+
+		assertEquals(rowJson.size(), 3);
+		assertEquals(rowJson.get(0).asText(), val1);
+		assertEquals(rowJson.get(1).asText(), val2);
+		assertEquals(rowJson.get(2).asText(), val3);
+	}
+
+	/** convert table columns */
+	public void tableColumns() {
+		String column2 = "other";
+		DataTable table = new DataTable(column, column2).createRow("content");
+		JsonNode tableJson = table.toJson();
+
+		ArrayNode columns = (ArrayNode) tableJson.get("columns");
+		assertEquals(columns.size(), 2);
+		assertEquals(columns.get(0).get("code").asText(), column);
+		assertEquals(columns.get(1).get("code").asText(), column2);
+	}
+
+	/** convert table with rows and columns */
+	public void tableRows() {
+		final String content1 = "content1";
+		final String content2 = "content2";
+
+		DataTable table = new DataTable(column);
+		DataRow row1 = table.createRow().setAll(content1);
+		DataRow row2 = table.createRow().setAll(content2);
+
+		JsonNode tableJson = table.toJson();
+		ArrayNode rows = (ArrayNode) tableJson.get("data");
+		assertEquals(rows.get(0), row1.toJson());
+		assertEquals(rows.get(1), row2.toJson());
 	}
 }

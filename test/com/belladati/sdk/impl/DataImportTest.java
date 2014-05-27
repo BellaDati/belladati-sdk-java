@@ -14,30 +14,35 @@ import com.belladati.sdk.dataset.data.DataTable;
 import com.belladati.sdk.exception.dataset.data.UnknownServerColumnException;
 import com.belladati.sdk.exception.server.UnexpectedResponseException;
 import com.belladati.sdk.test.TestRequestHandler;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Test
 public class DataImportTest extends SDKTest {
 
 	private final String id = "id";
 	private final String column = "column";
+	private final String url = "/api/import/" + id;
 
-	/** the correct URL is used for uploading */
-	public void uploadURL() {
-		String url = "/api/import/csv/" + id + "/" + column;
-		server.register(url, "");
+	/** column data is sent correctly */
+	public void uploadJson() {
+		final String column2 = "other";
+		final DataTable table = new DataTable(column, column2).createRow("content");
 
-		service.uploadData(id, new DataTable(column).createRow("content"));
+		server.register(url, new TestRequestHandler() {
+			@Override
+			protected void handle(HttpHolder holder) throws IOException {
+				HttpEntity entity = ((BasicHttpEntityEnclosingRequest) holder.request).getEntity();
+				ByteArrayOutputStream baos = new ByteArrayOutputStream();
+				entity.writeTo(baos);
+				JsonNode json = new ObjectMapper().readTree(baos.toByteArray());
+				baos.close();
 
-		server.assertRequestUris(url);
-	}
+				assertEquals(json, table.toJson());
+			}
+		});
 
-	/** the correct URL is used for uploading multiple columns */
-	public void uploadURLMultipleColumns() {
-		String column2 = "other";
-		String url = "/api/import/csv/" + id + "/" + column + ";" + column2;
-		server.register(url, "");
-
-		service.uploadData(id, new DataTable(column, column2).createRow("content"));
+		service.uploadData(id, table);
 
 		server.assertRequestUris(url);
 	}
@@ -49,50 +54,8 @@ public class DataImportTest extends SDKTest {
 		server.assertRequestUris();
 	}
 
-	/** actual data is sent */
-	public void uploadRow() {
-		String content = "content";
-		String url = "/api/import/csv/" + id + "/" + column;
-		registerRequestCheck(url, "\"" + content + "\"");
-
-		service.uploadData(id, new DataTable(column).createRow(content));
-
-		server.assertRequestUris(url);
-	}
-
-	/** multiple rows are separated by line breaks */
-	public void uploadRows() {
-		String content = "content";
-		String content2 = "content2";
-		String url = "/api/import/csv/" + id + "/" + column;
-		registerRequestCheck(url, "\"" + content + "\"\n\"" + content2 + "\"");
-
-		service.uploadData(id, new DataTable(column).createRow(content).createRow(content2));
-
-		server.assertRequestUris(url);
-	}
-
-	/** data is sent in CSV */
-	public void csvEscape() {
-		String col2 = "col2";
-		String col3 = "col3";
-		String val1 = "\"I'm a text with ; and , in it\"";
-		String val2 = "\"I'm more text with ; and , in it\"";
-		String val3 = "nothing special here";
-		String url = "/api/import/csv/" + id + "/" + column + ";" + col2 + ";" + col3;
-
-		registerRequestCheck(url,
-			"\"" + val1.replace("\"", "\"\"") + "\";\"" + val2.replace("\"", "\"\"") + "\";\"" + val3.replace("\"", "\"\"")
-				+ "\"");
-
-		service.uploadData(id, new DataTable(column, col2, col3).createRow(val1, val2, val3));
-
-		server.assertRequestUris(url);
-	}
-
 	/** non-existing column server error */
 	public void nonExistingColumn() {
-		String url = "/api/import/csv/" + id + "/" + column;
 		server.registerError(url, 400, "Indicator/attribute '" + column + "' doesn't exist");
 
 		try {
@@ -102,31 +65,13 @@ public class DataImportTest extends SDKTest {
 			assertEquals(e.getId(), id);
 			assertEquals(e.getColumn(), column);
 		}
-
-		server.assertRequestUris(url);
 	}
 
 	/** unrelated server error */
 	@Test(expectedExceptions = UnexpectedResponseException.class)
 	public void otherError() {
-		String url = "/api/import/csv/" + id + "/" + column;
 		server.registerError(url, 400, "something else");
 
 		service.uploadData(id, new DataTable(column).createRow("content"));
 	}
-
-	private void registerRequestCheck(final String url, final String content) {
-		server.register(url, new TestRequestHandler() {
-			@Override
-			protected void handle(HttpHolder holder) throws IOException {
-				HttpEntity entity = ((BasicHttpEntityEnclosingRequest) holder.request).getEntity();
-				ByteArrayOutputStream baos = new ByteArrayOutputStream();
-				entity.writeTo(baos);
-				byte[] bytes = baos.toByteArray();
-				baos.close();
-				assertEquals(new String(bytes), content);
-			}
-		});
-	}
-
 }
