@@ -101,13 +101,21 @@ public class AuthenticationTest extends SDKTest {
 		BellaDatiConnection connection = BellaDati.connect(server.getHttpURL());
 		final String key = "key";
 		final String requestToken = "abc123";
-		server.register("/oauth/requestToken", "oauth_token=" + requestToken + "&oauth_token_secret=123abc");
-		OAuthRequest request = connection.oAuth(key, "secret");
+		final String redirectUrl = "http://www.example.com";
 
-		String redirectUrl = "http://www.example.com";
-		assertEquals(request.getAuthorizationUrl(redirectUrl).toString(), server.getHttpURL() + "/authorizeRequestToken/"
-			+ requestToken + "/" + key + "?callbackUrl=" + URLEncoder.encode(redirectUrl, "UTF-8"),
-			"Unexpected authorization URL");
+		server.register("/oauth/requestToken", new TestRequestHandler() {
+
+			@Override
+			protected void handle(HttpHolder holder) throws IOException {
+				assertEquals(holder.authHeaders.get("oauth_callback"), URLEncoder.encode(redirectUrl, "UTF-8"), "Wrong callback");
+				assertEquals(holder.getRequestBody(), "");
+				holder.response.setEntity(new StringEntity("oauth_token=" + requestToken + "&oauth_token_secret=123abc"));
+			}
+		});
+		OAuthRequest request = connection.oAuth(key, "secret", redirectUrl);
+
+		assertEquals(request.getAuthorizationUrl().toString(), server.getHttpURL() + "/authorizeRequestToken/" + requestToken
+			+ "/" + key, "Unexpected authorization URL");
 	}
 
 	/**
@@ -119,12 +127,10 @@ public class AuthenticationTest extends SDKTest {
 		BellaDatiConnection connection = BellaDati.connect(server.getHttpURL());
 		final String key = "key";
 		final String requestToken = "abc123";
-		server.register("/oauth/requestToken", "oauth_token=" + requestToken + "&oauth_token_secret=123abc");
-		OAuthRequest request = connection.oAuth(key, "secret");
-
 		String redirectUrl = "not a URL";
-		assertEquals(request.getAuthorizationUrl(redirectUrl).toString(), server.getHttpURL() + "/authorizeRequestToken/"
-			+ requestToken + "/" + key + "?callbackUrl=" + redirectUrl, "Unexpected authorization URL");
+
+		server.register("/oauth/requestToken", "oauth_token=" + requestToken + "&oauth_token_secret=123abc");
+		connection.oAuth(key, "secret", redirectUrl);
 	}
 
 	/** Tests xAuth authentication. */

@@ -9,12 +9,12 @@ import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
 import java.security.GeneralSecurityException;
-import java.util.Collections;
 import java.util.List;
 
 import javax.net.ssl.SSLContext;
 
 import oauth.signpost.OAuth;
+import oauth.signpost.OAuthConsumer;
 import oauth.signpost.exception.OAuthException;
 import oauth.signpost.http.HttpParameters;
 
@@ -104,17 +104,28 @@ class BellaDatiClient implements Serializable {
 	}
 
 	public byte[] post(String relativeUrl, TokenHolder tokenHolder) {
-		return post(relativeUrl, tokenHolder, Collections.<NameValuePair> emptyList());
+		return post(relativeUrl, tokenHolder, null, null);
+	}
+
+	public byte[] post(String relativeUrl, TokenHolder tokenHolder, HttpParameters oauthParams) {
+		return post(relativeUrl, tokenHolder, oauthParams, null);
 	}
 
 	public byte[] post(String relativeUrl, TokenHolder tokenHolder, List<? extends NameValuePair> parameters) {
+		return post(relativeUrl, tokenHolder, null, parameters);
+	}
+
+	public byte[] post(String relativeUrl, TokenHolder tokenHolder, HttpParameters oauthParams,
+		List<? extends NameValuePair> parameters) {
 		HttpPost post = new HttpPost(baseUrl + relativeUrl);
-		try {
-			post.setEntity(new UrlEncodedFormEntity(parameters, "UTF-8"));
-		} catch (UnsupportedEncodingException e) {
-			throw new IllegalArgumentException("Invalid URL encoding", e);
+		if (parameters != null) {
+			try {
+				post.setEntity(new UrlEncodedFormEntity(parameters, "UTF-8"));
+			} catch (UnsupportedEncodingException e) {
+				throw new IllegalArgumentException("Invalid URL encoding", e);
+			}
 		}
-		return doRequest(post, tokenHolder);
+		return doRequest(post, tokenHolder, oauthParams);
 	}
 
 	public byte[] postUpload(String relativeUrl, TokenHolder tokenHolder, String content) {
@@ -130,15 +141,24 @@ class BellaDatiClient implements Serializable {
 	}
 
 	public TokenHolder postToken(String relativeUrl, TokenHolder tokenHolder) {
-		return postToken(relativeUrl, tokenHolder, Collections.<NameValuePair> emptyList());
+		return postToken(relativeUrl, tokenHolder, null, null);
+	}
+
+	public TokenHolder postToken(String relativeUrl, TokenHolder tokenHolder, HttpParameters oauthParams) {
+		return postToken(relativeUrl, tokenHolder, oauthParams, null);
 	}
 
 	public TokenHolder postToken(String relativeUrl, TokenHolder tokenHolder, List<? extends NameValuePair> parameters) {
-		byte[] response = post(relativeUrl, tokenHolder, parameters);
+		return postToken(relativeUrl, tokenHolder, null, parameters);
+	}
+
+	public TokenHolder postToken(String relativeUrl, TokenHolder tokenHolder, HttpParameters oauthParams,
+		List<? extends NameValuePair> parameters) {
+		byte[] response = post(relativeUrl, tokenHolder, oauthParams, parameters);
 		try {
-			HttpParameters oauthParams = OAuth.decodeForm(new ByteArrayInputStream(response));
-			String token = oauthParams.getFirst(OAuth.OAUTH_TOKEN);
-			String tokenSecret = oauthParams.getFirst(OAuth.OAUTH_TOKEN_SECRET);
+			HttpParameters responseParams = OAuth.decodeForm(new ByteArrayInputStream(response));
+			String token = responseParams.getFirst(OAuth.OAUTH_TOKEN);
+			String tokenSecret = responseParams.getFirst(OAuth.OAUTH_TOKEN_SECRET);
 			tokenHolder.setToken(token, tokenSecret);
 			return tokenHolder;
 		} catch (IOException e) {
@@ -164,8 +184,14 @@ class BellaDatiClient implements Serializable {
 	}
 
 	private byte[] doRequest(HttpRequestBase request, TokenHolder tokenHolder) {
+		return doRequest(request, tokenHolder, null);
+	}
+
+	private byte[] doRequest(HttpRequestBase request, TokenHolder tokenHolder, HttpParameters oauthParams) {
 		try {
-			tokenHolder.createConsumer().sign(request);
+			OAuthConsumer consumer = tokenHolder.createConsumer();
+			consumer.setAdditionalParameters(oauthParams);
+			consumer.sign(request);
 			HttpResponse response = client.execute(request);
 			int statusCode = response.getStatusLine().getStatusCode();
 			HttpEntity entity = response.getEntity();

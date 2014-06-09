@@ -25,26 +25,9 @@ class OAuthRequestImpl implements OAuthRequest {
 
 	@Override
 	public URL getAuthorizationUrl() {
-		return getAuthorizationUrl(null);
-	}
-
-	@Override
-	public URL getAuthorizationUrl(String redirectUrl) {
-		if (redirectUrl != null) {
-			// check if the redirect URL is valid
-			try {
-				new URL(redirectUrl);
-			} catch (MalformedURLException e) {
-				throw new IllegalArgumentException("Invalid redirect URL", e);
-			}
-		}
 		try {
-			URIBuilder builder = new URIBuilder(client.getBaseUrl() + "authorizeRequestToken/" + tokenHolder.getToken() + "/"
-				+ tokenHolder.getConsumerKey());
-			if (redirectUrl != null) {
-				builder.addParameter("callbackUrl", redirectUrl);
-			}
-			return builder.build().toURL();
+			return new URIBuilder(client.getBaseUrl() + "authorizeRequestToken/" + tokenHolder.getToken() + "/"
+				+ tokenHolder.getConsumerKey()).build().toURL();
 		} catch (MalformedURLException e) {
 			throw new IllegalArgumentException("Invalid URL", e);
 		} catch (URISyntaxException e) {
