@@ -54,6 +54,14 @@ abstract class CachedListImpl<T> implements CachedList<T> {
 	}
 
 	@Override
+	public CachedList<T> loadFirstTime() {
+		if (!isLoaded()) {
+			load();
+		}
+		return this;
+	}
+
+	@Override
 	public boolean isLoaded() {
 		return isLoaded;
 	}

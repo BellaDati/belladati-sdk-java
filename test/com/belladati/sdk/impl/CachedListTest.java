@@ -46,19 +46,43 @@ public class CachedListTest extends SDKTest {
 		assertEquals(list.get(), list.toList());
 	}
 
+	/** first time load is called just once */
+	public void loadFirstTime() {
+		server.register(uri, buildResponse().toString());
+
+		list.loadFirstTime();
+		assertTrue(list.isLoaded());
+
+		list.loadFirstTime();
+
+		server.assertRequestUris(uri);
+	}
+
 	/** Items are parsed correctly. */
 	public void loadItems() {
 
 		final String id1 = "id1";
 		final String id2 = "id2";
 
-		server.register(uri, new TestRequestHandler() {
-			@Override
-			protected void handle(HttpHolder holder) throws IOException {
-				holder.response.setEntity(new StringEntity(buildResponse(id1, id2).toString()));
-			}
-		});
+		server.register(uri, buildResponse(id1, id2).toString());
 		list.load();
+
+		Item item1 = new Item(id1);
+		Item item2 = new Item(id2);
+		assertEquals(list.get(), Arrays.asList(item1, item2));
+		assertEquals(list.get(), list.toList());
+
+		assertEquals(list.toString(), list.get().toString());
+	}
+
+	/** Items are parsed correctly during loadFirstTime. */
+	public void loadFirstTimeItems() {
+
+		final String id1 = "id1";
+		final String id2 = "id2";
+
+		server.register(uri, buildResponse(id1, id2).toString());
+		list.loadFirstTime();
 
 		Item item1 = new Item(id1);
 		Item item2 = new Item(id2);
@@ -73,25 +97,31 @@ public class CachedListTest extends SDKTest {
 		final String id1 = "id1";
 		final String id2 = "id2";
 
-		server.register(uri, new TestRequestHandler() {
-			@Override
-			protected void handle(HttpHolder holder) throws IOException {
-				holder.response.setEntity(new StringEntity(buildResponse(id1).toString()));
-			}
-		});
+		server.register(uri, buildResponse(id1).toString());
 		list.load();
 
-		server.register(uri, new TestRequestHandler() {
-			@Override
-			protected void handle(HttpHolder holder) throws IOException {
-				holder.response.setEntity(new StringEntity(buildResponse(id2).toString()));
-			}
-		});
+		server.register(uri, buildResponse(id2).toString());
 		list.load();
 
 		assertEquals(list.get(), Arrays.asList(new Item(id2)));
 	}
 
+	/** Previously loaded items are not discarded when loadFirstTime is called. */
+	public void noDiscardOnLoadFirstTime() {
+		final String id1 = "id1";
+		final String id2 = "id2";
+
+		server.register(uri, buildResponse(id1).toString());
+		list.load();
+
+		server.register(uri, buildResponse(id2).toString());
+		list.loadFirstTime();
+
+		server.assertRequestUris(uri);
+		assertEquals(list.get(), Arrays.asList(new Item(id1)));
+	}
+
+	/** isLoaded is set correctly */
 	public void isLoaded() {
 		assertFalse(list.isLoaded());
 

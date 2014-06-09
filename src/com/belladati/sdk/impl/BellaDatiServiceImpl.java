@@ -8,6 +8,7 @@ import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,6 +27,9 @@ import com.belladati.sdk.dataset.DataSet;
 import com.belladati.sdk.dataset.DataSetInfo;
 import com.belladati.sdk.dataset.data.DataRow;
 import com.belladati.sdk.dataset.data.DataTable;
+import com.belladati.sdk.dataset.source.DataSource;
+import com.belladati.sdk.dataset.source.DataSourceImport;
+import com.belladati.sdk.dataset.source.DataSourcePendingImport;
 import com.belladati.sdk.exception.InternalConfigurationException;
 import com.belladati.sdk.exception.dataset.data.UnknownServerColumnException;
 import com.belladati.sdk.exception.server.NotFoundException;
@@ -178,6 +182,24 @@ class BellaDatiServiceImpl implements BellaDatiService {
 	@Override
 	public ViewLoader createViewLoader(String viewId, ViewType viewType) {
 		return new ViewLoaderImpl(this, viewId, viewType);
+	}
+
+	@Override
+	public CachedList<DataSource> getDataSources(String id) throws NotFoundException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public CachedList<DataSourceImport> getDataSourceImports(String id) throws NotFoundException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public DataSourcePendingImport setupDataSourceImport(String id, Date date) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	/**

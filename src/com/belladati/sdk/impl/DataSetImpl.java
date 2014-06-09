@@ -11,10 +11,12 @@ import com.belladati.sdk.dataset.Attribute;
 import com.belladati.sdk.dataset.DataSet;
 import com.belladati.sdk.dataset.Indicator;
 import com.belladati.sdk.dataset.data.DataTable;
+import com.belladati.sdk.dataset.source.DataSource;
 import com.belladati.sdk.impl.AttributeImpl.InvalidAttributeException;
 import com.belladati.sdk.impl.IndicatorImpl.InvalidIndicatorException;
 import com.belladati.sdk.impl.ReportInfoImpl.InvalidReportException;
 import com.belladati.sdk.report.ReportInfo;
+import com.belladati.sdk.util.CachedList;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 
@@ -145,6 +147,12 @@ class DataSetImpl implements DataSet {
 	@Override
 	public List<ReportInfo> getReports() {
 		return reports;
+	}
+
+	@Override
+	public CachedList<DataSource> getDataSources() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	@Override
