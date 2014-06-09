@@ -42,7 +42,7 @@ class DataSetImpl implements DataSet {
 		this.ownerName = json.get("owner").asText();
 
 		if (json.hasNonNull("lastChange")) {
-			SimpleDateFormat format = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz");
+			SimpleDateFormat format = new SimpleDateFormat(BellaDatiServiceImpl.DATE_TIME_FORMAT);
 			Date lastChange;
 			try {
 				lastChange = format.parse(json.get("lastChange").asText());
@@ -151,8 +151,7 @@ class DataSetImpl implements DataSet {
 
 	@Override
 	public CachedList<DataSource> getDataSources() {
-		// TODO Auto-generated method stub
-		return null;
+		return service.getDataSources(id);
 	}
 
 	@Override

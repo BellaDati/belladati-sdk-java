@@ -24,7 +24,7 @@ class DashboardInfoImpl implements DashboardInfo {
 		this.name = json.get("name").asText();
 
 		if (json.hasNonNull("lastChange")) {
-			SimpleDateFormat format = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz");
+			SimpleDateFormat format = new SimpleDateFormat(BellaDatiServiceImpl.DATE_TIME_FORMAT);
 			Date lastChange;
 			try {
 				lastChange = format.parse(json.get("lastChange").asText());

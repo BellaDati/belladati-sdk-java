@@ -91,4 +91,25 @@ public class JsonBuilder {
 		return new ObjectMapper().createObjectNode().put("id", id).put("name", name).put("code", code).put("formula", formula)
 			.put("type", type);
 	}
+
+	/** Builds a JSON node representing a data source. */
+	public ObjectNode buildDataSourceNode(String id, String name, String type) {
+		return new ObjectMapper().createObjectNode().put("id", id).put("name", name).put("type", type);
+	}
+
+	/** Builds a JSON node representing a data source import. */
+	public ObjectNode buildSourceImportNode(String id, String caller, String lastImport, String overwritePolicy, String interval) {
+		return new ObjectMapper().createObjectNode().put("id", id).put("createdBy", caller).put("when", lastImport)
+			.put("overwritingPolicy", overwritePolicy).put("repeateInterval", interval);
+	}
+
+	/**
+	 * Builds a JSON node representing a data source import with custom interval
+	 * length.
+	 */
+	public ObjectNode buildSourceImportNode(String id, String caller, String lastImport, String overwritePolicy, String interval,
+		Integer customIntervalLength) {
+		return buildSourceImportNode(id, caller, lastImport, overwritePolicy, interval).put("repeateIntervalCustom",
+			customIntervalLength);
+	}
 }

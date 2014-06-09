@@ -35,7 +35,7 @@ class UserImpl implements User {
 
 	private Date parseDate(JsonNode json, String field) {
 		if (json.hasNonNull(field)) {
-			SimpleDateFormat format = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz");
+			SimpleDateFormat format = new SimpleDateFormat(BellaDatiServiceImpl.DATE_TIME_FORMAT);
 			try {
 				return format.parse(json.get(field).asText());
 			} catch (ParseException e) {}

@@ -36,6 +36,7 @@ import com.belladati.sdk.exception.server.NotFoundException;
 import com.belladati.sdk.exception.server.UnexpectedResponseException;
 import com.belladati.sdk.filter.Filter;
 import com.belladati.sdk.impl.AttributeValueImpl.InvalidAttributeValueException;
+import com.belladati.sdk.impl.DataSourceImportImpl.InvalidDataSourceImportException;
 import com.belladati.sdk.intervals.DateUnit;
 import com.belladati.sdk.intervals.Interval;
 import com.belladati.sdk.intervals.TimeUnit;
@@ -58,6 +59,8 @@ class BellaDatiServiceImpl implements BellaDatiService {
 	/** The serialVersionUID */
 	private static final long serialVersionUID = 9054278401541000710L;
 
+	public static final String DATE_TIME_FORMAT = "EEE, dd MMM yyyy HH:mm:ss zzz";
+
 	final BellaDatiClient client;
 	final TokenHolder tokenHolder;
 
@@ -71,6 +74,10 @@ class BellaDatiServiceImpl implements BellaDatiService {
 		.synchronizedMap(new HashMap<String, PaginatedList<Comment>>());
 
 	private final transient Map<String, Map<String, CachedListImpl<AttributeValue>>> reportAttributeValues = new HashMap<String, Map<String, CachedListImpl<AttributeValue>>>();
+
+	private final transient Map<String, CachedListImpl<DataSource>> dataSourceList = new HashMap<String, CachedListImpl<DataSource>>();
+
+	private final transient Map<String, CachedListImpl<DataSourceImport>> dataSourceImportList = new HashMap<String, CachedListImpl<DataSourceImport>>();
 
 	BellaDatiServiceImpl(BellaDatiClient client, TokenHolder tokenHolder) {
 		this.client = client;
@@ -186,14 +193,38 @@ class BellaDatiServiceImpl implements BellaDatiService {
 
 	@Override
 	public CachedList<DataSource> getDataSources(String id) throws NotFoundException {
-		// TODO Auto-generated method stub
-		return null;
+		CachedListImpl<DataSource> list = dataSourceList.get(id);
+		if (list == null) {
+			// we don't have this data set's sources in our cache yet
+			list = new CachedListImpl<DataSource>(this, "api/dataSets/" + id + "/dataSources", "dataSources") {
+				@Override
+				protected DataSource parse(BellaDatiServiceImpl service, JsonNode node) throws ParseException {
+					return new DataSourceImpl(service, node);
+				}
+			};
+			dataSourceList.put(id, list);
+		}
+		return list;
 	}
 
 	@Override
 	public CachedList<DataSourceImport> getDataSourceImports(String id) throws NotFoundException {
-		// TODO Auto-generated method stub
-		return null;
+		CachedListImpl<DataSourceImport> list = dataSourceImportList.get(id);
+		if (list == null) {
+			// we don't have this data set's sources in our cache yet
+			list = new CachedListImpl<DataSourceImport>(this, "api/dataSets/dataSources/" + id + "/executions", "executions") {
+				@Override
+				protected DataSourceImport parse(BellaDatiServiceImpl service, JsonNode node) throws ParseException {
+					try {
+						return new DataSourceImportImpl(node);
+					} catch (InvalidDataSourceImportException e) {
+						throw new ParseException(node, e);
+					}
+				}
+			};
+			dataSourceImportList.put(id, list);
+		}
+		return list;
 	}
 
 	@Override

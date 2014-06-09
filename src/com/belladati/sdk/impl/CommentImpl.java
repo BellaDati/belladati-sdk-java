@@ -20,7 +20,7 @@ class CommentImpl implements Comment {
 		this.authorInfo = new UserInfoImpl(service, json.get("authorId").asText(), json.get("author").asText());
 
 		if (json.hasNonNull("when")) {
-			SimpleDateFormat format = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz");
+			SimpleDateFormat format = new SimpleDateFormat(BellaDatiServiceImpl.DATE_TIME_FORMAT);
 			Date date;
 			try {
 				date = format.parse(json.get("when").asText());
