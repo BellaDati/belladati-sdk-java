@@ -6,6 +6,7 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 
+import com.belladati.sdk.dataset.source.ImportIntervalUnit;
 import com.belladati.sdk.test.JsonBuilder;
 import com.belladati.sdk.test.RequestTrackingServer;
 import com.belladati.sdk.view.ViewType;
@@ -64,5 +65,17 @@ public class SDKTest {
 	protected Object[][] unsupportedViewTypeProvider() {
 		// we don't support tables yet
 		return new Object[][] { { "unknown type" } };
+	}
+
+	@DataProvider(name = "intervalUnits")
+	protected Object[][] intervalUnitsProvider() {
+		return new Object[][] { new Object[] { "HOUR", ImportIntervalUnit.HOUR, 1, 60 },
+			new Object[] { "HOUR2", ImportIntervalUnit.HOUR, 2, 120 }, new Object[] { "HOUR4", ImportIntervalUnit.HOUR, 4, 240 },
+			new Object[] { "HOUR8", ImportIntervalUnit.HOUR, 8, 480 }, new Object[] { "DAY", ImportIntervalUnit.DAY, 1, 1440 },
+			new Object[] { "DAY2", ImportIntervalUnit.DAY, 2, 2880 }, new Object[] { "WEEK", ImportIntervalUnit.WEEK, 1, 10080 },
+			new Object[] { "WEEK2", ImportIntervalUnit.WEEK, 2, 20160 },
+			new Object[] { "MONTH", ImportIntervalUnit.MONTH, 1, 44640 },
+			new Object[] { "QUARTER", ImportIntervalUnit.QUARTER, 1, 133920 },
+			new Object[] { "YEAR", ImportIntervalUnit.YEAR, 1, 525600 } };
 	}
 }

@@ -11,12 +11,12 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.TimeZone;
 
-import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import com.belladati.sdk.dataset.source.DataSource;
 import com.belladati.sdk.dataset.source.DataSourceImport;
 import com.belladati.sdk.dataset.source.ImportInterval;
+import com.belladati.sdk.dataset.source.ImportIntervalUnit;
 import com.belladati.sdk.impl.DataSourceImportImpl.InvalidDataSourceImportException;
 import com.belladati.sdk.util.CachedList;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -55,7 +55,6 @@ public class DataSourceImportTest extends SDKTest {
 		expectedImport.set(Calendar.MILLISECOND, 0);
 		assertEquals(exec.getNextExecutionDate(), expectedImport.getTime());
 		assertEquals(exec.getRepeatInterval().getMinutes(), customIntervalLength);
-		expectedImport.add(Calendar.MINUTE, customIntervalLength);
 		assertTrue(exec.isOverwriting());
 	}
 
@@ -80,7 +79,6 @@ public class DataSourceImportTest extends SDKTest {
 		expectedImport.set(Calendar.MILLISECOND, 0);
 		assertEquals(exec.getNextExecutionDate(), expectedImport.getTime());
 		assertEquals(exec.getRepeatInterval().getMinutes(), customIntervalLength);
-		expectedImport.add(Calendar.MINUTE, customIntervalLength);
 		assertTrue(exec.isOverwriting());
 	}
 
@@ -224,16 +222,14 @@ public class DataSourceImportTest extends SDKTest {
 
 	/** interval units are parsed correctly */
 	@Test(dataProvider = "intervalUnits")
-	public void predefinedInterval(String interval, int minutes) {
+	public void predefinedInterval(String interval, ImportIntervalUnit unit, int factor, int minutes) {
 		registerSingleImport(builder.buildSourceImportNode(id, caller, lastImport, overwritePolicy, interval));
 
 		ImportInterval result = service.getDataSourceImports(dsId).load().toList().get(0).getRepeatInterval();
-		Calendar expectedImport = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
-		expectedImport.set(2012, 3, 16, 10, 17, 26);
-		expectedImport.set(Calendar.MILLISECOND, 0);
-		expectedImport.add(Calendar.MINUTE, minutes);
 
 		assertEquals(result.getMinutes(), minutes);
+		assertEquals(result.getUnit(), unit);
+		assertEquals(result.getFactor(), factor);
 	}
 
 	/** custom numbers are ignored with non-CUSTOM interval */
@@ -245,13 +241,5 @@ public class DataSourceImportTest extends SDKTest {
 
 	private void registerSingleImport(JsonNode node) {
 		server.registerPaginatedItem(importUri, "executions", node);
-	}
-
-	@DataProvider(name = "intervalUnits")
-	protected Object[][] provideIntervalUnits() {
-		return new Object[][] { new Object[] { "HOUR", 60 }, new Object[] { "HOUR2", 120 }, new Object[] { "HOUR4", 240 },
-			new Object[] { "HOUR8", 480 }, new Object[] { "DAY", 1440 }, new Object[] { "DAY2", 2880 },
-			new Object[] { "WEEK", 10080 }, new Object[] { "WEEK2", 20160 }, new Object[] { "MONTH", 44640 },
-			new Object[] { "QUARTER", 133920 }, new Object[] { "YEAR", 525600 } };
 	}
 }

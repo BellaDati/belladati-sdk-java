@@ -8,6 +8,8 @@ import org.apache.http.message.BasicNameValuePair;
 
 import com.belladati.sdk.dataset.data.OverwritePolicy;
 import com.belladati.sdk.dataset.source.DataSourcePendingImport;
+import com.belladati.sdk.dataset.source.ImportInterval;
+import com.belladati.sdk.dataset.source.ImportIntervalUnit;
 import com.belladati.sdk.exception.server.NotFoundException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -46,11 +48,15 @@ class DataSourcePendingImportImpl extends DataSourceImportBaseImpl implements Da
 	}
 
 	@Override
-	public DataSourcePendingImport setRepeatInterval(int minutes) throws IllegalStateException {
+	public DataSourcePendingImport setRepeatInterval(ImportIntervalUnit unit, int factor) throws IllegalStateException {
 		if (posted) {
 			throw new IllegalStateException("Import already submitted to server.");
 		}
-		this.interval = minutes <= 0 ? null : new ImportIntervalImpl(minutes);
+		if (unit == null || factor <= 0) {
+			this.interval = null;
+		} else {
+			this.interval = new ImportIntervalImpl(unit, factor);
+		}
 		return this;
 	}
 
@@ -62,8 +68,11 @@ class DataSourcePendingImportImpl extends DataSourceImportBaseImpl implements Da
 			node.put("overwrite", overwritePolicy.toJson());
 		}
 		if (interval != null) {
-			node.put("repeateInterval", "CUSTOM");
-			node.put("customRepeateInterval", interval.getMinutes());
+			ImportPeriod period = findPeriod(interval);
+			node.put("repeateInterval", period.name());
+			if (period == ImportPeriod.CUSTOM) {
+				node.put("customRepeateInterval", interval.getMinutes());
+			}
 		}
 		return node;
 	}
@@ -76,5 +85,14 @@ class DataSourcePendingImportImpl extends DataSourceImportBaseImpl implements Da
 		service.client.post("api/dataSets/dataSources/" + sourceId + "/schedule", service.tokenHolder,
 			Collections.singletonList(new BasicNameValuePair("params", toJson().toString())));
 		posted = true;
+	}
+
+	ImportPeriod findPeriod(ImportInterval interval) {
+		for (ImportPeriod period : ImportPeriod.values()) {
+			if (period.minutes == interval.getMinutes()) {
+				return period;
+			}
+		}
+		return ImportPeriod.CUSTOM;
 	}
 }

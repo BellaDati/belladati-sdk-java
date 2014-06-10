@@ -5,6 +5,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import com.belladati.sdk.dataset.source.DataSourceImport;
+import com.belladati.sdk.dataset.source.ImportIntervalUnit;
 import com.fasterxml.jackson.databind.JsonNode;
 
 class DataSourceImportImpl extends DataSourceImportBaseImpl implements DataSourceImport {
@@ -18,7 +19,7 @@ class DataSourceImportImpl extends DataSourceImportBaseImpl implements DataSourc
 		this.overwriting = json.hasNonNull("overwritingPolicy") && !json.get("overwritingPolicy").asText().isEmpty();
 
 		if (json.hasNonNull("repeateInterval")) {
-			interval = new ImportIntervalImpl(parseMinutes(json));
+			interval = parseInterval(json);
 		} else {
 			interval = null;
 		}
@@ -36,13 +37,13 @@ class DataSourceImportImpl extends DataSourceImportBaseImpl implements DataSourc
 		}
 	}
 
-	private static int parseMinutes(JsonNode json) throws InvalidDataSourceImportException {
+	private static ImportIntervalImpl parseInterval(JsonNode json) throws InvalidDataSourceImportException {
 		try {
 			ImportPeriod period = ImportPeriod.valueOf(json.get("repeateInterval").asText());
 			if (period == ImportPeriod.CUSTOM) {
-				return parseCustomMinutes(json);
+				return new ImportIntervalImpl(ImportIntervalUnit.MINUTE, parseCustomMinutes(json));
 			}
-			return period.minutes;
+			return new ImportIntervalImpl(period.unit, period.minutes / period.unit.getMinutes());
 		} catch (IllegalArgumentException e) {
 			throw new InvalidDataSourceImportException(json);
 		}
@@ -91,18 +92,6 @@ class DataSourceImportImpl extends DataSourceImportBaseImpl implements DataSourc
 
 		public InvalidDataSourceImportException(JsonNode node) {
 			super("Invalid data source import JSON: " + node.toString());
-		}
-	}
-
-	private enum ImportPeriod {
-		CUSTOM(100), HOUR(60), HOUR2(HOUR.minutes * 2), HOUR4(HOUR.minutes * 4), HOUR8(HOUR.minutes * 8), DAY(24 * 60), DAY2(
-			DAY.minutes * 2), WEEK(DAY.minutes * 7), WEEK2(WEEK.minutes * 2), MONTH(DAY.minutes * 31), QUARTER(MONTH.minutes * 3), YEAR(
-			DAY.minutes * 365);
-
-		private int minutes;
-
-		private ImportPeriod(int minutes) {
-			this.minutes = minutes;
 		}
 	}
 }

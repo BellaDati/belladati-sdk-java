@@ -16,6 +16,7 @@ import org.testng.annotations.Test;
 import com.belladati.sdk.dataset.data.OverwritePolicy;
 import com.belladati.sdk.dataset.source.DataSource;
 import com.belladati.sdk.dataset.source.DataSourcePendingImport;
+import com.belladati.sdk.dataset.source.ImportIntervalUnit;
 import com.belladati.sdk.test.TestRequestHandler;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -103,11 +104,31 @@ public class DataSourcePendingImportTest extends SDKTest {
 	}
 
 	/** can set an interval */
-	public void setInterval() {
-		int minutes = 180;
-		pending.setRepeatInterval(minutes);
+	@Test(dataProvider = "intervalUnits")
+	public void setInterval(String interval, ImportIntervalUnit unit, int factor, int minutes) {
+		pending.setRepeatInterval(unit, factor);
 
 		assertEquals(pending.getRepeatInterval().getMinutes(), minutes);
+
+		assertEquals(pending.toJson().get("repeateInterval").asText(), interval);
+		assertNull(pending.toJson().get("customRepeateInterval"));
+	}
+
+	/** can set a custom interval */
+	public void setMinuteInterval() {
+		pending.setRepeatInterval(ImportIntervalUnit.MINUTE, 30);
+
+		assertEquals(pending.getRepeatInterval().getMinutes(), 30);
+
+		assertEquals(pending.toJson().get("repeateInterval").asText(), "CUSTOM");
+		assertEquals(pending.toJson().get("customRepeateInterval").asInt(), 30);
+	}
+
+	/** can set a new interval as custom */
+	public void setNewInterval() {
+		pending.setRepeatInterval(ImportIntervalUnit.HOUR, 3);
+
+		assertEquals(pending.getRepeatInterval().getMinutes(), 180);
 
 		assertEquals(pending.toJson().get("repeateInterval").asText(), "CUSTOM");
 		assertEquals(pending.toJson().get("customRepeateInterval").asInt(), 180);
@@ -115,7 +136,7 @@ public class DataSourcePendingImportTest extends SDKTest {
 
 	/** unset interval by setting negative */
 	public void negativeInterval() {
-		pending.setRepeatInterval(10).setRepeatInterval(-10);
+		pending.setRepeatInterval(ImportIntervalUnit.MINUTE, 10).setRepeatInterval(ImportIntervalUnit.MINUTE, -10);
 
 		assertNull(pending.getRepeatInterval());
 
@@ -125,7 +146,17 @@ public class DataSourcePendingImportTest extends SDKTest {
 
 	/** unset interval by setting zero */
 	public void zeroInterval() {
-		pending.setRepeatInterval(10).setRepeatInterval(0);
+		pending.setRepeatInterval(ImportIntervalUnit.MINUTE, 10).setRepeatInterval(ImportIntervalUnit.MINUTE, 0);
+
+		assertNull(pending.getRepeatInterval());
+
+		assertNull(pending.toJson().get("repeateInterval"));
+		assertNull(pending.toJson().get("customRepeateInterval"));
+	}
+
+	/** unset interval by setting zero */
+	public void nullUnitInterval() {
+		pending.setRepeatInterval(ImportIntervalUnit.MINUTE, 10).setRepeatInterval(null, 10);
 
 		assertNull(pending.getRepeatInterval());
 
@@ -146,7 +177,7 @@ public class DataSourcePendingImportTest extends SDKTest {
 	public void setIntervalAfterPost() {
 		server.register(requestUri, "");
 		pending.post();
-		pending.setRepeatInterval(10);
+		pending.setRepeatInterval(ImportIntervalUnit.MINUTE, 10);
 	}
 
 	/** can't post again after posting */
