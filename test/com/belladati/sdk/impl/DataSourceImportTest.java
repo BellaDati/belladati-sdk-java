@@ -53,10 +53,9 @@ public class DataSourceImportTest extends SDKTest {
 		Calendar expectedImport = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
 		expectedImport.set(2012, 3, 16, 10, 17, 26);
 		expectedImport.set(Calendar.MILLISECOND, 0);
-		assertEquals(exec.getLastExecutionDate(), expectedImport.getTime());
-		assertEquals(exec.getImportInterval().getMinutes(), customIntervalLength);
+		assertEquals(exec.getNextExecutionDate(), expectedImport.getTime());
+		assertEquals(exec.getRepeatInterval().getMinutes(), customIntervalLength);
 		expectedImport.add(Calendar.MINUTE, customIntervalLength);
-		assertEquals(exec.getImportInterval().getNextExecution(), expectedImport.getTime());
 		assertTrue(exec.isOverwriting());
 	}
 
@@ -79,10 +78,9 @@ public class DataSourceImportTest extends SDKTest {
 		Calendar expectedImport = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
 		expectedImport.set(2012, 3, 16, 10, 17, 26);
 		expectedImport.set(Calendar.MILLISECOND, 0);
-		assertEquals(exec.getLastExecutionDate(), expectedImport.getTime());
-		assertEquals(exec.getImportInterval().getMinutes(), customIntervalLength);
+		assertEquals(exec.getNextExecutionDate(), expectedImport.getTime());
+		assertEquals(exec.getRepeatInterval().getMinutes(), customIntervalLength);
 		expectedImport.add(Calendar.MINUTE, customIntervalLength);
-		assertEquals(exec.getImportInterval().getNextExecution(), expectedImport.getTime());
 		assertTrue(exec.isOverwriting());
 	}
 
@@ -137,14 +135,14 @@ public class DataSourceImportTest extends SDKTest {
 		node.remove("repeateInterval");
 		registerSingleImport(node);
 
-		assertNull(service.getDataSourceImports(dsId).load().toList().get(0).getImportInterval());
+		assertNull(service.getDataSourceImports(dsId).load().toList().get(0).getRepeatInterval());
 	}
 
 	/** null interval means no scheduling */
 	public void nullInterval() {
 		registerSingleImport(builder.buildSourceImportNode(id, caller, lastImport, overwritePolicy, null, customIntervalLength));
 
-		assertNull(service.getDataSourceImports(dsId).load().toList().get(0).getImportInterval());
+		assertNull(service.getDataSourceImports(dsId).load().toList().get(0).getRepeatInterval());
 	}
 
 	/** sources with invalid intervals are ignored */
@@ -229,21 +227,20 @@ public class DataSourceImportTest extends SDKTest {
 	public void predefinedInterval(String interval, int minutes) {
 		registerSingleImport(builder.buildSourceImportNode(id, caller, lastImport, overwritePolicy, interval));
 
-		ImportInterval result = service.getDataSourceImports(dsId).load().toList().get(0).getImportInterval();
+		ImportInterval result = service.getDataSourceImports(dsId).load().toList().get(0).getRepeatInterval();
 		Calendar expectedImport = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
 		expectedImport.set(2012, 3, 16, 10, 17, 26);
 		expectedImport.set(Calendar.MILLISECOND, 0);
 		expectedImport.add(Calendar.MINUTE, minutes);
 
 		assertEquals(result.getMinutes(), minutes);
-		assertEquals(result.getNextExecution(), expectedImport.getTime());
 	}
 
 	/** custom numbers are ignored with non-CUSTOM interval */
 	public void predefinedWithNumber() {
 		registerSingleImport(builder.buildSourceImportNode(id, caller, lastImport, overwritePolicy, "HOUR", 123));
 
-		assertEquals(service.getDataSourceImports(dsId).load().toList().get(0).getImportInterval().getMinutes(), 60);
+		assertEquals(service.getDataSourceImports(dsId).load().toList().get(0).getRepeatInterval().getMinutes(), 60);
 	}
 
 	private void registerSingleImport(JsonNode node) {

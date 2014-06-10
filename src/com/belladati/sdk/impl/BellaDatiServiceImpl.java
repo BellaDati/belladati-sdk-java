@@ -229,8 +229,7 @@ class BellaDatiServiceImpl implements BellaDatiService {
 
 	@Override
 	public DataSourcePendingImport setupDataSourceImport(String id, Date date) {
-		// TODO Auto-generated method stub
-		return null;
+		return new DataSourcePendingImportImpl(this, id, date);
 	}
 
 	/**

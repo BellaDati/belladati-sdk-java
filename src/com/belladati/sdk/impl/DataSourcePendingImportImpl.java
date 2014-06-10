@@ -1,0 +1,80 @@
+package com.belladati.sdk.impl;
+
+import java.text.SimpleDateFormat;
+import java.util.Collections;
+import java.util.Date;
+
+import org.apache.http.message.BasicNameValuePair;
+
+import com.belladati.sdk.dataset.data.OverwritePolicy;
+import com.belladati.sdk.dataset.source.DataSourcePendingImport;
+import com.belladati.sdk.exception.server.NotFoundException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
+class DataSourcePendingImportImpl extends DataSourceImportBaseImpl implements DataSourcePendingImport {
+
+	private final BellaDatiServiceImpl service;
+	private final String sourceId;
+	private OverwritePolicy overwritePolicy = OverwritePolicy.deleteNone();
+	private boolean posted = false;
+
+	DataSourcePendingImportImpl(BellaDatiServiceImpl service, String sourceId, Date date) {
+		super("", date);
+		this.service = service;
+		this.sourceId = sourceId;
+	}
+
+	@Override
+	public boolean isOverwriting() {
+		return !OverwritePolicy.deleteNone().equals(overwritePolicy);
+	}
+
+	@Override
+	public DataSourcePendingImport setOverwritePolicy(OverwritePolicy policy) throws IllegalStateException {
+		if (posted) {
+			throw new IllegalStateException("Import already submitted to server.");
+		}
+		this.overwritePolicy = policy == null ? OverwritePolicy.deleteNone() : policy;
+		return this;
+	}
+
+	@Override
+	public OverwritePolicy getOverwritePolicy() {
+		return overwritePolicy;
+	}
+
+	@Override
+	public DataSourcePendingImport setRepeatInterval(int minutes) throws IllegalStateException {
+		if (posted) {
+			throw new IllegalStateException("Import already submitted to server.");
+		}
+		this.interval = minutes <= 0 ? null : new ImportIntervalImpl(minutes);
+		return this;
+	}
+
+	@Override
+	public JsonNode toJson() {
+		ObjectNode node = new ObjectMapper().createObjectNode().put("when",
+			new SimpleDateFormat(BellaDatiServiceImpl.DATE_TIME_FORMAT).format(nextImport));
+		if (isOverwriting()) {
+			node.put("overwrite", overwritePolicy.toJson());
+		}
+		if (interval != null) {
+			node.put("repeateInterval", "CUSTOM");
+			node.put("customRepeateInterval", interval.getMinutes());
+		}
+		return node;
+	}
+
+	@Override
+	public void post() throws NotFoundException, IllegalStateException {
+		if (posted) {
+			throw new IllegalStateException("Import already submitted to server.");
+		}
+		service.client.post("api/dataSets/dataSources/" + sourceId + "/schedule", service.tokenHolder,
+			Collections.singletonList(new BasicNameValuePair("params", toJson().toString())));
+		posted = true;
+	}
+}

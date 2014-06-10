@@ -53,8 +53,7 @@ class DataSourceImpl implements DataSource {
 
 	@Override
 	public DataSourcePendingImport setupImport(Date date) {
-		// TODO Auto-generated method stub
-		return null;
+		return new DataSourcePendingImportImpl(service, id, date);
 	}
 
 	@Override
