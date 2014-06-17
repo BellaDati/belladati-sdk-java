@@ -19,19 +19,20 @@ import oauth.signpost.exception.OAuthException;
 import oauth.signpost.http.HttpParameters;
 
 import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.conn.ssl.SSLContexts;
 import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.cache.CacheConfig;
 import org.apache.http.impl.client.cache.CachingHttpClientBuilder;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 
 import com.belladati.sdk.exception.BellaDatiRuntimeException;
 import com.belladati.sdk.exception.ConnectionException;
@@ -54,7 +55,7 @@ class BellaDatiClient implements Serializable {
 	private final String baseUrl;
 	private final boolean trustSelfSigned;
 
-	private final transient HttpClient client;
+	private final transient CloseableHttpClient client;
 
 	BellaDatiClient(String baseUrl, boolean trustSelfSigned) {
 		this.baseUrl = baseUrl.endsWith("/") ? baseUrl : (baseUrl + "/");
@@ -69,7 +70,7 @@ class BellaDatiClient implements Serializable {
 	 *            self-signed certificates
 	 * @return a new client instance
 	 */
-	private HttpClient buildClient(boolean trustSelfSigned) {
+	private CloseableHttpClient buildClient(boolean trustSelfSigned) {
 		try {
 			// if required, define custom SSL context allowing self-signed certs
 			SSLContext sslContext = !trustSelfSigned ? SSLContexts.createSystemDefault() : SSLContexts.custom()
@@ -87,9 +88,16 @@ class BellaDatiClient implements Serializable {
 			CacheConfig cacheConfig = CacheConfig.copy(CacheConfig.DEFAULT).setSharedCache(false).setMaxCacheEntries(1000)
 				.setMaxObjectSize(2 * 1024 * 1024).build();
 
+			// configure connection pooling
+			PoolingHttpClientConnectionManager connManager = new PoolingHttpClientConnectionManager();
+			int connectionLimit = readFromProperty("bdMaxConnections", 40);
+			// there's only one server to connect to, so max per route matters
+			connManager.setMaxTotal(connectionLimit);
+			connManager.setDefaultMaxPerRoute(connectionLimit);
+
 			// create the HTTP client
 			return CachingHttpClientBuilder.create().setCacheConfig(cacheConfig).setSslcontext(sslContext)
-				.setDefaultRequestConfig(requestConfig).build();
+				.setDefaultRequestConfig(requestConfig).setConnectionManager(connManager).build();
 		} catch (GeneralSecurityException e) {
 			throw new InternalConfigurationException("Failed to set up SSL context", e);
 		}
@@ -188,11 +196,12 @@ class BellaDatiClient implements Serializable {
 	}
 
 	private byte[] doRequest(HttpRequestBase request, TokenHolder tokenHolder, HttpParameters oauthParams) {
+		CloseableHttpResponse response = null;
 		try {
 			OAuthConsumer consumer = tokenHolder.createConsumer();
 			consumer.setAdditionalParameters(oauthParams);
 			consumer.sign(request);
-			HttpResponse response = client.execute(request);
+			response = client.execute(request);
 			int statusCode = response.getStatusLine().getStatusCode();
 			HttpEntity entity = response.getEntity();
 			byte[] content = entity != null ? readBytes(entity.getContent()) : new byte[0];
@@ -218,6 +227,13 @@ class BellaDatiClient implements Serializable {
 		} catch (IOException e) {
 			throw new ConnectionException("Failed to connect to BellaDati", e);
 		} finally {
+			try {
+				if (response != null) {
+					response.close();
+				}
+			} catch (IOException e) {
+				throw new ConnectionException("Failed to connect to BellaDati", e);
+			}
 			request.releaseConnection();
 		}
 	}
