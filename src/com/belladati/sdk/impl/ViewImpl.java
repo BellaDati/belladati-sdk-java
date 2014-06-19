@@ -135,6 +135,8 @@ abstract class ViewImpl implements View {
 	private final Interval<DateUnit> dateInterval;
 	private final Interval<TimeUnit> timeInterval;
 
+	private final LocalizationImpl localization;
+
 	ViewImpl(BellaDatiServiceImpl service, JsonNode node) throws UnknownViewTypeException {
 		this.service = service;
 
@@ -163,6 +165,8 @@ abstract class ViewImpl implements View {
 			dateInterval = null;
 			timeInterval = null;
 		}
+
+		this.localization = new LocalizationImpl(node);
 	}
 
 	@Override
@@ -173,6 +177,16 @@ abstract class ViewImpl implements View {
 	@Override
 	public String getName() {
 		return name;
+	}
+
+	@Override
+	public String getName(Locale locale) {
+		return localization.getName(locale);
+	}
+
+	@Override
+	public boolean hasLocalization(Locale locale) {
+		return localization.hasLocalization(locale);
 	}
 
 	@Override

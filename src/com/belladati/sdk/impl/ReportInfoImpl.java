@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 
 import com.belladati.sdk.exception.BellaDatiRuntimeException;
 import com.belladati.sdk.report.Comment;
@@ -21,6 +22,7 @@ class ReportInfoImpl implements ReportInfo {
 	private final String description;
 	private final String ownerName;
 	private final Date lastChange;
+	private final LocalizationImpl localization;
 
 	ReportInfoImpl(BellaDatiServiceImpl service, JsonNode json) {
 		if (!json.hasNonNull("id") || !json.hasNonNull("name") || !json.hasNonNull("owner")) {
@@ -45,6 +47,8 @@ class ReportInfoImpl implements ReportInfo {
 		} else {
 			this.lastChange = null;
 		}
+
+		this.localization = new LocalizationImpl(json);
 	}
 
 	@Override
@@ -55,6 +59,16 @@ class ReportInfoImpl implements ReportInfo {
 	@Override
 	public String getName() {
 		return name;
+	}
+
+	@Override
+	public String getName(Locale locale) {
+		return localization.getName(locale);
+	}
+
+	@Override
+	public boolean hasLocalization(Locale locale) {
+		return localization.hasLocalization(locale);
 	}
 
 	@Override

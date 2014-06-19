@@ -3,6 +3,7 @@ package com.belladati.sdk.impl;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 
 import com.belladati.sdk.dataset.DataSet;
 import com.belladati.sdk.dataset.DataSetInfo;
@@ -17,6 +18,7 @@ class DataSetInfoImpl implements DataSetInfo {
 	private final String description;
 	private final String ownerName;
 	private final Date lastChange;
+	private final LocalizationImpl localization;
 
 	DataSetInfoImpl(BellaDatiServiceImpl service, JsonNode json) {
 		this.service = service;
@@ -38,6 +40,8 @@ class DataSetInfoImpl implements DataSetInfo {
 		} else {
 			this.lastChange = null;
 		}
+
+		this.localization = new LocalizationImpl(json);
 	}
 
 	@Override
@@ -48,6 +52,16 @@ class DataSetInfoImpl implements DataSetInfo {
 	@Override
 	public String getName() {
 		return name;
+	}
+
+	@Override
+	public String getName(Locale locale) {
+		return localization.getName(locale);
+	}
+
+	@Override
+	public boolean hasLocalization(Locale locale) {
+		return localization.hasLocalization(locale);
 	}
 
 	@Override

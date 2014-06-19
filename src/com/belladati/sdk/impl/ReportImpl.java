@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 import com.belladati.sdk.dataset.Attribute;
 import com.belladati.sdk.dataset.DataSetInfo;
@@ -30,6 +31,7 @@ class ReportImpl implements Report {
 	private final List<View> viewInfos;
 	private final List<Attribute> attributes;
 	private final DataSetInfo dataSet;
+	private final LocalizationImpl localization;
 
 	ReportImpl(BellaDatiServiceImpl service, JsonNode json) {
 		this.service = service;
@@ -82,6 +84,8 @@ class ReportImpl implements Report {
 		} else {
 			this.dataSet = null;
 		}
+
+		this.localization = new LocalizationImpl(json);
 	}
 
 	@Override
@@ -92,6 +96,16 @@ class ReportImpl implements Report {
 	@Override
 	public String getName() {
 		return name;
+	}
+
+	@Override
+	public String getName(Locale locale) {
+		return localization.getName(locale);
+	}
+
+	@Override
+	public boolean hasLocalization(Locale locale) {
+		return localization.hasLocalization(locale);
 	}
 
 	@Override
