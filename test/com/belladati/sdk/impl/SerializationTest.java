@@ -1,6 +1,7 @@
 package com.belladati.sdk.impl;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -76,6 +77,14 @@ public class SerializationTest extends SDKTest {
 		// use deserialized service
 		newService.loadReport(id);
 		server.assertRequestUris(reportsUri + "/" + id);
+
+		assertNotNull(newService.getDashboardInfo());
+		assertNotNull(newService.getReportInfo());
+		assertNotNull(newService.getDataSetInfo());
+		assertNotNull(newService.getReportComments(""));
+		assertNotNull(newService.getAttributeValues("", ""));
+		assertNotNull(newService.getDataSources(""));
+		assertNotNull(newService.getDataSourceImports(""));
 	}
 
 	/**

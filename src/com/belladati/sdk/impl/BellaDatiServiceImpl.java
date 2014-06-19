@@ -363,6 +363,10 @@ class BellaDatiServiceImpl implements BellaDatiService {
 			reportList.setAccessible(true);
 			reportList.set(this, new ReportList());
 
+			Field dataSetList = getClass().getDeclaredField("dataSetList");
+			dataSetList.setAccessible(true);
+			dataSetList.set(this, new DataSetList());
+
 			Field commentLists = getClass().getDeclaredField("commentLists");
 			commentLists.setAccessible(true);
 			commentLists.set(this, Collections.synchronizedMap(new HashMap<String, PaginatedList<Comment>>()));
@@ -370,6 +374,14 @@ class BellaDatiServiceImpl implements BellaDatiService {
 			Field reportAttributeValues = getClass().getDeclaredField("reportAttributeValues");
 			reportAttributeValues.setAccessible(true);
 			reportAttributeValues.set(this, new HashMap<String, Map<String, CachedListImpl<AttributeValue>>>());
+
+			Field dataSourceList = getClass().getDeclaredField("dataSourceList");
+			dataSourceList.setAccessible(true);
+			dataSourceList.set(this, new HashMap<String, CachedListImpl<DataSource>>());
+
+			Field dataSourceImportList = getClass().getDeclaredField("dataSourceImportList");
+			dataSourceImportList.setAccessible(true);
+			dataSourceImportList.set(this, new HashMap<String, CachedListImpl<DataSourceImport>>());
 		} catch (NoSuchFieldException e) {
 			throw new InternalConfigurationException("Failed to set service fields", e);
 		} catch (IllegalAccessException e) {
