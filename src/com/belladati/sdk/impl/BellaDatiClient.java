@@ -26,6 +26,10 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.config.RegistryBuilder;
+import org.apache.http.conn.socket.ConnectionSocketFactory;
+import org.apache.http.conn.socket.PlainConnectionSocketFactory;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLContexts;
 import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
 import org.apache.http.entity.StringEntity;
@@ -89,15 +93,17 @@ class BellaDatiClient implements Serializable {
 				.setMaxObjectSize(2 * 1024 * 1024).build();
 
 			// configure connection pooling
-			PoolingHttpClientConnectionManager connManager = new PoolingHttpClientConnectionManager();
+			PoolingHttpClientConnectionManager connManager = new PoolingHttpClientConnectionManager(RegistryBuilder
+				.<ConnectionSocketFactory> create().register("http", PlainConnectionSocketFactory.getSocketFactory())
+				.register("https", new SSLConnectionSocketFactory(sslContext)).build());
 			int connectionLimit = readFromProperty("bdMaxConnections", 40);
 			// there's only one server to connect to, so max per route matters
 			connManager.setMaxTotal(connectionLimit);
 			connManager.setDefaultMaxPerRoute(connectionLimit);
 
 			// create the HTTP client
-			return CachingHttpClientBuilder.create().setCacheConfig(cacheConfig).setSslcontext(sslContext)
-				.setDefaultRequestConfig(requestConfig).setConnectionManager(connManager).build();
+			return CachingHttpClientBuilder.create().setCacheConfig(cacheConfig).setDefaultRequestConfig(requestConfig)
+				.setConnectionManager(connManager).build();
 		} catch (GeneralSecurityException e) {
 			throw new InternalConfigurationException("Failed to set up SSL context", e);
 		}
