@@ -3,12 +3,14 @@ package com.belladati.sdk.impl;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotEquals;
+import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import org.apache.http.entity.StringEntity;
@@ -441,5 +443,94 @@ public class TableViewsTest extends SDKTest {
 			builder.buildViewNode(id, name, "table")));
 		assertFalse(view.isDateIntervalSupported());
 		assertFalse(view.isTimeIntervalSupported());
+	}
+
+	/** no locale means no parameter is set */
+	public void noLocale() throws UnknownViewTypeException {
+		View view = new TableViewImpl(service, builder.buildViewNode(id, name, "table"));
+		int rows = 8;
+		int columns = 12;
+		server.register(viewsUri + id + "/table/bounds", builder.buildTableNode(rows, columns, 2, 2).toString());
+
+		TableView.Table table = (Table) view.loadContent();
+
+		assertNull(table.getLocale());
+
+		TestRequestHandler paramChecker = new TestRequestHandler() {
+			@Override
+			protected void handle(HttpHolder holder) throws IOException {
+				assertFalse(holder.getUrlParameters().containsKey("language"));
+				holder.response.setEntity(new StringEntity("{}"));
+			}
+		};
+		server.register(viewsUri + id + "/table/leftHeader", paramChecker);
+		server.register(viewsUri + id + "/table/topHeader", paramChecker);
+		server.register(viewsUri + id + "/table/data", paramChecker);
+
+		table.loadLeftHeader(0, 0);
+		table.loadTopHeader(0, 0);
+		table.loadData(0, 0, 0, 0);
+
+		server.assertRequestUris(viewsUri + id + "/table/bounds", viewsUri + id + "/table/leftHeader", viewsUri + id
+			+ "/table/topHeader", viewsUri + id + "/table/data");
+	}
+
+	/** custom locale is sent */
+	public void customLocale() throws UnknownViewTypeException {
+		View view = new TableViewImpl(service, builder.buildViewNode(id, name, "table"));
+		int rows = 8;
+		int columns = 12;
+		server.register(viewsUri + id + "/table/bounds", builder.buildTableNode(rows, columns, 2, 2).toString());
+
+		TableView.Table table = (Table) view.createLoader().setLocale(new Locale("tR")).loadContent();
+
+		assertEquals(table.getLocale(), new Locale("Tr"));
+
+		TestRequestHandler paramChecker = new TestRequestHandler() {
+			@Override
+			protected void handle(HttpHolder holder) throws IOException {
+				assertEquals(holder.getUrlParameters().get("language"), "tr");
+				holder.response.setEntity(new StringEntity("{}"));
+			}
+		};
+		server.register(viewsUri + id + "/table/leftHeader", paramChecker);
+		server.register(viewsUri + id + "/table/topHeader", paramChecker);
+		server.register(viewsUri + id + "/table/data", paramChecker);
+
+		table.loadLeftHeader(0, 0);
+		table.loadTopHeader(0, 0);
+		table.loadData(0, 0, 0, 0);
+
+		server.assertRequestUris(viewsUri + id + "/table/bounds", viewsUri + id + "/table/leftHeader", viewsUri + id
+			+ "/table/topHeader", viewsUri + id + "/table/data");
+	}
+
+	/** table locale is sent */
+	public void tableLocale() throws UnknownViewTypeException {
+		View view = new TableViewImpl(service, builder.buildViewNode(id, name, "table"));
+		int rows = 8;
+		int columns = 12;
+		server.register(viewsUri + id + "/table/bounds", builder.buildTableNode(rows, columns, 2, 2).toString());
+
+		TableView.Table table = (Table) view.createLoader().loadContent();
+		table.setLocale(new Locale("Tr"));
+
+		TestRequestHandler paramChecker = new TestRequestHandler() {
+			@Override
+			protected void handle(HttpHolder holder) throws IOException {
+				assertEquals(holder.getUrlParameters().get("language"), "tr");
+				holder.response.setEntity(new StringEntity("{}"));
+			}
+		};
+		server.register(viewsUri + id + "/table/leftHeader", paramChecker);
+		server.register(viewsUri + id + "/table/topHeader", paramChecker);
+		server.register(viewsUri + id + "/table/data", paramChecker);
+
+		table.loadLeftHeader(0, 0);
+		table.loadTopHeader(0, 0);
+		table.loadData(0, 0, 0, 0);
+
+		server.assertRequestUris(viewsUri + id + "/table/bounds", viewsUri + id + "/table/leftHeader", viewsUri + id
+			+ "/table/topHeader", viewsUri + id + "/table/data");
 	}
 }

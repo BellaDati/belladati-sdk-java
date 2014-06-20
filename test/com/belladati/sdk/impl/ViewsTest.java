@@ -6,13 +6,16 @@ import static org.testng.Assert.assertNotEquals;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.Locale;
 
+import org.apache.http.entity.StringEntity;
 import org.testng.annotations.Test;
 
 import com.belladati.sdk.impl.ViewImpl.UnknownViewTypeException;
 import com.belladati.sdk.report.Report;
+import com.belladati.sdk.test.TestRequestHandler;
 import com.belladati.sdk.view.JsonView;
 import com.belladati.sdk.view.TableView;
 import com.belladati.sdk.view.View;
@@ -227,5 +230,57 @@ public class ViewsTest extends SDKTest {
 		Locale.setDefault(new Locale("tr"));
 		View view = ViewImpl.buildView(service, builder.buildViewNode(id, name, stringType));
 		assertEquals(view.getType(), viewType);
+	}
+
+	/** No locale means no parameter. */
+	@Test(dataProvider = "jsonViewTypes")
+	public void noLocale(String stringType, ViewType viewType) throws UnknownViewTypeException {
+		View view = ViewImpl.buildView(service, builder.buildViewNode(id, name, stringType));
+
+		server.register(viewsUri + id + "/" + stringType, new TestRequestHandler() {
+			@Override
+			protected void handle(HttpHolder holder) throws IOException {
+				assertFalse(holder.getUrlParameters().containsKey("language"));
+				holder.response.setEntity(new StringEntity("{}"));
+			}
+		});
+		view.createLoader().loadContent();
+		view.loadContent();
+
+		server.assertRequestUris(viewsUri + id + "/" + stringType, viewsUri + id + "/" + stringType);
+	}
+
+	/** custom locale is passed as parameter. */
+	@Test(dataProvider = "jsonViewTypes")
+	public void customLocale(String stringType, ViewType viewType) throws UnknownViewTypeException {
+		View view = ViewImpl.buildView(service, builder.buildViewNode(id, name, stringType));
+
+		server.register(viewsUri + id + "/" + stringType, new TestRequestHandler() {
+			@Override
+			protected void handle(HttpHolder holder) throws IOException {
+				assertEquals(holder.getUrlParameters().get("language"), "tr");
+				holder.response.setEntity(new StringEntity("{}"));
+			}
+		});
+		view.createLoader().setLocale(new Locale("tR")).loadContent();
+
+		server.assertRequestUris(viewsUri + id + "/" + stringType);
+	}
+
+	/** predefined locale is passed as parameter. */
+	@Test(dataProvider = "jsonViewTypes")
+	public void builtInLocale(String stringType, ViewType viewType) throws UnknownViewTypeException {
+		View view = ViewImpl.buildView(service, builder.buildViewNode(id, name, stringType));
+
+		server.register(viewsUri + id + "/" + stringType, new TestRequestHandler() {
+			@Override
+			protected void handle(HttpHolder holder) throws IOException {
+				assertEquals(holder.getUrlParameters().get("language"), "de");
+				holder.response.setEntity(new StringEntity("{}"));
+			}
+		});
+		view.createLoader().setLocale(Locale.GERMAN).loadContent();
+
+		server.assertRequestUris(viewsUri + id + "/" + stringType);
 	}
 }

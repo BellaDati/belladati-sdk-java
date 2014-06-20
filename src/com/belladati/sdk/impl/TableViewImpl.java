@@ -3,6 +3,7 @@ package com.belladati.sdk.impl;
 import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Locale;
 
 import org.apache.http.client.utils.URIBuilder;
 
@@ -36,6 +37,7 @@ class TableViewImpl extends ViewImpl implements TableView {
 		private final int leftHeaderColumnCount;
 		private final int topHeaderRowCount;
 		private final Collection<Filter<?>> filters;
+		private Locale locale;
 
 		TableImpl(BellaDatiServiceImpl service, String id, JsonNode node) {
 			this(service, id, node, Collections.<Filter<?>> emptyList());
@@ -90,6 +92,7 @@ class TableViewImpl extends ViewImpl implements TableView {
 				builder.addParameter("rowsFrom", "" + startRow);
 				builder.addParameter("rowsTo", "" + endRow);
 				service.appendFilter(builder, filters);
+				service.appendLocale(builder, locale);
 				return service.loadJson(builder.build().toString());
 			} catch (URISyntaxException e) {
 				throw new InternalConfigurationException(e);
@@ -112,6 +115,7 @@ class TableViewImpl extends ViewImpl implements TableView {
 				builder.addParameter("columnsFrom", "" + startColumn);
 				builder.addParameter("columnsTo", "" + endColumn);
 				service.appendFilter(builder, filters);
+				service.appendLocale(builder, locale);
 				return service.loadJson(builder.build().toString());
 			} catch (URISyntaxException e) {
 				throw new InternalConfigurationException(e);
@@ -145,10 +149,22 @@ class TableViewImpl extends ViewImpl implements TableView {
 				builder.addParameter("columnsFrom", "" + startColumn);
 				builder.addParameter("columnsTo", "" + endColumn);
 				service.appendFilter(builder, filters);
+				service.appendLocale(builder, locale);
 				return service.loadJson(builder.build().toString());
 			} catch (URISyntaxException e) {
 				throw new InternalConfigurationException(e);
 			}
+		}
+
+		@Override
+		public Locale getLocale() {
+			return locale;
+		}
+
+		@Override
+		public Table setLocale(Locale locale) {
+			this.locale = locale;
+			return this;
 		}
 
 		@Override

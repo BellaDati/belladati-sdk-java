@@ -11,6 +11,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -272,6 +273,21 @@ class BellaDatiServiceImpl implements BellaDatiService {
 				dateTimeNode.setAll(timeInterval.toJson());
 			}
 			builder.addParameter("dateTimeDefinition", dateTimeNode.toString());
+		}
+		return builder;
+	}
+
+	/**
+	 * Appends a locale language parameter to the URI builder. Won't do anything
+	 * if the locale is <tt>null</tt>.
+	 * 
+	 * @param builder the builder to append to
+	 * @param locale the locale to append
+	 * @return the same builder, for chaining
+	 */
+	URIBuilder appendLocale(URIBuilder builder, Locale locale) {
+		if (locale != null) {
+			builder.addParameter("language", locale.getLanguage());
 		}
 		return builder;
 	}
