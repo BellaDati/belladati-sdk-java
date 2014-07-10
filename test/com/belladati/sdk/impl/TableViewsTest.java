@@ -459,7 +459,7 @@ public class TableViewsTest extends SDKTest {
 		TestRequestHandler paramChecker = new TestRequestHandler() {
 			@Override
 			protected void handle(HttpHolder holder) throws IOException {
-				assertFalse(holder.getUrlParameters().containsKey("language"));
+				assertFalse(holder.getUrlParameters().containsKey("lang"));
 				holder.response.setEntity(new StringEntity("{}"));
 			}
 		};
@@ -489,7 +489,7 @@ public class TableViewsTest extends SDKTest {
 		TestRequestHandler paramChecker = new TestRequestHandler() {
 			@Override
 			protected void handle(HttpHolder holder) throws IOException {
-				assertEquals(holder.getUrlParameters().get("language"), "tr");
+				assertEquals(holder.getUrlParameters().get("lang"), "tr");
 				holder.response.setEntity(new StringEntity("{}"));
 			}
 		};
@@ -518,7 +518,7 @@ public class TableViewsTest extends SDKTest {
 		TestRequestHandler paramChecker = new TestRequestHandler() {
 			@Override
 			protected void handle(HttpHolder holder) throws IOException {
-				assertEquals(holder.getUrlParameters().get("language"), "tr");
+				assertEquals(holder.getUrlParameters().get("lang"), "tr");
 				holder.response.setEntity(new StringEntity("{}"));
 			}
 		};
