@@ -13,6 +13,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.belladati.sdk.dataset.Attribute;
+import com.belladati.sdk.dataset.AttributeValue;
 import com.belladati.sdk.filter.Filter;
 import com.belladati.sdk.filter.Filter.MultiValueFilter;
 import com.belladati.sdk.filter.Filter.NoValueFilter;
@@ -21,7 +22,6 @@ import com.belladati.sdk.filter.FilterValue;
 import com.belladati.sdk.impl.AttributeImpl.InvalidAttributeException;
 import com.belladati.sdk.impl.AttributeValueImpl.InvalidAttributeValueException;
 import com.belladati.sdk.impl.ViewImpl.UnknownViewTypeException;
-import com.belladati.sdk.report.AttributeValue;
 import com.belladati.sdk.test.TestRequestHandler;
 import com.belladati.sdk.view.TableView.Table;
 import com.belladati.sdk.view.View;

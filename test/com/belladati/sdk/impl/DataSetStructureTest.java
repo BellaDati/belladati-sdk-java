@@ -2,26 +2,22 @@ package com.belladati.sdk.impl;
 
 import static org.testng.Assert.assertEquals;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import org.apache.http.entity.StringEntity;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import com.belladati.sdk.dataset.Attribute;
 import com.belladati.sdk.dataset.AttributeType;
+import com.belladati.sdk.dataset.AttributeValue;
 import com.belladati.sdk.dataset.DataSet;
 import com.belladati.sdk.dataset.Indicator;
 import com.belladati.sdk.dataset.IndicatorType;
 import com.belladati.sdk.dataset.data.DataColumn;
 import com.belladati.sdk.dataset.data.DataTable;
-import com.belladati.sdk.exception.BellaDatiRuntimeException;
 import com.belladati.sdk.exception.dataset.data.NoColumnsException;
-import com.belladati.sdk.report.AttributeValue;
-import com.belladati.sdk.test.TestRequestHandler;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -88,7 +84,7 @@ public class DataSetStructureTest extends SDKTest {
 	}
 
 	/** data set attributes can load values just like report attributes */
-	@Test(expectedExceptions = BellaDatiRuntimeException.class)
+	@Test
 	public void loadAttributeValues() {
 		ObjectNode node = builder.buildDataSetNode(dataSetId, name, description, owner, lastChange);
 		node.put("attributes", new ObjectMapper().createArrayNode().add(builder.buildAttributeNode(id, name, code, "string")));
@@ -101,14 +97,7 @@ public class DataSetStructureTest extends SDKTest {
 		final ObjectNode valueNode = new ObjectMapper().createObjectNode();
 		valueNode.put("values", new ObjectMapper().createArrayNode().add(builder.buildAttributeValueNode(label, value)));
 
-		server.register("VALUES_URL", new TestRequestHandler() {
-			@Override
-			protected void handle(HttpHolder holder) throws IOException {
-				if (code.equals(holder.getUrlParameters().get("code"))) {
-					holder.response.setEntity(new StringEntity(valueNode.toString()));
-				}
-			}
-		});
+		server.register(dataSetsUri + "/" + dataSetId + "/attributes/" + code + "/values", valueNode.toString());
 
 		List<AttributeValue> values = attribute.getValues().load().get();
 		assertEquals(values.size(), 1);

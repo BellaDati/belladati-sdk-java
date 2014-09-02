@@ -24,6 +24,7 @@ import org.apache.http.message.BasicNameValuePair;
 import com.belladati.sdk.BellaDatiService;
 import com.belladati.sdk.dashboard.Dashboard;
 import com.belladati.sdk.dashboard.DashboardInfo;
+import com.belladati.sdk.dataset.AttributeValue;
 import com.belladati.sdk.dataset.DataSet;
 import com.belladati.sdk.dataset.DataSetInfo;
 import com.belladati.sdk.dataset.data.DataRow;
@@ -41,7 +42,6 @@ import com.belladati.sdk.impl.DataSourceImportImpl.InvalidDataSourceImportExcept
 import com.belladati.sdk.intervals.DateUnit;
 import com.belladati.sdk.intervals.Interval;
 import com.belladati.sdk.intervals.TimeUnit;
-import com.belladati.sdk.report.AttributeValue;
 import com.belladati.sdk.report.Comment;
 import com.belladati.sdk.report.Report;
 import com.belladati.sdk.report.ReportInfo;
@@ -74,7 +74,7 @@ class BellaDatiServiceImpl implements BellaDatiService {
 	private final transient Map<String, PaginatedList<Comment>> commentLists = Collections
 		.synchronizedMap(new HashMap<String, PaginatedList<Comment>>());
 
-	private final transient Map<String, Map<String, CachedListImpl<AttributeValue>>> reportAttributeValues = new HashMap<String, Map<String, CachedListImpl<AttributeValue>>>();
+	private final transient Map<String, Map<String, CachedListImpl<AttributeValue>>> dataSetAttributeValues = new HashMap<String, Map<String, CachedListImpl<AttributeValue>>>();
 
 	private final transient Map<String, CachedListImpl<DataSource>> dataSourceList = new HashMap<String, CachedListImpl<DataSource>>();
 
@@ -293,19 +293,19 @@ class BellaDatiServiceImpl implements BellaDatiService {
 	}
 
 	@Override
-	public synchronized CachedList<AttributeValue> getAttributeValues(String reportId, String attributeCode) {
-		if (!reportAttributeValues.containsKey(reportId)) {
+	public synchronized CachedList<AttributeValue> getAttributeValues(String dataSetId, String attributeCode) {
+		if (!dataSetAttributeValues.containsKey(dataSetId)) {
 			// we don't have any values for this report yet, insert new map
-			reportAttributeValues.put(reportId, new HashMap<String, CachedListImpl<AttributeValue>>());
+			dataSetAttributeValues.put(dataSetId, new HashMap<String, CachedListImpl<AttributeValue>>());
 		}
 
-		Map<String, CachedListImpl<AttributeValue>> attributeValues = reportAttributeValues.get(reportId);
+		Map<String, CachedListImpl<AttributeValue>> attributeValues = dataSetAttributeValues.get(dataSetId);
 
 		CachedListImpl<AttributeValue> values = attributeValues.get(attributeCode);
 		if (values == null) {
 			// we don't have this attribute in our cache yet
-			values = new CachedListImpl<AttributeValue>(this, "api/reports/" + reportId
-				+ "/filter/drilldownAttributeValues?code=" + attributeCode, "values") {
+			values = new CachedListImpl<AttributeValue>(this, "api/dataSets/" + dataSetId + "/attributes/" + attributeCode
+				+ "/values", "values") {
 				@Override
 				protected AttributeValue parse(BellaDatiServiceImpl service, JsonNode node) throws ParseException {
 					try {
@@ -387,7 +387,7 @@ class BellaDatiServiceImpl implements BellaDatiService {
 			commentLists.setAccessible(true);
 			commentLists.set(this, Collections.synchronizedMap(new HashMap<String, PaginatedList<Comment>>()));
 
-			Field reportAttributeValues = getClass().getDeclaredField("reportAttributeValues");
+			Field reportAttributeValues = getClass().getDeclaredField("dataSetAttributeValues");
 			reportAttributeValues.setAccessible(true);
 			reportAttributeValues.set(this, new HashMap<String, Map<String, CachedListImpl<AttributeValue>>>());
 

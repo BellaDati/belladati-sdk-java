@@ -115,7 +115,7 @@
 	  	<dependency>
 	  		<groupId>com.belladati</groupId>
 	  		<artifactId>sdk-api</artifactId>
-	  		<version>0.9.5</version>
+	  		<version>0.9.6-SNAPSHOT</version>
 	  	</dependency>
 	  	<dependency>
 	  		<groupId>org.apache.httpcomponents</groupId>

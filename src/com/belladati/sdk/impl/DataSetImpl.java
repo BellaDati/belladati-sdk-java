@@ -60,7 +60,7 @@ class DataSetImpl implements DataSet {
 		if (json.hasNonNull("attributes") && json.get("attributes") instanceof ArrayNode) {
 			for (JsonNode attribute : (ArrayNode) json.get("attributes")) {
 				try {
-					attributes.add(new AttributeImpl(service, null, attribute));
+					attributes.add(new AttributeImpl(service, id, attribute));
 				} catch (InvalidAttributeException e) {
 					// nothing to do, just ignore the attribute
 				}

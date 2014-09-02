@@ -1,6 +1,6 @@
 package com.belladati.sdk.impl;
 
-import com.belladati.sdk.report.AttributeValue;
+import com.belladati.sdk.dataset.AttributeValue;
 import com.fasterxml.jackson.databind.JsonNode;
 
 class AttributeValueImpl implements AttributeValue {

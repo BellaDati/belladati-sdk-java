@@ -2,24 +2,24 @@ package com.belladati.sdk.impl;
 
 import com.belladati.sdk.dataset.Attribute;
 import com.belladati.sdk.dataset.AttributeType;
+import com.belladati.sdk.dataset.AttributeValue;
 import com.belladati.sdk.exception.BellaDatiRuntimeException;
-import com.belladati.sdk.report.AttributeValue;
 import com.belladati.sdk.util.CachedList;
 import com.fasterxml.jackson.databind.JsonNode;
 
 class AttributeImpl implements Attribute {
 
 	private final BellaDatiServiceImpl service;
-	private final String reportId;
+	private final String dataSetId;
 
 	private final String id;
 	private final String name;
 	private final String code;
 	private final AttributeType type;
 
-	AttributeImpl(BellaDatiServiceImpl service, String reportId, JsonNode node) throws InvalidAttributeException {
+	AttributeImpl(BellaDatiServiceImpl service, String dataSetId, JsonNode node) throws InvalidAttributeException {
 		this.service = service;
-		this.reportId = reportId;
+		this.dataSetId = dataSetId;
 
 		if (node.hasNonNull("id") && node.hasNonNull("name") && node.hasNonNull("code") && node.hasNonNull("type")) {
 			this.id = node.get("id").asText();
@@ -56,10 +56,10 @@ class AttributeImpl implements Attribute {
 
 	@Override
 	public CachedList<AttributeValue> getValues() {
-		if (reportId == null) {
+		if (dataSetId == null) {
 			throw new AttributeValueLoadException();
 		}
-		return service.getAttributeValues(reportId, code);
+		return service.getAttributeValues(dataSetId, code);
 	}
 
 	@Override

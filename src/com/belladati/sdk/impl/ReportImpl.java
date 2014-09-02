@@ -71,7 +71,7 @@ class ReportImpl implements Report {
 			&& json.get("dataSet").get("drilldownAttributes") instanceof ArrayNode) {
 			for (JsonNode attribute : (ArrayNode) json.get("dataSet").get("drilldownAttributes")) {
 				try {
-					attributes.add(new AttributeImpl(service, id, attribute));
+					attributes.add(new AttributeImpl(service, json.get("dataSet").get("id").asText(), attribute));
 				} catch (InvalidAttributeException e) {
 					// nothing to do, just ignore the attribute
 				}
