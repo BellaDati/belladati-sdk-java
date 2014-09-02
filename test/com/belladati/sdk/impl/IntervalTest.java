@@ -140,8 +140,9 @@ public class IntervalTest extends SDKTest {
 		Interval<?> interval = new AbsoluteInterval<IntervalUnit>(DateUnit.QUARTER, start, end);
 
 		ObjectNode from = mapper.createObjectNode().put("year", start.get(Calendar.YEAR))
-			.put("quarter", start.get(Calendar.MONTH) / 3);
-		ObjectNode to = mapper.createObjectNode().put("year", end.get(Calendar.YEAR)).put("quarter", end.get(Calendar.MONTH) / 3);
+			.put("quarter", start.get(Calendar.MONTH) / 3 + 1);
+		ObjectNode to = mapper.createObjectNode().put("year", end.get(Calendar.YEAR))
+			.put("quarter", end.get(Calendar.MONTH) / 3 + 1);
 
 		JsonNode expectedJson = buildIntervalNode(DateUnit.QUARTER, from, to, "absolute");
 
