@@ -422,9 +422,9 @@ public class IntervalTest extends SDKTest {
 		viewNode.put("dateTimeDefinition", buildIntervalNode(DateUnit.WEEK, from, to, "absolute"));
 		View view = ViewImpl.buildView(service, viewNode);
 
-		Calendar expectedStart = new GregorianCalendar(start.get(Calendar.YEAR), 0, 0);
+		Calendar expectedStart = new GregorianCalendar(start.get(Calendar.YEAR), 0, 1);
 		expectedStart.set(Calendar.WEEK_OF_YEAR, start.get(Calendar.WEEK_OF_YEAR));
-		Calendar expectedEnd = new GregorianCalendar(end.get(Calendar.YEAR), 0, 0);
+		Calendar expectedEnd = new GregorianCalendar(end.get(Calendar.YEAR), 0, 1);
 		expectedEnd.set(Calendar.WEEK_OF_YEAR, end.get(Calendar.WEEK_OF_YEAR));
 
 		assertTrue(view.hasPredefinedDateInterval());
@@ -446,8 +446,8 @@ public class IntervalTest extends SDKTest {
 		viewNode.put("dateTimeDefinition", buildIntervalNode(DateUnit.MONTH, from, to, "absolute"));
 		View view = ViewImpl.buildView(service, viewNode);
 
-		Calendar expectedStart = new GregorianCalendar(start.get(Calendar.YEAR), start.get(Calendar.MONTH), 0);
-		Calendar expectedEnd = new GregorianCalendar(end.get(Calendar.YEAR), end.get(Calendar.MONTH), 0);
+		Calendar expectedStart = new GregorianCalendar(start.get(Calendar.YEAR), start.get(Calendar.MONTH), 1);
+		Calendar expectedEnd = new GregorianCalendar(end.get(Calendar.YEAR), end.get(Calendar.MONTH), 1);
 
 		assertTrue(view.hasPredefinedDateInterval());
 		assertFalse(view.hasPredefinedTimeInterval());
@@ -461,15 +461,16 @@ public class IntervalTest extends SDKTest {
 	/** absolute date interval in quarters */
 	public void predefinedQuarterInterval() throws UnknownViewTypeException {
 		ObjectNode from = mapper.createObjectNode().put("year", start.get(Calendar.YEAR))
-			.put("quarter", start.get(Calendar.MONTH) / 3);
-		ObjectNode to = mapper.createObjectNode().put("year", end.get(Calendar.YEAR)).put("quarter", end.get(Calendar.MONTH) / 3);
+			.put("quarter", start.get(Calendar.MONTH) / 3 + 1);
+		ObjectNode to = mapper.createObjectNode().put("year", end.get(Calendar.YEAR))
+			.put("quarter", end.get(Calendar.MONTH) / 3 + 1);
 
 		ObjectNode viewNode = builder.buildViewNode(viewId, viewName, "chart");
 		viewNode.put("dateTimeDefinition", buildIntervalNode(DateUnit.QUARTER, from, to, "absolute"));
 		View view = ViewImpl.buildView(service, viewNode);
 
-		Calendar expectedStart = new GregorianCalendar(start.get(Calendar.YEAR), (start.get(Calendar.MONTH) / 3) * 3, 0);
-		Calendar expectedEnd = new GregorianCalendar(end.get(Calendar.YEAR), (end.get(Calendar.MONTH) / 3) * 3, 0);
+		Calendar expectedStart = new GregorianCalendar(start.get(Calendar.YEAR), (start.get(Calendar.MONTH) / 3) * 3, 1);
+		Calendar expectedEnd = new GregorianCalendar(end.get(Calendar.YEAR), (end.get(Calendar.MONTH) / 3) * 3, 1);
 
 		assertTrue(view.hasPredefinedDateInterval());
 		assertFalse(view.hasPredefinedTimeInterval());
@@ -489,8 +490,8 @@ public class IntervalTest extends SDKTest {
 		viewNode.put("dateTimeDefinition", buildIntervalNode(DateUnit.YEAR, from, to, "absolute"));
 		View view = ViewImpl.buildView(service, viewNode);
 
-		Calendar expectedStart = new GregorianCalendar(start.get(Calendar.YEAR), 0, 0);
-		Calendar expectedEnd = new GregorianCalendar(end.get(Calendar.YEAR), 0, 0);
+		Calendar expectedStart = new GregorianCalendar(start.get(Calendar.YEAR), 0, 1);
+		Calendar expectedEnd = new GregorianCalendar(end.get(Calendar.YEAR), 0, 1);
 
 		assertTrue(view.hasPredefinedDateInterval());
 		assertFalse(view.hasPredefinedTimeInterval());
@@ -607,8 +608,8 @@ public class IntervalTest extends SDKTest {
 		assertFalse(view.hasPredefinedTimeInterval());
 		AbsoluteInterval<DateUnit> interval = (AbsoluteInterval<DateUnit>) view.getPredefinedDateInterval();
 		assertEquals(interval.getIntervalUnit(), DateUnit.YEAR);
-		assertEquals(interval.getStart(), new GregorianCalendar(start.get(Calendar.YEAR), 0, 0));
-		assertEquals(interval.getEnd(), new GregorianCalendar(end.get(Calendar.YEAR), 0, 0));
+		assertEquals(interval.getStart(), new GregorianCalendar(start.get(Calendar.YEAR), 0, 1));
+		assertEquals(interval.getEnd(), new GregorianCalendar(end.get(Calendar.YEAR), 0, 1));
 		assertNull(view.getPredefinedTimeInterval());
 	}
 
@@ -651,8 +652,8 @@ public class IntervalTest extends SDKTest {
 		assertFalse(view.hasPredefinedTimeInterval());
 		AbsoluteInterval<DateUnit> interval = (AbsoluteInterval<DateUnit>) view.getPredefinedDateInterval();
 		assertEquals(interval.getIntervalUnit(), DateUnit.YEAR);
-		assertEquals(interval.getStart(), new GregorianCalendar(start.get(Calendar.YEAR), 0, 0));
-		assertEquals(interval.getEnd(), new GregorianCalendar(end.get(Calendar.YEAR), 0, 0));
+		assertEquals(interval.getStart(), new GregorianCalendar(start.get(Calendar.YEAR), 0, 1));
+		assertEquals(interval.getEnd(), new GregorianCalendar(end.get(Calendar.YEAR), 0, 1));
 		assertNull(view.getPredefinedTimeInterval());
 	}
 
