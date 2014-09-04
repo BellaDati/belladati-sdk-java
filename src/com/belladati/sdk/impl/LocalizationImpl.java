@@ -1,5 +1,6 @@
 package com.belladati.sdk.impl;
 
+import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -10,7 +11,9 @@ import java.util.Map.Entry;
 import com.belladati.sdk.util.Localizable;
 import com.fasterxml.jackson.databind.JsonNode;
 
-class LocalizationImpl implements Localizable {
+public class LocalizationImpl implements Localizable, Serializable {
+
+	private static final long serialVersionUID = 5968524054078130033L;
 
 	private final String name;
 	private final Map<String, String> l10n;

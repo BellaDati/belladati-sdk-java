@@ -15,7 +15,7 @@ import com.belladati.sdk.view.ViewLoader;
 import com.belladati.sdk.view.ViewType;
 import com.fasterxml.jackson.databind.JsonNode;
 
-abstract class ViewImpl implements View {
+public abstract class ViewImpl implements View {
 
 	/**
 	 * Builds an instance based on the given node. Will select an appropriate
@@ -250,6 +250,10 @@ abstract class ViewImpl implements View {
 	@Override
 	public Interval<TimeUnit> getPredefinedTimeInterval() {
 		return timeInterval;
+	}
+
+	public LocalizationImpl getLocalization() {
+		return localization;
 	}
 
 	@Override
