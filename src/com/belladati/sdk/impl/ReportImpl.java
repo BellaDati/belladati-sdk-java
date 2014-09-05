@@ -1,5 +1,6 @@
 package com.belladati.sdk.impl;
 
+import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -19,7 +20,7 @@ import com.belladati.sdk.view.View;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 
-class ReportImpl implements Report {
+public class ReportImpl implements Report {
 
 	private final BellaDatiServiceImpl service;
 
@@ -124,6 +125,11 @@ class ReportImpl implements Report {
 	}
 
 	@Override
+	public Object loadThumbnail() throws IOException {
+		return service.loadReportThumbnail(id);
+	}
+
+	@Override
 	public List<View> getViews() {
 		return viewInfos;
 	}
@@ -164,5 +170,9 @@ class ReportImpl implements Report {
 	@Override
 	public DataSetInfo getDataSet() {
 		return dataSet;
+	}
+
+	public LocalizationImpl getLocalization() {
+		return localization;
 	}
 }

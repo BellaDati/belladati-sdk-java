@@ -5,11 +5,7 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Locale;
@@ -37,7 +33,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
  * @author Chris
  */
 @Test
-public class StorageTest extends SDKTest {
+public class StoreViewsTest extends SDKTest {
 
 	private final String viewsUri = "/api/reports/views/";
 	private final String id = "id";
@@ -115,21 +111,7 @@ public class StorageTest extends SDKTest {
 		server.register(viewsUri + id + "/" + stringType, contentJson.toString());
 
 		JsonView stored = new ViewStorage().storeView(view);
-
-		// serialize view
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		ObjectOutputStream output = new ObjectOutputStream(baos);
-		output.writeObject(stored);
-		output.close();
-		baos.close();
-		byte[] bytes = baos.toByteArray();
-
-		// deserialize view
-		ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
-		ObjectInputStream input = new ObjectInputStream(bais);
-		JsonView newStored = (JsonView) input.readObject();
-		input.close();
-		bais.close();
+		JsonView newStored = (JsonView) serializeDeserialize(stored);
 
 		assertEquals(newStored.getId(), id);
 		assertEquals(newStored.getName(), name);
@@ -391,21 +373,7 @@ public class StorageTest extends SDKTest {
 		server.register(viewsUri + id + "/table/data", dataJson.toString());
 
 		TableView stored = new ViewStorage().storeView(view);
-
-		// serialize view
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		ObjectOutputStream output = new ObjectOutputStream(baos);
-		output.writeObject(stored);
-		output.close();
-		baos.close();
-		byte[] bytes = baos.toByteArray();
-
-		// deserialize view
-		ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
-		ObjectInputStream input = new ObjectInputStream(bais);
-		TableView newStored = (TableView) input.readObject();
-		input.close();
-		bais.close();
+		TableView newStored = (TableView) serializeDeserialize(stored);
 
 		assertEquals(newStored.getId(), id);
 		assertEquals(newStored.getName(), name);

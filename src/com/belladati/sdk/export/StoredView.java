@@ -13,42 +13,16 @@ import com.belladati.sdk.view.View;
 import com.belladati.sdk.view.ViewLoader;
 import com.belladati.sdk.view.ViewType;
 
-abstract class StoredView implements View, Serializable {
+abstract class StoredView extends StoredLocalizable implements View, Serializable {
 
 	private static final long serialVersionUID = 554576890904608571L;
-	private final String id;
-	private final String name;
 	private final ViewType type;
-
-	private final LocalizationImpl localization;
 
 	private final ViewLoader loader = new StoredViewLoader();
 
 	StoredView(String id, String name, ViewType type, LocalizationImpl localization) {
-		this.id = id;
-		this.name = name;
+		super(id, name, localization);
 		this.type = type;
-		this.localization = localization;
-	}
-
-	@Override
-	public String getId() {
-		return id;
-	}
-
-	@Override
-	public String getName() {
-		return name;
-	}
-
-	@Override
-	public String getName(Locale locale) {
-		return localization != null ? localization.getName(locale) : name;
-	}
-
-	@Override
-	public boolean hasLocalization(Locale locale) {
-		return localization != null && localization.hasLocalization(locale);
 	}
 
 	@Override

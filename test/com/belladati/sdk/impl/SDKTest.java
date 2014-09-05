@@ -1,5 +1,10 @@
 package com.belladati.sdk.impl;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.Locale;
 
 import org.testng.annotations.AfterMethod;
@@ -77,5 +82,24 @@ public class SDKTest {
 			new Object[] { "MONTH", ImportIntervalUnit.MONTH, 1, 44640 },
 			new Object[] { "QUARTER", ImportIntervalUnit.QUARTER, 1, 133920 },
 			new Object[] { "YEAR", ImportIntervalUnit.YEAR, 1, 525600 } };
+	}
+
+	protected Object serializeDeserialize(Object object) throws IOException, ClassNotFoundException {
+		// serialize
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		ObjectOutputStream output = new ObjectOutputStream(baos);
+		output.writeObject(object);
+		output.close();
+		baos.close();
+		byte[] bytes = baos.toByteArray();
+
+		// deserialize
+		ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
+		ObjectInputStream input = new ObjectInputStream(bais);
+		Object newObject = input.readObject();
+		input.close();
+		bais.close();
+
+		return newObject;
 	}
 }

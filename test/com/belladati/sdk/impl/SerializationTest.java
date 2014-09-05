@@ -3,11 +3,7 @@ package com.belladati.sdk.impl;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 
 import org.apache.http.entity.StringEntity;
 import org.testng.annotations.Test;
@@ -27,20 +23,7 @@ public class SerializationTest extends SDKTest {
 		BellaDatiConnection oldConnection = BellaDati.connect(server.getHttpURL());
 		server.register("/oauth/accessToken", "oauth_token=abc123&oauth_token_secret=123abc");
 
-		// serialize connection
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		ObjectOutputStream output = new ObjectOutputStream(baos);
-		output.writeObject(oldConnection);
-		output.close();
-		baos.close();
-		byte[] bytes = baos.toByteArray();
-
-		// deserialize connection
-		ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
-		ObjectInputStream input = new ObjectInputStream(bais);
-		BellaDatiConnection newConnection = (BellaDatiConnection) input.readObject();
-		input.close();
-		bais.close();
+		BellaDatiConnection newConnection = (BellaDatiConnection) serializeDeserialize(oldConnection);
 
 		// use deserialized connection
 		newConnection.xAuth("key", "secret", "username", "password");
@@ -59,20 +42,7 @@ public class SerializationTest extends SDKTest {
 			}
 		});
 
-		// serialize service
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		ObjectOutputStream output = new ObjectOutputStream(baos);
-		output.writeObject(service);
-		output.close();
-		baos.close();
-		byte[] bytes = baos.toByteArray();
-
-		// deserialize service
-		ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
-		ObjectInputStream input = new ObjectInputStream(bais);
-		BellaDatiService newService = (BellaDatiService) input.readObject();
-		input.close();
-		bais.close();
+		BellaDatiService newService = (BellaDatiService) serializeDeserialize(service);
 
 		// use deserialized service
 		newService.loadReport(id);
@@ -99,20 +69,7 @@ public class SerializationTest extends SDKTest {
 		OAuthRequest oldRequest = connection.oAuth(key, "secret");
 		server.resetRequestUris();
 
-		// serialize request
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		ObjectOutputStream output = new ObjectOutputStream(baos);
-		output.writeObject(oldRequest);
-		output.close();
-		baos.close();
-		byte[] bytes = baos.toByteArray();
-
-		// deserialize request
-		ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
-		ObjectInputStream input = new ObjectInputStream(bais);
-		OAuthRequest newRequest = (OAuthRequest) input.readObject();
-		input.close();
-		bais.close();
+		OAuthRequest newRequest = (OAuthRequest) serializeDeserialize(oldRequest);
 
 		assertEquals(newRequest.getAuthorizationUrl().toString(), server.getHttpURL() + "/authorizeRequestToken/" + requestToken
 			+ "/" + key);

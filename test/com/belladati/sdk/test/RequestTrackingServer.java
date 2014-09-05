@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpException;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
@@ -63,6 +64,16 @@ public class RequestTrackingServer extends LocalTestServer {
 			@Override
 			public void handle(HttpRequest request, HttpResponse response, HttpContext context) throws HttpException, IOException {
 				response.setEntity(new StringEntity(responseContent));
+			}
+		});
+	}
+
+	public void register(String pattern, final HttpEntity entity) {
+		register(pattern, new HttpRequestHandler() {
+
+			@Override
+			public void handle(HttpRequest request, HttpResponse response, HttpContext context) throws HttpException, IOException {
+				response.setEntity(entity);
 			}
 		});
 	}

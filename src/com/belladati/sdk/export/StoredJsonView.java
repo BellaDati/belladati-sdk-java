@@ -44,19 +44,20 @@ class StoredJsonView extends StoredView implements JsonView {
 			String storedValue = (String) in.readObject();
 			content.set(this, storedValue != null ? new ObjectMapper().readTree(storedValue) : null);
 		} catch (NoSuchFieldException e) {
-			throw new InternalConfigurationException("Failed to set service fields", e);
+			throw new InternalConfigurationException("Failed to set fields", e);
 		} catch (IllegalAccessException e) {
-			throw new InternalConfigurationException("Failed to set service fields", e);
+			throw new InternalConfigurationException("Failed to set fields", e);
 		} catch (SecurityException e) {
-			throw new InternalConfigurationException("Failed to set service fields", e);
+			throw new InternalConfigurationException("Failed to set fields", e);
 		} catch (IllegalArgumentException e) {
-			throw new InternalConfigurationException("Failed to set service fields", e);
+			throw new InternalConfigurationException("Failed to set fields", e);
 		}
 	}
 
 	/** Serialization. Writes the content node. */
 	private void writeObject(ObjectOutputStream out) throws IOException, ClassNotFoundException {
 		out.defaultWriteObject();
+		// since JsonNode isn't serializable, we write it as String
 		out.writeObject(content != null ? content.toString() : null);
 	}
 }

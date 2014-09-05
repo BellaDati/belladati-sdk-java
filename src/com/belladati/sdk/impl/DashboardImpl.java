@@ -1,5 +1,6 @@
 package com.belladati.sdk.impl;
 
+import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -68,6 +69,11 @@ class DashboardImpl implements Dashboard {
 	@Override
 	public Date getLastChange() {
 		return lastChange != null ? (Date) lastChange.clone() : null;
+	}
+
+	@Override
+	public Object loadThumbnail() throws IOException {
+		return service.loadDashboardThumbnail(id);
 	}
 
 	@Override
