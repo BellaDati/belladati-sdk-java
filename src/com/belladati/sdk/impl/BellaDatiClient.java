@@ -32,6 +32,7 @@ import org.apache.http.conn.socket.PlainConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLContexts;
 import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
+import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.cache.CacheConfig;
@@ -151,6 +152,14 @@ class BellaDatiClient implements Serializable {
 		} catch (UnsupportedEncodingException e) {
 			throw new IllegalArgumentException("Invalid URL encoding", e);
 		}
+		return doRequest(post, tokenHolder);
+	}
+
+	public byte[] postData(String relativeUrl, TokenHolder tokenHolder, byte[] content) {
+		HttpPost post = new HttpPost(baseUrl + relativeUrl);
+		ByteArrayEntity entity = new ByteArrayEntity(content);
+		entity.setContentType("application/octet-stream");
+		post.setEntity(entity);
 		return doRequest(post, tokenHolder);
 	}
 

@@ -5,6 +5,8 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.lang.reflect.Field;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -13,11 +15,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.imageio.ImageIO;
 
+import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.message.BasicNameValuePair;
 
@@ -443,5 +447,62 @@ class BellaDatiServiceImpl implements BellaDatiService {
 		protected DataSetInfo parse(BellaDatiServiceImpl service, JsonNode node) {
 			return new DataSetInfoImpl(service, node);
 		}
+	}
+
+	@Override
+	public byte[] post(String uri) throws URISyntaxException {
+		return post(uri, Collections.<String, String> emptyMap());
+	}
+
+	@Override
+	public byte[] post(String uri, Map<String, String> uriParameters) throws URISyntaxException {
+		return postForm(uri, uriParameters, Collections.<String, String> emptyMap());
+	}
+
+	@Override
+	public byte[] post(String uri, byte[] content) throws URISyntaxException {
+		return post(uri, Collections.<String, String> emptyMap(), content);
+	}
+
+	@Override
+	public byte[] post(String uri, Map<String, String> uriParameters, byte[] content) throws URISyntaxException {
+		URIBuilder builder = new URIBuilder(uri);
+		for (Entry<String, String> entry : uriParameters.entrySet()) {
+			builder.addParameter(entry.getKey(), entry.getValue());
+		}
+		return client.postData(builder.build().toString(), tokenHolder, content);
+	}
+
+	@Override
+	public byte[] postForm(String uri, Map<String, String> formParameters) throws URISyntaxException {
+		return postForm(uri, Collections.<String, String> emptyMap(), formParameters);
+	}
+
+	@Override
+	public byte[] postForm(String uri, Map<String, String> uriParameters, Map<String, String> formParameters)
+		throws URISyntaxException {
+		URIBuilder builder = new URIBuilder(uri);
+		for (Entry<String, String> entry : uriParameters.entrySet()) {
+			builder.addParameter(entry.getKey(), entry.getValue());
+		}
+		List<NameValuePair> formParams = new ArrayList<NameValuePair>();
+		for (Entry<String, String> entry : formParameters.entrySet()) {
+			formParams.add(new BasicNameValuePair(entry.getKey(), entry.getValue()));
+		}
+		return client.post(builder.build().toString(), tokenHolder, formParams);
+	}
+
+	@Override
+	public byte[] get(String uri) throws URISyntaxException {
+		return get(uri, Collections.<String, String> emptyMap());
+	}
+
+	@Override
+	public byte[] get(String uri, Map<String, String> uriParameters) throws URISyntaxException {
+		URIBuilder builder = new URIBuilder(uri);
+		for (Entry<String, String> entry : uriParameters.entrySet()) {
+			builder.addParameter(entry.getKey(), entry.getValue());
+		}
+		return client.get(builder.build().toString(), tokenHolder);
 	}
 }

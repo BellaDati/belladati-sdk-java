@@ -95,16 +95,26 @@ public abstract class TestRequestHandler implements HttpRequestHandler {
 		 * @throws IOException
 		 */
 		public String getRequestBody() throws IOException {
+			return new String(getRequestBodyBytes());
+		}
+
+		/**
+		 * Returns the body of the request.
+		 * 
+		 * @return the body of the request
+		 * @throws IOException
+		 */
+		public byte[] getRequestBodyBytes() throws IOException {
 			if (request instanceof HttpEntityEnclosingRequest) {
 				ByteArrayOutputStream baos = new ByteArrayOutputStream();
 				try {
 					((HttpEntityEnclosingRequest) request).getEntity().writeTo(baos);
-					return baos.toString();
+					return baos.toByteArray();
 				} finally {
 					baos.close();
 				}
 			}
-			return "";
+			return new byte[0];
 		}
 
 		/**
@@ -140,6 +150,14 @@ public abstract class TestRequestHandler implements HttpRequestHandler {
 				}
 			}
 			return map;
+		}
+
+		public void assertGet() {
+			assertEquals(request.getRequestLine().getMethod(), "GET");
+		}
+
+		public void assertPost() {
+			assertEquals(request.getRequestLine().getMethod(), "POST");
 		}
 	}
 }
