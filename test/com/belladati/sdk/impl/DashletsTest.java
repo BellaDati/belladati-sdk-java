@@ -50,6 +50,7 @@ public class DashletsTest extends SDKTest {
 		Dashlet dashlet = dashboard.getDashlets().get(0);
 
 		assertEquals(dashlet.getType(), Type.VIEW);
+		assertEquals(dashlet.getName(), viewName);
 
 		assertTrue(dashlet.toString().contains(Type.VIEW.toString()));
 
@@ -144,7 +145,8 @@ public class DashletsTest extends SDKTest {
 	/** Dashlet text content is loaded correctly. */
 	public void loadDashletText() throws UnknownViewTypeException {
 		String text = "some text here";
-		ObjectNode dashletNode = new ObjectMapper().createObjectNode().put("type", "textContent").put("textContent", text);
+		ObjectNode dashletNode = new ObjectMapper().createObjectNode().put("type", "textContent").put("textContent", text)
+			.put("name", viewName);
 
 		registerDashboardWith(dashletNode);
 
@@ -154,6 +156,7 @@ public class DashletsTest extends SDKTest {
 		Dashlet dashlet = dashboard.getDashlets().get(0);
 
 		assertEquals(dashlet.getType(), Type.TEXT);
+		assertEquals(dashlet.getName(), viewName);
 		assertEquals(dashlet.getContent(), text);
 	}
 

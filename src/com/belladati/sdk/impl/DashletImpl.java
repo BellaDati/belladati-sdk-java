@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 class DashletImpl implements Dashlet {
 
+	private final String name;
 	private final Type type;
 	private final Object content;
 
@@ -18,9 +19,11 @@ class DashletImpl implements Dashlet {
 			switch (type) {
 			case VIEW:
 				content = getContentView(service, node);
+				name = ((View) content).getName();
 				break;
 			case TEXT:
 				content = getContentText(node);
+				name = node.hasNonNull("name") ? node.get("name").asText() : "";
 				break;
 			default:
 				throw new UnknownDashletTypeException("Type not implemented: " + type);
@@ -68,6 +71,11 @@ class DashletImpl implements Dashlet {
 		} else {
 			throw new UnsupportedDashletContentException("Text content missing");
 		}
+	}
+
+	@Override
+	public String getName() {
+		return name;
 	}
 
 	@Override
