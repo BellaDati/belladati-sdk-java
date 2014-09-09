@@ -4,12 +4,16 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertSame;
+import static org.testng.Assert.assertTrue;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 
 import org.apache.http.entity.StringEntity;
 import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import com.belladati.sdk.dataset.Attribute;
@@ -207,8 +211,8 @@ public class FilterTest extends SDKTest {
 			}
 		});
 
-		Attribute attribute2 = new AttributeImpl(service, "", builder.buildAttributeNode("another ID", "another name",
-			code2, "string"));
+		Attribute attribute2 = new AttributeImpl(service, "", builder.buildAttributeNode("another ID", "another name", code2,
+			"string"));
 		AttributeValue value2 = new AttributeValueImpl(builder.buildAttributeValueNode("another label", valueString2));
 		view.loadContent(FilterOperation.IN.createFilter(attribute).addValue(value), FilterOperation.IN.createFilter(attribute2)
 			.addValue(value2));
@@ -243,8 +247,8 @@ public class FilterTest extends SDKTest {
 			}
 		});
 
-		Attribute attribute2 = new AttributeImpl(service, "", builder.buildAttributeNode("another id", "another name",
-			code2, "string"));
+		Attribute attribute2 = new AttributeImpl(service, "", builder.buildAttributeNode("another id", "another name", code2,
+			"string"));
 		AttributeValue value2 = new AttributeValueImpl(builder.buildAttributeValueNode("another label", valueString2));
 		view.loadContent(FilterOperation.IN.createFilter(attribute).addValue(value), FilterOperation.IN.createFilter(attribute2)
 			.addValue(value2));
@@ -330,12 +334,16 @@ public class FilterTest extends SDKTest {
 		Filter<?> f3 = FilterOperation.NOT_NULL.createFilter(attribute);
 		Filter<?> f4 = FilterOperation.NULL.createFilter(new AttributeImpl(service, reportId, builder.buildAttributeNode(
 			"otherId", name, code, "string")));
+		Filter<?> f5 = FilterOperation.NULL.createFilter(new AttributeImpl(service, reportId, builder.buildAttributeNode("id",
+			name, "other code", "string")));
 
 		assertEquals(f1, f2);
 		assertEquals(f1.hashCode(), f2.hashCode());
 
 		assertNotEquals(f1, f3);
-		assertNotEquals(f1, f4);
+		assertEquals(f1, f4);
+		assertEquals(f1.hashCode(), f4.hashCode());
+		assertNotEquals(f1, f5);
 	}
 
 	/** equals/hashcode for value filters */
@@ -344,17 +352,50 @@ public class FilterTest extends SDKTest {
 		Filter<?> f2 = FilterOperation.IN.createFilter(attribute).addValue(value);
 		Filter<?> f3 = FilterOperation.NOT_IN.createFilter(attribute).addValue(value);
 		Filter<?> f4 = FilterOperation.IN.createFilter(
-			new AttributeImpl(service, reportId, builder.buildAttributeNode("other id", name, code, "string"))).addValue(
-			value);
-		Filter<?> f5 = FilterOperation.IN.createFilter(attribute).addValue(
+			new AttributeImpl(service, reportId, builder.buildAttributeNode("other id", name, code, "string"))).addValue(value);
+		Filter<?> f5 = FilterOperation.IN.createFilter(
+			new AttributeImpl(service, reportId, builder.buildAttributeNode("id", name, "other code", "string"))).addValue(value);
+		Filter<?> f6 = FilterOperation.IN.createFilter(attribute).addValue(
 			new AttributeValueImpl(builder.buildAttributeValueNode(label, "other value")));
 
 		assertEquals(f1, f2);
 		assertEquals(f1.hashCode(), f2.hashCode());
 
 		assertNotEquals(f1, f3);
-		assertNotEquals(f1, f4);
+		assertEquals(f1, f4);
+		assertEquals(f1.hashCode(), f4.hashCode());
 		assertNotEquals(f1, f5);
+		assertNotEquals(f1, f6);
+	}
+
+	@Test(dataProvider = "filters")
+	public void viewWithFilter(Filter<?> filter) throws UnknownViewTypeException {
+		ObjectNode viewNode = builder.buildViewNode(viewId, viewName, "chart");
+		ObjectNode ddNode = mapper.createObjectNode();
+		ddNode.put("drilldown", filter.toJson());
+		viewNode.put("filter", ddNode);
+		View view = ViewImpl.buildView(service, viewNode);
+
+		assertTrue(view.hasPredefinedFilters());
+		assertEquals(view.getPredefinedFilters(), Collections.singleton(filter));
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test(dataProvider = "filters")
+	public void viewWithMultiFilter(Filter<?> filter) throws UnknownViewTypeException, InvalidAttributeException {
+		ObjectNode viewNode = builder.buildViewNode(viewId, viewName, "chart");
+		ObjectNode filterJson = filter.toJson();
+		Filter<?> otherFilter = FilterOperation.NULL.createFilter(new AttributeImpl(service, reportId, builder
+			.buildAttributeNode("id", name, "other code", "string")));
+		filterJson.putAll(otherFilter.toJson());
+
+		ObjectNode ddNode = mapper.createObjectNode();
+		ddNode.put("drilldown", filterJson);
+		viewNode.put("filter", ddNode);
+		View view = ViewImpl.buildView(service, viewNode);
+
+		assertTrue(view.hasPredefinedFilters());
+		assertEquals(view.getPredefinedFilters(), new HashSet<Filter<?>>(Arrays.asList(filter, otherFilter)));
 	}
 
 	private ObjectNode buildInFilterNode() {
@@ -375,5 +416,12 @@ public class FilterTest extends SDKTest {
 	protected void setupAttribute() throws InvalidAttributeException, InvalidAttributeValueException {
 		attribute = new AttributeImpl(service, reportId, builder.buildAttributeNode("id", name, code, "string"));
 		value = new AttributeValueImpl(builder.buildAttributeValueNode(label, valueString));
+	}
+
+	@DataProvider(name = "filters")
+	protected Object[][] provideFilters() {
+		return new Object[][] { { FilterOperation.NULL.createFilter(attribute) },
+			{ FilterOperation.NOT_NULL.createFilter(attribute) }, { FilterOperation.IN.createFilter(attribute).addAll(value) },
+			{ FilterOperation.NOT_IN.createFilter(attribute).addAll(value) } };
 	}
 }

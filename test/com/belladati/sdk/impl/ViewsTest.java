@@ -283,4 +283,11 @@ public class ViewsTest extends SDKTest {
 
 		server.assertRequestUris(viewsUri + id + "/" + stringType);
 	}
+
+	/** no predefined filter set */
+	public void noPredefinedFilter() throws UnknownViewTypeException {
+		View view = ViewImpl.buildView(service, builder.buildViewNode(id, name, "chart"));
+		assertFalse(view.hasPredefinedFilters());
+		assertEquals(view.getPredefinedFilters(), Collections.emptyList());
+	}
 }

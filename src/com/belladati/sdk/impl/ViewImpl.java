@@ -1,10 +1,21 @@
 package com.belladati.sdk.impl;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Locale;
+import java.util.Map.Entry;
+import java.util.Set;
 
+import com.belladati.sdk.exception.InternalConfigurationException;
 import com.belladati.sdk.exception.interval.InvalidIntervalException;
 import com.belladati.sdk.filter.Filter;
+import com.belladati.sdk.filter.Filter.MultiValueFilter;
+import com.belladati.sdk.filter.FilterOperation;
+import com.belladati.sdk.filter.FilterValue;
 import com.belladati.sdk.intervals.AbsoluteInterval;
 import com.belladati.sdk.intervals.DateUnit;
 import com.belladati.sdk.intervals.Interval;
@@ -14,6 +25,7 @@ import com.belladati.sdk.view.View;
 import com.belladati.sdk.view.ViewLoader;
 import com.belladati.sdk.view.ViewType;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 
 abstract class ViewImpl implements View {
 
@@ -124,7 +136,54 @@ abstract class ViewImpl implements View {
 		return null;
 	}
 
-	protected final BellaDatiServiceImpl service;
+	private static Set<Filter<?>> parseFilter(JsonNode node) {
+		if (!node.hasNonNull("filter") || !node.get("filter").isObject() || !node.get("filter").hasNonNull("drilldown")
+			|| !node.get("filter").get("drilldown").isObject()) {
+			return Collections.emptySet();
+		}
+
+		Set<Filter<?>> filters = new HashSet<Filter<?>>();
+
+		for (Iterator<Entry<String, JsonNode>> entries = node.get("filter").get("drilldown").fields(); entries.hasNext();) {
+			Entry<String, JsonNode> entry = entries.next();
+			String code = entry.getKey();
+			String op = entry.getValue().get("op").asText();
+			FilterOperation<?> operation = findOperation(op);
+			if (operation != null) {
+				Filter<?> filter = operation.createFilter(null, null, code);
+				if (filter instanceof MultiValueFilter && entry.getValue().hasNonNull("values")) {
+					for (JsonNode value : (ArrayNode) entry.getValue().get("values")) {
+						((MultiValueFilter) filter).addAll(new FilterValue(value.asText()));
+					}
+				}
+				filters.add(filter);
+			}
+
+		}
+		return filters;
+	}
+
+	private static FilterOperation<?> findOperation(String op) {
+		try {
+			Field opField = FilterOperation.class.getDeclaredField("op");
+			opField.setAccessible(true);
+			for (Field field : FilterOperation.class.getDeclaredFields()) {
+				if (Modifier.isStatic(field.getModifiers())) {
+					Object value = field.get(null);
+					if (op.equalsIgnoreCase((String) opField.get(value))) {
+						return (FilterOperation<?>) value;
+					}
+				}
+			}
+		} catch (IllegalAccessException e) {
+			throw new InternalConfigurationException("Could not parse filters", e);
+		} catch (NoSuchFieldException e) {
+			throw new InternalConfigurationException("Could not parse filters", e);
+		}
+		return null;
+	}
+
+	private final BellaDatiServiceImpl service;
 
 	private final String id;
 	private final String name;
@@ -135,6 +194,8 @@ abstract class ViewImpl implements View {
 	private final Interval<DateUnit> dateInterval;
 	private final Interval<TimeUnit> timeInterval;
 
+	private final Set<Filter<?>> filters;
+
 	private final LocalizationImpl localization;
 
 	ViewImpl(BellaDatiServiceImpl service, JsonNode node) throws UnknownViewTypeException {
@@ -143,6 +204,7 @@ abstract class ViewImpl implements View {
 		this.id = node.get("id").asText();
 		this.name = node.get("name").asText();
 		this.type = parseType(node);
+		this.filters = parseFilter(node);
 
 		if (node.hasNonNull("dateTimeDefinition") && this.type != ViewType.TABLE) {
 			// we have a date/time definition and are not dealing with a table
@@ -220,6 +282,16 @@ abstract class ViewImpl implements View {
 	@Override
 	public int hashCode() {
 		return id.hashCode();
+	}
+
+	@Override
+	public boolean hasPredefinedFilters() {
+		return !filters.isEmpty();
+	}
+
+	@Override
+	public Set<Filter<?>> getPredefinedFilters() {
+		return filters;
 	}
 
 	@Override
