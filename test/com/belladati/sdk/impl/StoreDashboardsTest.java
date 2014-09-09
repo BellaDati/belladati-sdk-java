@@ -2,20 +2,25 @@ package com.belladati.sdk.impl;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
+import static org.testng.Assert.assertTrue;
 
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.Calendar;
+import java.util.List;
 import java.util.TimeZone;
 
 import org.apache.http.entity.InputStreamEntity;
+import org.apache.http.entity.StringEntity;
 import org.testng.annotations.Test;
 
 import com.belladati.sdk.dashboard.Dashboard;
 import com.belladati.sdk.dashboard.DashboardInfo;
 import com.belladati.sdk.dashboard.Dashlet;
 import com.belladati.sdk.dashboard.Dashlet.Type;
+import com.belladati.sdk.export.ConcurrentPageStorage;
 import com.belladati.sdk.export.PageStorage;
+import com.belladati.sdk.test.TestRequestHandler;
 import com.belladati.sdk.view.View;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -185,5 +190,61 @@ public class StoreDashboardsTest extends SDKTest {
 		assertEquals(view.loadContent(), viewJson);
 
 		server.assertRequestUris();
+	}
+
+	/** store a report containing views making concurrent requests */
+	public void storeDashboardViewsConcurrent() throws IOException, ClassNotFoundException {
+		String view2Id = "view2";
+		String view3Id = "view3";
+
+		ObjectNode dashboardJson = builder.buildDashboardNode(id, name, lastChange);
+		dashboardJson.put(
+			"dashlets",
+			new ObjectMapper().createArrayNode().add(buildViewDashlet(viewId, viewName, "chart"))
+				.add(buildViewDashlet(view2Id, viewName, "chart")).add(buildViewDashlet(view3Id, viewName, "chart")));
+		final ObjectNode viewJson = new ObjectMapper().createObjectNode().put("key", "value");
+
+		DashboardInfo dashboardInfo = new DashboardInfoImpl(service, dashboardJson);
+
+		final long timePerRequest = 50;
+
+		server.register(dashboardsUri + id, dashboardJson.toString());
+		server
+			.register(dashboardsUri + id + "/thumbnail", new InputStreamEntity(getClass().getResourceAsStream("belladati.png")));
+		TestRequestHandler viewHandler = new TestRequestHandler() {
+			@Override
+			protected void handle(HttpHolder holder) throws IOException {
+				try {
+					Thread.sleep(timePerRequest);
+				} catch (InterruptedException e) {}
+				holder.response.setEntity(new StringEntity(viewJson.toString()));
+			}
+		};
+		server.register(viewsUri + viewId + "/chart", viewHandler);
+		server.register(viewsUri + view2Id + "/chart", viewHandler);
+		server.register(viewsUri + view3Id + "/chart", viewHandler);
+
+		long start = System.currentTimeMillis();
+
+		DashboardInfo stored = new ConcurrentPageStorage().storeDashboard(dashboardInfo);
+
+		long time = System.currentTimeMillis() - start;
+
+		List<Dashlet> views = stored.loadDetails().getDashlets();
+		assertEquals(views.size(), 3);
+		assertEquals(((View) views.get(0).getContent()).getId(), viewId);
+		assertEquals(((View) views.get(1).getContent()).getId(), view2Id);
+		assertEquals(((View) views.get(2).getContent()).getId(), view3Id);
+
+		// we're executing 3x; it'll take at least this long if in sequence
+		assertTrue(time < 3 * timePerRequest, "Took " + time + "ms to store");
+	}
+
+	private JsonNode buildViewDashlet(String id, String name, String type) {
+		ObjectNode dashletJson = new ObjectMapper().createObjectNode();
+		dashletJson.put("canAccessViewReport", true).put("type", "viewReport")
+			.put("viewReport", builder.buildViewNode(id, name, type));
+
+		return dashletJson;
 	}
 }

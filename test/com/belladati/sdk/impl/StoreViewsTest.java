@@ -14,6 +14,7 @@ import java.util.Map;
 import org.apache.http.entity.StringEntity;
 import org.testng.annotations.Test;
 
+import com.belladati.sdk.export.ConcurrentViewStorage;
 import com.belladati.sdk.export.ViewStorage;
 import com.belladati.sdk.filter.Filter;
 import com.belladati.sdk.impl.ViewImpl.UnknownViewTypeException;
@@ -386,5 +387,60 @@ public class StoreViewsTest extends SDKTest {
 		assertEquals(storedTable.loadData(0, 1, 0, 1).get("content").asText(), data);
 
 		server.assertRequestUris(viewsUri + id + "/table/bounds", viewsUri + id + "/table/data");
+	}
+
+	/** store a table making concurrent requests */
+	public void storeTableConcurrent() {
+		Table table = new TableViewImpl.TableImpl(service, id, builder.buildTableNode(1, 1, 1, 1));
+
+		String left = "<tr><th>1</th></tr>";
+		String top = "<tr><th>A</th></tr>";
+		String data = "<tr><td>A1</td></tr>";
+		final JsonNode leftResult = new ObjectMapper().createObjectNode().put("content", left);
+		final JsonNode topResult = new ObjectMapper().createObjectNode().put("content", top);
+		final JsonNode dataResult = new ObjectMapper().createObjectNode().put("content", data);
+
+		final long timePerRequest = 50;
+
+		server.register(viewsUri + id + "/table/leftHeader", new TestRequestHandler() {
+			@Override
+			protected void handle(HttpHolder holder) throws IOException {
+				try {
+					Thread.sleep(timePerRequest);
+				} catch (InterruptedException e) {}
+				holder.response.setEntity(new StringEntity(leftResult.toString()));
+			}
+		});
+		server.register(viewsUri + id + "/table/topHeader", new TestRequestHandler() {
+			@Override
+			protected void handle(HttpHolder holder) throws IOException {
+				try {
+					Thread.sleep(timePerRequest);
+				} catch (InterruptedException e) {}
+				holder.response.setEntity(new StringEntity(topResult.toString()));
+			}
+		});
+		server.register(viewsUri + id + "/table/data", new TestRequestHandler() {
+			@Override
+			protected void handle(HttpHolder holder) throws IOException {
+				try {
+					Thread.sleep(timePerRequest);
+				} catch (InterruptedException e) {}
+				holder.response.setEntity(new StringEntity(dataResult.toString()));
+			}
+		});
+
+		long start = System.currentTimeMillis();
+
+		Table stored = new ConcurrentViewStorage().storeTable(table);
+
+		long time = System.currentTimeMillis() - start;
+
+		assertEquals(stored.loadLeftHeader(0, 1).get("content").asText(), left);
+		assertEquals(stored.loadTopHeader(0, 1).get("content").asText(), top);
+		assertEquals(stored.loadData(0, 1, 0, 1).get("content").asText(), data);
+
+		// we're executing 3x; it'll take at least this long if in sequence
+		assertTrue(time < 3 * timePerRequest, "Took " + time + "ms to store");
 	}
 }

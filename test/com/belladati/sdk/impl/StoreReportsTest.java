@@ -7,15 +7,19 @@ import static org.testng.Assert.assertTrue;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.Calendar;
+import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
 
 import org.apache.http.entity.InputStreamEntity;
+import org.apache.http.entity.StringEntity;
 import org.testng.annotations.Test;
 
+import com.belladati.sdk.export.ConcurrentPageStorage;
 import com.belladati.sdk.export.PageStorage;
 import com.belladati.sdk.report.Report;
 import com.belladati.sdk.report.ReportInfo;
+import com.belladati.sdk.test.TestRequestHandler;
 import com.belladati.sdk.view.View;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -153,7 +157,6 @@ public class StoreReportsTest extends SDKTest {
 	public void storeReportView() throws IOException, ClassNotFoundException {
 		ObjectNode reportJson = builder.buildReportNode(id, name, description, owner, lastChange);
 		ObjectNode viewJson = new ObjectMapper().createObjectNode().put("key", "value");
-		reportJson.put("localization", new ObjectMapper().createObjectNode().put("en", locName));
 		ReportInfo reportInfo = new ReportInfoImpl(service, reportJson);
 
 		ArrayNode views = new ObjectMapper().createArrayNode().add(builder.buildViewNode(viewId, viewName, "chart"));
@@ -175,5 +178,51 @@ public class StoreReportsTest extends SDKTest {
 		assertEquals(view.loadContent(), viewJson);
 
 		server.assertRequestUris();
+	}
+
+	/** store a report containing views making concurrent requests */
+	public void storeReportViewsConcurrent() throws IOException, ClassNotFoundException {
+		String view2Id = "view2";
+		String view3Id = "view3";
+
+		ObjectNode reportJson = builder.buildReportNode(id, name, description, owner, lastChange);
+		final ObjectNode viewJson = new ObjectMapper().createObjectNode().put("key", "value");
+		ReportInfo reportInfo = new ReportInfoImpl(service, reportJson);
+
+		ArrayNode viewsNode = new ObjectMapper().createArrayNode().add(builder.buildViewNode(viewId, viewName, "chart"))
+			.add(builder.buildViewNode(view2Id, viewName, "chart")).add(builder.buildViewNode(view3Id, viewName, "chart"));
+		reportJson.put("views", viewsNode);
+
+		final long timePerRequest = 50;
+
+		server.register(reportsUri + id, reportJson.toString());
+		server.register(reportsUri + id + "/thumbnail", new InputStreamEntity(getClass().getResourceAsStream("belladati.png")));
+		TestRequestHandler viewHandler = new TestRequestHandler() {
+			@Override
+			protected void handle(HttpHolder holder) throws IOException {
+				try {
+					Thread.sleep(timePerRequest);
+				} catch (InterruptedException e) {}
+				holder.response.setEntity(new StringEntity(viewJson.toString()));
+			}
+		};
+		server.register(viewsUri + viewId + "/chart", viewHandler);
+		server.register(viewsUri + view2Id + "/chart", viewHandler);
+		server.register(viewsUri + view3Id + "/chart", viewHandler);
+
+		long start = System.currentTimeMillis();
+
+		ReportInfo stored = new ConcurrentPageStorage().storeReport(reportInfo);
+
+		long time = System.currentTimeMillis() - start;
+
+		List<View> views = stored.loadDetails().getViews();
+		assertEquals(views.size(), 3);
+		assertEquals(views.get(0).getId(), viewId);
+		assertEquals(views.get(1).getId(), view2Id);
+		assertEquals(views.get(2).getId(), view3Id);
+
+		// we're executing 3x; it'll take at least this long if in sequence
+		assertTrue(time < 3 * timePerRequest, "Took " + time + "ms to store");
 	}
 }

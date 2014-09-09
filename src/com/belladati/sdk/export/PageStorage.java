@@ -31,7 +31,7 @@ import com.belladati.sdk.view.View;
  */
 public class PageStorage {
 
-	private final ViewStorage viewStorage;
+	protected final ViewStorage viewStorage;
 
 	/**
 	 * Creates a new default instance.
