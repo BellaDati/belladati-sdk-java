@@ -24,6 +24,7 @@ import com.belladati.sdk.exception.interval.InvalidRelativeIntervalException;
 import com.belladati.sdk.exception.interval.NullIntervalException;
 import com.belladati.sdk.impl.ViewImpl.UnknownViewTypeException;
 import com.belladati.sdk.intervals.AbsoluteInterval;
+import com.belladati.sdk.intervals.CustomInterval;
 import com.belladati.sdk.intervals.DateUnit;
 import com.belladati.sdk.intervals.Interval;
 import com.belladati.sdk.intervals.IntervalUnit;
@@ -47,6 +48,9 @@ public class IntervalTest extends SDKTest {
 
 	private final Calendar start = new GregorianCalendar(2012, 1, 2, 3, 4, 5);
 	private final Calendar end = new GregorianCalendar(2013, 7, 8, 9, 10, 11);
+
+	private final String startVal = "startVal";
+	private final String endVal = "endVal";
 
 	private final ObjectMapper mapper = new ObjectMapper();
 
@@ -177,6 +181,20 @@ public class IntervalTest extends SDKTest {
 		assertEquals(interval.toString(), expectedJson.toString());
 	}
 
+	/** custom intervals */
+	@Test(dataProvider = "intervalUnitProvider")
+	public void customToJson(IntervalUnit unit) {
+		Interval<?> interval = new CustomInterval<IntervalUnit>(unit, startVal, endVal);
+
+		JsonNode from = new TextNode(startVal);
+		JsonNode to = new TextNode(endVal);
+
+		JsonNode expectedJson = buildIntervalNode(unit, from, to, "custom");
+
+		assertEquals(interval.toJson(), expectedJson);
+		assertEquals(interval.toString(), expectedJson.toString());
+	}
+
 	/** start and end may be equal in absolute intervals */
 	public void startEndEqualAbsolute() {
 		Interval<?> interval = new AbsoluteInterval<IntervalUnit>(TimeUnit.HOUR, start, start);
@@ -198,6 +216,19 @@ public class IntervalTest extends SDKTest {
 		JsonNode to = new IntNode(10);
 
 		JsonNode expectedJson = buildIntervalNode(DateUnit.DAY, from, to, "relative");
+
+		assertEquals(interval.toJson(), expectedJson);
+		assertEquals(interval.toString(), expectedJson.toString());
+	}
+
+	/** start and end may be equal in custom intervals */
+	public void startEndEqualCustom() {
+		Interval<?> interval = new CustomInterval<IntervalUnit>(DateUnit.DAY, startVal, startVal);
+
+		JsonNode from = new TextNode(startVal);
+		JsonNode to = new TextNode(startVal);
+
+		JsonNode expectedJson = buildIntervalNode(DateUnit.DAY, from, to, "custom");
 
 		assertEquals(interval.toJson(), expectedJson);
 		assertEquals(interval.toString(), expectedJson.toString());
@@ -239,6 +270,12 @@ public class IntervalTest extends SDKTest {
 		new RelativeInterval<IntervalUnit>(null, -1, 1);
 	}
 
+	/** interval unit may not be null in custom intervals */
+	@Test(expectedExceptions = NullIntervalException.class)
+	public void unitNullCustom() {
+		new CustomInterval<IntervalUnit>(null, startVal, endVal);
+	}
+
 	/** interval start may not be null */
 	@Test(expectedExceptions = NullIntervalException.class)
 	public void startNullAbsolute() {
@@ -249,6 +286,30 @@ public class IntervalTest extends SDKTest {
 	@Test(expectedExceptions = NullIntervalException.class)
 	public void endNullAbsolute() {
 		new AbsoluteInterval<IntervalUnit>(TimeUnit.HOUR, start, null);
+	}
+
+	/** interval start may not be null */
+	@Test(expectedExceptions = NullIntervalException.class)
+	public void startNullCustom() {
+		new CustomInterval<IntervalUnit>(TimeUnit.HOUR, null, endVal);
+	}
+
+	/** interval end may not be null */
+	@Test(expectedExceptions = NullIntervalException.class)
+	public void endNullCustom() {
+		new CustomInterval<IntervalUnit>(TimeUnit.HOUR, startVal, null);
+	}
+
+	/** interval start may not be empty */
+	@Test(expectedExceptions = NullIntervalException.class)
+	public void startEmptyCustom() {
+		new CustomInterval<IntervalUnit>(TimeUnit.HOUR, " ", endVal);
+	}
+
+	/** interval end may not be empty */
+	@Test(expectedExceptions = NullIntervalException.class)
+	public void endEmptyCustom() {
+		new CustomInterval<IntervalUnit>(TimeUnit.HOUR, startVal, " ");
 	}
 
 	/** Query parameters with time only are correct. */
@@ -528,9 +589,35 @@ public class IntervalTest extends SDKTest {
 		}
 	}
 
-	/** an interval that's not absolute or relative */
+	/** predefined custom intervals */
 	@Test(dataProvider = "intervalUnitProvider")
-	public void predefinedNotAbsoluteOrRelativeInterval(IntervalUnit unit) throws UnknownViewTypeException {
+	public void predefinedCustomInterval(IntervalUnit unit) throws UnknownViewTypeException {
+		ObjectNode viewNode = builder.buildViewNode(viewId, viewName, "chart");
+		viewNode.put("dateTimeDefinition", buildIntervalNode(unit, new TextNode(startVal), new TextNode(endVal), "cUsToM"));
+		View view = ViewImpl.buildView(service, viewNode);
+
+		if (unit instanceof DateUnit) {
+			assertTrue(view.hasPredefinedDateInterval());
+			assertFalse(view.hasPredefinedTimeInterval());
+			CustomInterval<DateUnit> interval = (CustomInterval<DateUnit>) view.getPredefinedDateInterval();
+			assertEquals(interval.getIntervalUnit(), unit);
+			assertEquals(interval.getStart(), startVal);
+			assertEquals(interval.getEnd(), endVal);
+			assertNull(view.getPredefinedTimeInterval());
+		} else {
+			assertFalse(view.hasPredefinedDateInterval());
+			assertTrue(view.hasPredefinedTimeInterval());
+			assertNull(view.getPredefinedDateInterval());
+			CustomInterval<TimeUnit> interval = (CustomInterval<TimeUnit>) view.getPredefinedTimeInterval();
+			assertEquals(interval.getIntervalUnit(), unit);
+			assertEquals(interval.getStart(), startVal);
+			assertEquals(interval.getEnd(), endVal);
+		}
+	}
+
+	/** an interval that's not a known type */
+	@Test(dataProvider = "intervalUnitProvider")
+	public void predefinedUnknownInterval(IntervalUnit unit) throws UnknownViewTypeException {
 		ObjectNode viewNode = builder.buildViewNode(viewId, viewName, "chart");
 		viewNode.put("dateTimeDefinition", buildIntervalNode(unit, new IntNode(-3), new IntNode(3), "something else"));
 		View view = ViewImpl.buildView(service, viewNode);
@@ -561,6 +648,19 @@ public class IntervalTest extends SDKTest {
 
 		ObjectNode viewNode = builder.buildViewNode(viewId, viewName, "chart");
 		viewNode.put("dateTimeDefinition", buildIntervalNode(DateUnit.YEAR, from, to, "absolute"));
+		View view = ViewImpl.buildView(service, viewNode);
+
+		assertFalse(view.hasPredefinedDateInterval());
+		assertFalse(view.hasPredefinedTimeInterval());
+		assertNull(view.getPredefinedDateInterval());
+		assertNull(view.getPredefinedTimeInterval());
+	}
+
+	/** invalid custom intervals are ignored */
+	@Test(dataProvider = "intervalUnitProvider")
+	public void invalidCustomInterval(IntervalUnit unit) throws UnknownViewTypeException {
+		ObjectNode viewNode = builder.buildViewNode(viewId, viewName, "chart");
+		viewNode.put("dateTimeDefinition", buildIntervalNode(unit, new TextNode(""), new TextNode(endVal), "custom"));
 		View view = ViewImpl.buildView(service, viewNode);
 
 		assertFalse(view.hasPredefinedDateInterval());
@@ -611,6 +711,32 @@ public class IntervalTest extends SDKTest {
 		assertEquals(interval.getStart(), new GregorianCalendar(start.get(Calendar.YEAR), 0, 1));
 		assertEquals(interval.getEnd(), new GregorianCalendar(end.get(Calendar.YEAR), 0, 1));
 		assertNull(view.getPredefinedTimeInterval());
+	}
+
+	/** intervals with numbers instead of strings are allowed */
+	@Test(dataProvider = "intervalUnitProvider")
+	public void numberCustomInterval(IntervalUnit unit) throws UnknownViewTypeException {
+		ObjectNode viewNode = builder.buildViewNode(viewId, viewName, "chart");
+		viewNode.put("dateTimeDefinition", buildIntervalNode(unit, new IntNode(1), new IntNode(2), "custom"));
+		View view = ViewImpl.buildView(service, viewNode);
+
+		if (unit instanceof DateUnit) {
+			assertTrue(view.hasPredefinedDateInterval());
+			assertFalse(view.hasPredefinedTimeInterval());
+			CustomInterval<DateUnit> interval = (CustomInterval<DateUnit>) view.getPredefinedDateInterval();
+			assertEquals(interval.getIntervalUnit(), unit);
+			assertEquals(interval.getStart(), "1");
+			assertEquals(interval.getEnd(), "2");
+			assertNull(view.getPredefinedTimeInterval());
+		} else {
+			assertFalse(view.hasPredefinedDateInterval());
+			assertTrue(view.hasPredefinedTimeInterval());
+			assertNull(view.getPredefinedDateInterval());
+			CustomInterval<TimeUnit> interval = (CustomInterval<TimeUnit>) view.getPredefinedTimeInterval();
+			assertEquals(interval.getIntervalUnit(), unit);
+			assertEquals(interval.getStart(), "1");
+			assertEquals(interval.getEnd(), "2");
+		}
 	}
 
 	/** intervals with numeric fraction strings instead of numbers are allowed */

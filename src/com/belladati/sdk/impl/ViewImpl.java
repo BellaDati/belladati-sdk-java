@@ -14,6 +14,7 @@ import com.belladati.sdk.filter.Filter.MultiValueFilter;
 import com.belladati.sdk.filter.FilterOperation;
 import com.belladati.sdk.filter.FilterValue;
 import com.belladati.sdk.intervals.AbsoluteInterval;
+import com.belladati.sdk.intervals.CustomInterval;
 import com.belladati.sdk.intervals.DateUnit;
 import com.belladati.sdk.intervals.Interval;
 import com.belladati.sdk.intervals.RelativeInterval;
@@ -84,6 +85,9 @@ abstract class ViewImpl implements View {
 					// an absolute interval
 					return new AbsoluteInterval<DateUnit>(unit, unit.parseAbsolute(interval.get("from")),
 						unit.parseAbsolute(interval.get("to")));
+				} else if ("custom".equals(type)) {
+					// a custom interval
+					return new CustomInterval<DateUnit>(unit, interval.get("from").asText(), interval.get("to").asText());
 				}
 			}
 		} catch (InvalidIntervalException e) {
@@ -121,6 +125,9 @@ abstract class ViewImpl implements View {
 					// an absolute interval
 					return new AbsoluteInterval<TimeUnit>(unit, unit.parseAbsolute(interval.get("from")),
 						unit.parseAbsolute(interval.get("to")));
+				} else if ("custom".equals(type)) {
+					// a custom interval
+					return new CustomInterval<TimeUnit>(unit, interval.get("from").asText(), interval.get("to").asText());
 				}
 			}
 		} catch (InvalidIntervalException e) {
