@@ -14,6 +14,7 @@ import org.testng.annotations.Test;
 
 import com.belladati.sdk.dataset.Attribute;
 import com.belladati.sdk.dataset.AttributeValue;
+import com.belladati.sdk.filter.FilterValue;
 import com.belladati.sdk.impl.AttributeImpl.InvalidAttributeException;
 import com.belladati.sdk.impl.AttributeValueImpl.InvalidAttributeValueException;
 import com.belladati.sdk.report.Report;
@@ -199,9 +200,13 @@ public class AttributesTest extends SDKTest {
 		AttributeValue v1 = new AttributeValueImpl(builder.buildAttributeValueNode("1", value));
 		AttributeValue v2 = new AttributeValueImpl(builder.buildAttributeValueNode("2", value));
 		AttributeValue v3 = new AttributeValueImpl(builder.buildAttributeValueNode("3", "3"));
+		AttributeValue v4 = new FilterValue("4", value);
 
 		assertEquals(v1, v2);
+		assertEquals(v1, v4);
+		assertEquals(v4, v1);
 		assertEquals(v1.hashCode(), v2.hashCode());
+		assertEquals(v1.hashCode(), v4.hashCode());
 
 		assertNotEquals(v1, v3);
 	}

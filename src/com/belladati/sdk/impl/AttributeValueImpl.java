@@ -34,8 +34,8 @@ class AttributeValueImpl implements AttributeValue {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (obj instanceof AttributeValueImpl) {
-			return value.equals(((AttributeValueImpl) obj).value);
+		if (obj instanceof AttributeValue) {
+			return value.equals(((AttributeValue) obj).getValue());
 		}
 		return false;
 	}

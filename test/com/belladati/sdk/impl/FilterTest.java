@@ -1,6 +1,7 @@
 package com.belladati.sdk.impl;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertSame;
@@ -368,6 +369,7 @@ public class FilterTest extends SDKTest {
 		assertNotEquals(f1, f6);
 	}
 
+	/** parse filters from views */
 	@Test(dataProvider = "filters")
 	public void viewWithFilter(Filter<?> filter) throws UnknownViewTypeException {
 		ObjectNode viewNode = builder.buildViewNode(viewId, viewName, "chart");
@@ -380,6 +382,7 @@ public class FilterTest extends SDKTest {
 		assertEquals(view.getPredefinedFilters(), Collections.singleton(filter));
 	}
 
+	/** parse multiple filters from views */
 	@SuppressWarnings("unchecked")
 	@Test(dataProvider = "filters")
 	public void viewWithMultiFilter(Filter<?> filter) throws UnknownViewTypeException, InvalidAttributeException {
@@ -396,6 +399,22 @@ public class FilterTest extends SDKTest {
 
 		assertTrue(view.hasPredefinedFilters());
 		assertEquals(view.getPredefinedFilters(), new HashSet<Filter<?>>(Arrays.asList(filter, otherFilter)));
+	}
+
+	/** filter operation toString() */
+	public void opString() {
+		assertEquals(FilterOperation.IN.toString(), "IN");
+		assertEquals(FilterOperation.NOT_IN.toString(), "NOT_IN");
+		assertEquals(FilterOperation.NULL.toString(), "NULL");
+		assertEquals(FilterOperation.NOT_NULL.toString(), "NOT_NULL");
+	}
+
+	/** which operations support values? */
+	public void supportsValues() {
+		assertTrue(FilterOperation.IN.supportsValues());
+		assertTrue(FilterOperation.NOT_IN.supportsValues());
+		assertFalse(FilterOperation.NULL.supportsValues());
+		assertFalse(FilterOperation.NOT_NULL.supportsValues());
 	}
 
 	private ObjectNode buildInFilterNode() {

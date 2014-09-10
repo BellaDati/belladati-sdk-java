@@ -1,7 +1,5 @@
 package com.belladati.sdk.impl;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -10,7 +8,6 @@ import java.util.Locale;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import com.belladati.sdk.exception.InternalConfigurationException;
 import com.belladati.sdk.exception.interval.InvalidIntervalException;
 import com.belladati.sdk.filter.Filter;
 import com.belladati.sdk.filter.Filter.MultiValueFilter;
@@ -164,21 +161,10 @@ abstract class ViewImpl implements View {
 	}
 
 	private static FilterOperation<?> findOperation(String op) {
-		try {
-			Field opField = FilterOperation.class.getDeclaredField("op");
-			opField.setAccessible(true);
-			for (Field field : FilterOperation.class.getDeclaredFields()) {
-				if (Modifier.isStatic(field.getModifiers())) {
-					Object value = field.get(null);
-					if (op.equalsIgnoreCase((String) opField.get(value))) {
-						return (FilterOperation<?>) value;
-					}
-				}
+		for (FilterOperation<?> operation : FilterOperation.values()) {
+			if (operation.toString().equalsIgnoreCase(op)) {
+				return operation;
 			}
-		} catch (IllegalAccessException e) {
-			throw new InternalConfigurationException("Could not parse filters", e);
-		} catch (NoSuchFieldException e) {
-			throw new InternalConfigurationException("Could not parse filters", e);
 		}
 		return null;
 	}
