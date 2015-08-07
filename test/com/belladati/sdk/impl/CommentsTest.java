@@ -151,7 +151,9 @@ public class CommentsTest extends SDKTest {
 		assertNotEquals(com6, com1);
 	}
 
-	/** Registers a response to a comment POST, checking for the expected text. */
+	/**
+	 * Registers a response to a comment POST, checking for the expected text.
+	 */
 	private void registerPost() {
 		server.register(String.format(commentsUri, reportId), new TestRequestHandler() {
 			@Override

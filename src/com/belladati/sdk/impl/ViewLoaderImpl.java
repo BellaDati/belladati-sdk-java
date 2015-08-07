@@ -1,5 +1,7 @@
 package com.belladati.sdk.impl;
 
+import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -80,6 +82,11 @@ public class ViewLoaderImpl implements ViewLoader {
 	public Object loadContent() {
 		try {
 			URIBuilder builder = new URIBuilder("api/reports/views/" + viewId + "/" + viewType.getUri());
+
+			if (viewType == ViewType.IMAGE) {
+				return new ImageViewImpl.ImageImpl(viewId, (BufferedImage) service.loadImage(builder.build().toString()));
+			}
+
 			JsonNode json = service.loadJson(service
 				.appendLocale(service.appendDateTime(service.appendFilter(builder, filters), dateInterval, timeInterval), locale)
 				.build().toString());
@@ -88,6 +95,8 @@ public class ViewLoaderImpl implements ViewLoader {
 			}
 			return json;
 		} catch (URISyntaxException e) {
+			throw new InternalConfigurationException(e);
+		} catch (IOException e) {
 			throw new InternalConfigurationException(e);
 		}
 	}

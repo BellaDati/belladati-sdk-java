@@ -137,7 +137,7 @@ class BellaDatiServiceImpl implements BellaDatiService {
 	 * @return the image from the server
 	 * @throws IOException if the image cannot be loaded
 	 */
-	private Object loadImage(String relativeUrl) throws IOException {
+	Object loadImage(String relativeUrl) throws IOException {
 		ByteArrayInputStream bais = new ByteArrayInputStream(client.get(relativeUrl, tokenHolder));
 		try {
 			BufferedImage image = ImageIO.read(bais);
@@ -161,8 +161,8 @@ class BellaDatiServiceImpl implements BellaDatiService {
 				if (existing != null) {
 					return existing;
 				} else {
-					PaginatedList<Comment> newList = new PaginatedListImpl<Comment>(this,
-						"api/reports/" + reportId + "/comments", "comments") {
+					PaginatedList<Comment> newList = new PaginatedListImpl<Comment>(this, "api/reports/" + reportId + "/comments",
+						"comments") {
 						@Override
 						protected Comment parse(BellaDatiServiceImpl service, JsonNode node) {
 							return new CommentImpl(service, node);
@@ -308,8 +308,8 @@ class BellaDatiServiceImpl implements BellaDatiService {
 		CachedListImpl<AttributeValue> values = attributeValues.get(attributeCode);
 		if (values == null) {
 			// we don't have this attribute in our cache yet
-			values = new CachedListImpl<AttributeValue>(this, "api/dataSets/" + dataSetId + "/attributes/" + attributeCode
-				+ "/values", "values") {
+			values = new CachedListImpl<AttributeValue>(this,
+				"api/dataSets/" + dataSetId + "/attributes/" + attributeCode + "/values", "values") {
 				@Override
 				protected AttributeValue parse(BellaDatiServiceImpl service, JsonNode node) throws ParseException {
 					try {

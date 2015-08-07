@@ -1,5 +1,6 @@
 package com.belladati.sdk.impl;
 
+import java.awt.image.BufferedImage;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -28,8 +29,14 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 abstract class ViewImpl implements View {
 
 	/**
+	 * 
 	 * Builds an instance based on the given node. Will select an appropriate
 	 * class to instantiate based on the view's type.
+	 * 
+	 * @param service BelladatiService
+	 * @param node json node to create view from
+	 * @return assembled ViewImpl
+	 * @throws UnknownViewTypeException
 	 */
 	static ViewImpl buildView(BellaDatiServiceImpl service, JsonNode node) throws UnknownViewTypeException {
 		switch (parseType(node)) {
@@ -38,6 +45,19 @@ abstract class ViewImpl implements View {
 		default:
 			return new JsonViewImpl(service, node);
 		}
+	}
+
+	/**
+	 * Builds an instance based on the given node. Will select an appropriate
+	 * class to instantiate based on the view's type.
+	 * 
+	 * @param service BelladatiService
+	 * @param image BufferedImage
+	 * @return assembled ViewImpl
+	 * @throws UnknownViewTypeException
+	 */
+	static ViewImpl buildView(BellaDatiServiceImpl service, BufferedImage image) throws UnknownViewTypeException {
+		return new ImageViewImpl(service, image);
 	}
 
 	/**
@@ -222,6 +242,20 @@ abstract class ViewImpl implements View {
 		}
 
 		this.localization = new LocalizationImpl(node);
+	}
+
+	ViewImpl(BellaDatiServiceImpl service, BufferedImage image) throws UnknownViewTypeException {
+		this.service = service;
+		this.type = ViewType.IMAGE;
+
+		this.id = "";
+		this.name = "";;
+		this.dateIntervalSupported = false;
+		this.timeIntervalSupported = false;
+		this.dateInterval = null;
+		this.timeInterval = null;
+		this.filters = Collections.EMPTY_SET;
+		this.localization = null;;
 	}
 
 	@Override
