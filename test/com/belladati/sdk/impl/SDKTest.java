@@ -28,7 +28,7 @@ public class SDKTest {
 	protected final JsonBuilder builder = new JsonBuilder();
 
 	/** system default locale */
-	private static final Locale DEFAULT_LOCALE = Locale.getDefault();
+	private static final Locale DEFAULT_LOCALE = Locale.ENGLISH;
 
 	@BeforeMethod(alwaysRun = true)
 	protected void setupServer() throws Exception {
