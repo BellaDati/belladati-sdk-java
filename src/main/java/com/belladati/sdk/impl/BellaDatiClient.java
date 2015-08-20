@@ -13,11 +13,6 @@ import java.util.List;
 
 import javax.net.ssl.SSLContext;
 
-import oauth.signpost.OAuth;
-import oauth.signpost.OAuthConsumer;
-import oauth.signpost.exception.OAuthException;
-import oauth.signpost.http.HttpParameters;
-
 import org.apache.http.HttpEntity;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.config.RequestConfig;
@@ -47,10 +42,16 @@ import com.belladati.sdk.exception.auth.AuthorizationException.Reason;
 import com.belladati.sdk.exception.auth.InvalidTimestampException;
 import com.belladati.sdk.exception.server.InternalErrorException;
 import com.belladati.sdk.exception.server.InvalidJsonException;
+import com.belladati.sdk.exception.server.MethodNotAllowedException;
 import com.belladati.sdk.exception.server.NotFoundException;
 import com.belladati.sdk.exception.server.UnexpectedResponseException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import oauth.signpost.OAuth;
+import oauth.signpost.OAuthConsumer;
+import oauth.signpost.exception.OAuthException;
+import oauth.signpost.http.HttpParameters;
 
 class BellaDatiClient implements Serializable {
 
@@ -78,11 +79,11 @@ class BellaDatiClient implements Serializable {
 	private CloseableHttpClient buildClient(boolean trustSelfSigned) {
 		try {
 			// if required, define custom SSL context allowing self-signed certs
-			SSLContext sslContext = !trustSelfSigned ? SSLContexts.createSystemDefault() : SSLContexts.custom()
-				.loadTrustMaterial(null, new TrustSelfSignedStrategy()).build();
+			SSLContext sslContext = !trustSelfSigned ? SSLContexts.createSystemDefault()
+				: SSLContexts.custom().loadTrustMaterial(null, new TrustSelfSignedStrategy()).build();
 
 			// set timeouts for the HTTP client
-			int globalTimeout = readFromProperty("bdTimeout", 10000);
+			int globalTimeout = readFromProperty("bdTimeout", 100000);
 			int connectTimeout = readFromProperty("bdConnectTimeout", globalTimeout);
 			int connectionRequestTimeout = readFromProperty("bdConnectionRequestTimeout", globalTimeout);
 			int socketTimeout = readFromProperty("bdSocketTimeout", globalTimeout);
@@ -225,13 +226,15 @@ class BellaDatiClient implements Serializable {
 			case 204:
 				// all is well, return
 				return content;
-				// there was some sort of error - throw the right exception
+			// there was some sort of error - throw the right exception
 			case 400:
 			case 401:
 			case 403:
 				throw buildException(statusCode, content, tokenHolder.hasToken());
 			case 404:
 				throw new NotFoundException(request.getRequestLine().getUri());
+			case 405:
+				throw new MethodNotAllowedException(request.getRequestLine().getUri());
 			case 500:
 				throw new InternalErrorException();
 			default:
@@ -294,8 +297,8 @@ class BellaDatiClient implements Serializable {
 				} else if ("timestamp_refused".equals(problem)) {
 					String acceptable = oauthParams.getFirst("oauth_acceptable_timestamps");
 					if (acceptable != null && acceptable.contains("-")) {
-						return new InvalidTimestampException(Long.parseLong(acceptable.split("-")[0]), Long.parseLong(acceptable
-							.split("-")[1]));
+						return new InvalidTimestampException(Long.parseLong(acceptable.split("-")[0]),
+							Long.parseLong(acceptable.split("-")[1]));
 					}
 				}
 				return new AuthorizationException(Reason.OTHER, problem);

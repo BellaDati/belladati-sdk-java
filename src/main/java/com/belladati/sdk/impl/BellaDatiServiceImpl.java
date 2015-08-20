@@ -55,6 +55,7 @@ import com.belladati.sdk.util.PaginatedIdList;
 import com.belladati.sdk.util.PaginatedList;
 import com.belladati.sdk.view.ViewLoader;
 import com.belladati.sdk.view.ViewType;
+import com.belladati.sdk.view.export.ViewExporter;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -150,6 +151,16 @@ class BellaDatiServiceImpl implements BellaDatiService {
 		}
 	}
 
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * @return {@link ByteArrayInputStream}
+	 */
+	@Override
+	public Object loadFile(String relativeUrl) throws IOException {
+		return new ByteArrayInputStream(client.get(relativeUrl, tokenHolder));
+	}
+
 	@Override
 	public PaginatedList<Comment> getReportComments(String reportId) {
 		PaginatedList<Comment> existing = commentLists.get(reportId);
@@ -194,6 +205,14 @@ class BellaDatiServiceImpl implements BellaDatiService {
 	@Override
 	public ViewLoader createViewLoader(String viewId, ViewType viewType) {
 		return new ViewLoaderImpl(this, viewId, viewType);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public ViewExporter createViewExporter() {
+		return new ViewExporterImpl(this);
 	}
 
 	@Override
