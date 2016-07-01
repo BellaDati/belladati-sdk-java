@@ -1,6 +1,7 @@
 package com.belladati.sdk.test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
@@ -33,8 +34,8 @@ public class JsonBuilder {
 	}
 
 	public ObjectNode insertViewDateTimeDefinition(boolean dateSupported, boolean timeSupported, ObjectNode viewNode) {
-		ObjectNode definition = new ObjectMapper().createObjectNode().put("timeSupported", timeSupported)
-			.put("dateSupported", dateSupported);
+		ObjectNode definition = new ObjectMapper().createObjectNode().put("timeSupported", timeSupported).put("dateSupported",
+			dateSupported);
 		viewNode.put("dateTimeDefinition", definition);
 		return viewNode;
 	}
@@ -55,12 +56,64 @@ public class JsonBuilder {
 		return new ObjectMapper().createObjectNode().put("label", label).put("value", value);
 	}
 
+	/** Builds a JSON node representing a domain info. */
+	public ObjectNode buildDomainInfoNode(String id, String name, String description, String active) {
+		return new ObjectMapper().createObjectNode().put("id", id).put("name", name).put("description", description).put("active",
+			active);
+	}
+
+	/** Builds a JSON node representing a domain. */
+	public ObjectNode buildDomainNode(String id, String name, String description, String dateFormat, String timeFormat,
+		String timeZone, String locale, String active) {
+		return new ObjectMapper().createObjectNode().put("id", id).put("name", name).put("description", description)
+			.put("dateFormat", dateFormat).put("timeFormat", timeFormat).put("timeZone", timeZone).put("locale", locale)
+			.put("active", active);
+	}
+
+	/** Builds a JSON node representing a user group. */
+	public ObjectNode buildUserGroupNode(String id, String name, String description) {
+		return new ObjectMapper().createObjectNode().put("id", id).put("name", name).put("description", description);
+	}
+
 	/** Builds a JSON node representing a user. */
 	public ObjectNode buildUserNode(String id, String username, String givenName, String familyName, String email,
 		String firstLogin, String lastLogin, String locale) {
-		return new ObjectMapper().createObjectNode().put("id", id).put("username", username).put("name", givenName)
-			.put("surname", familyName).put("email", email).put("firstLogin", firstLogin).put("lastLogin", lastLogin)
-			.put("locale", locale);
+		return buildUserNode(id, username, givenName, familyName, email, firstLogin, lastLogin, locale, null, null, null, null,
+			null);
+	}
+
+	/** Builds a JSON node representing a user with roles and user groups. */
+	public ObjectNode buildUserNode(String id, String username, String givenName, String familyName, String email,
+		String firstLogin, String lastLogin, String locale, String timeZone, String active, String domainId, String[] roles,
+		String[][] groups) {
+		ObjectMapper mapper = new ObjectMapper();
+
+		// mandatory
+		ObjectNode user = mapper.createObjectNode().put("id", id).put("username", username).put("name", givenName)
+			.put("surname", familyName).put("email", email).put("firstLogin", firstLogin).put("lastLogin", lastLogin);
+
+		// optional
+		put(user, "locale", locale);
+		put(user, "timeZone", timeZone);
+		put(user, "active", active);
+		put(user, "domain_id", domainId);
+		if (roles != null) {
+			ArrayNode array = mapper.createArrayNode();
+			for (String role : roles) {
+				array.add(mapper.createObjectNode().put("role", role));
+			}
+			user.put("roles", array);
+		}
+		if (groups != null) {
+			ArrayNode array = mapper.createArrayNode();
+			for (String[] group : groups) {
+				array.add(mapper.createObjectNode().put("id", group[0]).put("name", group[1]));
+			}
+			user.put("groups", array);
+		}
+
+		return user;
+
 	}
 
 	/** Builds a JSON node representing table bounds. */
@@ -98,7 +151,8 @@ public class JsonBuilder {
 	}
 
 	/** Builds a JSON node representing a data source import. */
-	public ObjectNode buildSourceImportNode(String id, String caller, String lastImport, String overwritePolicy, String interval) {
+	public ObjectNode buildSourceImportNode(String id, String caller, String lastImport, String overwritePolicy,
+		String interval) {
 		return new ObjectMapper().createObjectNode().put("id", id).put("createdBy", caller).put("when", lastImport)
 			.put("overwritingPolicy", overwritePolicy).put("repeateInterval", interval);
 	}
@@ -112,4 +166,11 @@ public class JsonBuilder {
 		return buildSourceImportNode(id, caller, lastImport, overwritePolicy, interval).put("repeateIntervalCustom",
 			customIntervalLength);
 	}
+
+	private void put(ObjectNode node, String field, String value) {
+		if (value != null) {
+			node.put(field, value);
+		}
+	}
+
 }

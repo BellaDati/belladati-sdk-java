@@ -59,7 +59,7 @@ public class UserGroupCreateBuilderImpl implements UserGroupCreateBuilder {
 		if (posted) {
 			throw new IllegalStateException("Request already submitted to server.");
 		}
-		byte[] response = service.getClient().post("api/domains/create", service.getTokenHolder(),
+		byte[] response = service.getClient().post("api/users/groups/create", service.getTokenHolder(),
 			Collections.singletonList(new BasicNameValuePair("data", toJson().toString())));
 		posted = true;
 		return new String(response);

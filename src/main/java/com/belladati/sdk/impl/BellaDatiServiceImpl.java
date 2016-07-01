@@ -147,12 +147,13 @@ public class BellaDatiServiceImpl implements BellaDatiService {
 
 	@Override
 	public CachedList<User> getDomainUsers(String domainId, String userGroupId) {
-		CachedList<User> existing = users.get(domainId + "-" + userGroupId);
+		final String cacheKey = domainId + "-" + userGroupId;
+		CachedList<User> existing = users.get(cacheKey);
 		if (existing != null) {
 			return existing;
 		} else {
 			synchronized (users) {
-				existing = users.get(domainId + "-" + userGroupId);
+				existing = users.get(cacheKey);
 				if (existing != null) {
 					return existing;
 				} else {
@@ -164,7 +165,7 @@ public class BellaDatiServiceImpl implements BellaDatiService {
 							return new UserImpl(node);
 						}
 					};
-					users.put(domainId + "-" + userGroupId, newList);
+					users.put(cacheKey, newList);
 					return newList;
 				}
 			}
@@ -517,6 +518,10 @@ public class BellaDatiServiceImpl implements BellaDatiService {
 	private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
 		in.defaultReadObject();
 		try {
+			Field domainList = getClass().getDeclaredField("domainList");
+			domainList.setAccessible(true);
+			domainList.set(this, new DomainList());
+
 			Field dashboardList = getClass().getDeclaredField("dashboardList");
 			dashboardList.setAccessible(true);
 			dashboardList.set(this, new DashboardList());

@@ -119,7 +119,7 @@ public class UserImpl implements User {
 	}
 
 	@Override
-	public Boolean getActive() {
+	public boolean getActive() {
 		return active;
 	}
 
