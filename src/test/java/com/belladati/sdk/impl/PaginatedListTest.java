@@ -18,6 +18,7 @@ import org.testng.annotations.Test;
 import com.belladati.sdk.test.TestRequestHandler;
 import com.belladati.sdk.util.PaginatedIdList;
 import com.belladati.sdk.util.PaginatedList;
+import com.belladati.sdk.util.impl.PaginatedIdListImpl;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;

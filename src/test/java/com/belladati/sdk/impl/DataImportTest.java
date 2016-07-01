@@ -12,6 +12,7 @@ import org.testng.annotations.Test;
 
 import com.belladati.sdk.dataset.DataSet;
 import com.belladati.sdk.dataset.data.DataTable;
+import com.belladati.sdk.dataset.impl.DataSetImpl;
 import com.belladati.sdk.exception.dataset.data.UnknownServerColumnException;
 import com.belladati.sdk.exception.server.UnexpectedResponseException;
 import com.belladati.sdk.test.TestRequestHandler;

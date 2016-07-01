@@ -16,6 +16,8 @@ import org.testng.annotations.Test;
 import com.belladati.sdk.test.TestRequestHandler;
 import com.belladati.sdk.user.User;
 import com.belladati.sdk.user.UserInfo;
+import com.belladati.sdk.user.impl.UserImpl;
+import com.belladati.sdk.user.impl.UserInfoImpl;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**

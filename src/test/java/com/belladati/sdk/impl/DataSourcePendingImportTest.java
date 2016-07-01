@@ -17,6 +17,7 @@ import com.belladati.sdk.dataset.data.OverwritePolicy;
 import com.belladati.sdk.dataset.source.DataSource;
 import com.belladati.sdk.dataset.source.DataSourcePendingImport;
 import com.belladati.sdk.dataset.source.ImportIntervalUnit;
+import com.belladati.sdk.dataset.source.impl.DataSourceImpl;
 import com.belladati.sdk.test.TestRequestHandler;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;

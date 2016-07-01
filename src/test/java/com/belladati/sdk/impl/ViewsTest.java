@@ -13,13 +13,14 @@ import java.util.Locale;
 import org.apache.http.entity.StringEntity;
 import org.testng.annotations.Test;
 
-import com.belladati.sdk.impl.ViewImpl.UnknownViewTypeException;
+import com.belladati.sdk.exception.impl.UnknownViewTypeException;
 import com.belladati.sdk.report.Report;
 import com.belladati.sdk.test.TestRequestHandler;
 import com.belladati.sdk.view.JsonView;
 import com.belladati.sdk.view.TableView;
 import com.belladati.sdk.view.View;
 import com.belladati.sdk.view.ViewType;
+import com.belladati.sdk.view.impl.ViewImpl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;

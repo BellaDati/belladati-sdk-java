@@ -14,6 +14,7 @@ import org.testng.annotations.Test;
 
 import com.belladati.sdk.test.TestRequestHandler;
 import com.belladati.sdk.util.CachedList;
+import com.belladati.sdk.util.impl.CachedListImpl;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;

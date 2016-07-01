@@ -7,7 +7,9 @@ import static org.testng.Assert.assertSame;
 import org.testng.annotations.Test;
 
 import com.belladati.sdk.dataset.DataSet;
+import com.belladati.sdk.dataset.impl.DataSetImpl;
 import com.belladati.sdk.dataset.source.DataSource;
+import com.belladati.sdk.dataset.source.impl.DataSourceImpl;
 import com.belladati.sdk.util.CachedList;
 import com.fasterxml.jackson.databind.JsonNode;
 

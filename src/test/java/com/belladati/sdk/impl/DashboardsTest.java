@@ -16,6 +16,8 @@ import org.testng.annotations.Test;
 
 import com.belladati.sdk.dashboard.Dashboard;
 import com.belladati.sdk.dashboard.DashboardInfo;
+import com.belladati.sdk.dashboard.impl.DashboardImpl;
+import com.belladati.sdk.dashboard.impl.DashboardInfoImpl;
 import com.belladati.sdk.test.TestRequestHandler;
 import com.belladati.sdk.util.PaginatedList;
 import com.fasterxml.jackson.databind.JsonNode;

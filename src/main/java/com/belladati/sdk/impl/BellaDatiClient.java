@@ -53,7 +53,7 @@ import oauth.signpost.OAuthConsumer;
 import oauth.signpost.exception.OAuthException;
 import oauth.signpost.http.HttpParameters;
 
-class BellaDatiClient implements Serializable {
+public class BellaDatiClient implements Serializable {
 
 	/** The serialVersionUID */
 	private static final long serialVersionUID = 9138881190417975299L;
@@ -63,7 +63,7 @@ class BellaDatiClient implements Serializable {
 
 	private final transient CloseableHttpClient client;
 
-	BellaDatiClient(String baseUrl, boolean trustSelfSigned) {
+	public BellaDatiClient(String baseUrl, boolean trustSelfSigned) {
 		this.baseUrl = baseUrl.endsWith("/") ? baseUrl : (baseUrl + "/");
 		this.trustSelfSigned = trustSelfSigned;
 		this.client = buildClient(trustSelfSigned);

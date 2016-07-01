@@ -17,7 +17,9 @@ import com.belladati.sdk.dataset.source.DataSource;
 import com.belladati.sdk.dataset.source.DataSourceImport;
 import com.belladati.sdk.dataset.source.ImportInterval;
 import com.belladati.sdk.dataset.source.ImportIntervalUnit;
-import com.belladati.sdk.impl.DataSourceImportImpl.InvalidDataSourceImportException;
+import com.belladati.sdk.dataset.source.impl.DataSourceImpl;
+import com.belladati.sdk.dataset.source.impl.DataSourceImportImpl;
+import com.belladati.sdk.exception.impl.InvalidDataSourceImportException;
 import com.belladati.sdk.util.CachedList;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -39,8 +41,8 @@ public class DataSourceImportTest extends SDKTest {
 	public void loadDataSource() {
 		CachedList<DataSourceImport> imports = service.getDataSourceImports(dsId);
 
-		registerSingleImport(builder.buildSourceImportNode(id, caller, lastImport, overwritePolicy, interval,
-			customIntervalLength));
+		registerSingleImport(
+			builder.buildSourceImportNode(id, caller, lastImport, overwritePolicy, interval, customIntervalLength));
 
 		imports.load();
 		server.assertRequestUris(importUri);
@@ -63,8 +65,8 @@ public class DataSourceImportTest extends SDKTest {
 		DataSource source = new DataSourceImpl(service, builder.buildDataSourceNode(dsId, "", ""));
 		CachedList<DataSourceImport> imports = source.getImports();
 
-		registerSingleImport(builder.buildSourceImportNode(id, caller, lastImport, overwritePolicy, interval,
-			customIntervalLength));
+		registerSingleImport(
+			builder.buildSourceImportNode(id, caller, lastImport, overwritePolicy, interval, customIntervalLength));
 
 		imports.load();
 		server.assertRequestUris(importUri);
@@ -91,11 +93,11 @@ public class DataSourceImportTest extends SDKTest {
 
 	/** equals/hashcode for imports */
 	public void dataSourceEquality() throws InvalidDataSourceImportException {
-		DataSourceImport d1 = new DataSourceImportImpl(builder.buildSourceImportNode(dsId, caller, lastImport, overwritePolicy,
-			interval, customIntervalLength));
+		DataSourceImport d1 = new DataSourceImportImpl(
+			builder.buildSourceImportNode(dsId, caller, lastImport, overwritePolicy, interval, customIntervalLength));
 		DataSourceImport d2 = new DataSourceImportImpl(builder.buildSourceImportNode(dsId, null, lastImport, null, null));
-		DataSourceImport d3 = new DataSourceImportImpl(builder.buildSourceImportNode("other id", caller, lastImport,
-			overwritePolicy, interval, customIntervalLength));
+		DataSourceImport d3 = new DataSourceImportImpl(
+			builder.buildSourceImportNode("other id", caller, lastImport, overwritePolicy, interval, customIntervalLength));
 
 		assertEquals(d1, d2);
 		assertEquals(d1.hashCode(), d2.hashCode());
@@ -121,8 +123,8 @@ public class DataSourceImportTest extends SDKTest {
 
 	/** invalid last import source is ignored */
 	public void invalidLastImport() {
-		registerSingleImport(builder.buildSourceImportNode(id, caller, "not a date", overwritePolicy, interval,
-			customIntervalLength));
+		registerSingleImport(
+			builder.buildSourceImportNode(id, caller, "not a date", overwritePolicy, interval, customIntervalLength));
 
 		assertEquals(service.getDataSourceImports(dsId).load().toList(), Collections.emptyList());
 	}
@@ -145,8 +147,8 @@ public class DataSourceImportTest extends SDKTest {
 
 	/** sources with invalid intervals are ignored */
 	public void invalidInterval() {
-		registerSingleImport(builder.buildSourceImportNode(id, caller, lastImport, overwritePolicy, "not an interval type",
-			customIntervalLength));
+		registerSingleImport(
+			builder.buildSourceImportNode(id, caller, lastImport, overwritePolicy, "not an interval type", customIntervalLength));
 
 		assertEquals(service.getDataSourceImports(dsId).load().toList(), Collections.emptyList());
 	}
@@ -215,7 +217,8 @@ public class DataSourceImportTest extends SDKTest {
 
 	/** any other policy means overwrite */
 	public void otherOverwritePolicy() {
-		registerSingleImport(builder.buildSourceImportNode(id, caller, lastImport, "some policy", interval, customIntervalLength));
+		registerSingleImport(
+			builder.buildSourceImportNode(id, caller, lastImport, "some policy", interval, customIntervalLength));
 
 		assertTrue(service.getDataSourceImports(dsId).load().toList().get(0).isOverwriting());
 	}

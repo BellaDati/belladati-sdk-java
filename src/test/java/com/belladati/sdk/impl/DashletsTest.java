@@ -11,8 +11,9 @@ import org.testng.annotations.Test;
 import com.belladati.sdk.dashboard.Dashboard;
 import com.belladati.sdk.dashboard.Dashlet;
 import com.belladati.sdk.dashboard.Dashlet.Type;
-import com.belladati.sdk.impl.DashletImpl.DashletException;
-import com.belladati.sdk.impl.ViewImpl.UnknownViewTypeException;
+import com.belladati.sdk.dashboard.impl.DashletImpl;
+import com.belladati.sdk.exception.impl.DashletException;
+import com.belladati.sdk.exception.impl.UnknownViewTypeException;
 import com.belladati.sdk.view.JsonView;
 import com.belladati.sdk.view.TableView;
 import com.belladati.sdk.view.View;
@@ -39,8 +40,8 @@ public class DashletsTest extends SDKTest {
 	@Test(dataProvider = "viewTypes")
 	public void loadDashletView(String stringType, ViewType viewType) throws UnknownViewTypeException {
 		ObjectNode dashletNode = new ObjectMapper().createObjectNode();
-		dashletNode.put("canAccessViewReport", true).put("type", "viewReport")
-			.put("viewReport", builder.buildViewNode(viewId, viewName, stringType));
+		dashletNode.put("canAccessViewReport", true).put("type", "viewReport").put("viewReport",
+			builder.buildViewNode(viewId, viewName, stringType));
 
 		registerDashboardWith(dashletNode);
 
@@ -71,8 +72,8 @@ public class DashletsTest extends SDKTest {
 	/** Dashlets pointing to inaccessible views are ignored. */
 	public void inaccessibleView() {
 		ObjectNode dashletNode = new ObjectMapper().createObjectNode();
-		dashletNode.put("canAccessViewReport", false).put("type", "viewReport")
-			.put("viewReport", builder.buildViewNode(viewId, viewName, "chart"));
+		dashletNode.put("canAccessViewReport", false).put("type", "viewReport").put("viewReport",
+			builder.buildViewNode(viewId, viewName, "chart"));
 
 		registerDashboardWith(dashletNode);
 
@@ -96,8 +97,8 @@ public class DashletsTest extends SDKTest {
 	/** Dashlets pointing to views with unknown accessibility are ignored. */
 	public void notBooleanAccessibilityView() {
 		ObjectNode dashletNode = new ObjectMapper().createObjectNode();
-		dashletNode.put("canAccessViewReport", "not a boolean").put("type", "viewReport")
-			.put("viewReport", builder.buildViewNode(viewId, viewName, "chart"));
+		dashletNode.put("canAccessViewReport", "not a boolean").put("type", "viewReport").put("viewReport",
+			builder.buildViewNode(viewId, viewName, "chart"));
 
 		registerDashboardWith(dashletNode);
 
@@ -110,8 +111,8 @@ public class DashletsTest extends SDKTest {
 	@Test(dataProvider = "unsupportedViewTypes")
 	public void unknownTypeView(String stringType) {
 		ObjectNode dashletNode = new ObjectMapper().createObjectNode();
-		dashletNode.put("canAccessViewReport", true).put("type", "viewReport")
-			.put("viewReport", builder.buildViewNode(viewId, viewName, stringType));
+		dashletNode.put("canAccessViewReport", true).put("type", "viewReport").put("viewReport",
+			builder.buildViewNode(viewId, viewName, stringType));
 
 		registerDashboardWith(dashletNode);
 
@@ -177,8 +178,8 @@ public class DashletsTest extends SDKTest {
 
 	/** Text dashlets with null content are ignored. */
 	public void textDashletNullText() throws UnknownViewTypeException {
-		ObjectNode dashletNode = new ObjectMapper().createObjectNode().put("type", "textContent")
-			.put("textContent", (String) null);
+		ObjectNode dashletNode = new ObjectMapper().createObjectNode().put("type", "textContent").put("textContent",
+			(String) null);
 
 		registerDashboardWith(dashletNode);
 
@@ -219,8 +220,8 @@ public class DashletsTest extends SDKTest {
 	/** Dashlets of unknown type are ignored. */
 	public void loadDashletUnknownType() throws UnknownViewTypeException {
 		ObjectNode dashletNode = new ObjectMapper().createObjectNode();
-		dashletNode.put("canAccessViewReport", true).put("type", "not a dashlet type")
-			.put("viewReport", builder.buildViewNode(viewId, viewName, "chart"));
+		dashletNode.put("canAccessViewReport", true).put("type", "not a dashlet type").put("viewReport",
+			builder.buildViewNode(viewId, viewName, "chart"));
 
 		registerDashboardWith(dashletNode);
 
@@ -231,12 +232,12 @@ public class DashletsTest extends SDKTest {
 
 	/** equals/hashcode for text dashlets */
 	public void textEquality() throws DashletException {
-		Dashlet d1 = new DashletImpl(service, new ObjectMapper().createObjectNode().put("type", "textContent")
-			.put("textContent", "text"));
-		Dashlet d2 = new DashletImpl(service, new ObjectMapper().createObjectNode().put("type", "textContent")
-			.put("textContent", "text"));
-		Dashlet d3 = new DashletImpl(service, new ObjectMapper().createObjectNode().put("type", "textContent")
-			.put("textContent", "other text"));
+		Dashlet d1 = new DashletImpl(service,
+			new ObjectMapper().createObjectNode().put("type", "textContent").put("textContent", "text"));
+		Dashlet d2 = new DashletImpl(service,
+			new ObjectMapper().createObjectNode().put("type", "textContent").put("textContent", "text"));
+		Dashlet d3 = new DashletImpl(service,
+			new ObjectMapper().createObjectNode().put("type", "textContent").put("textContent", "other text"));
 
 		assertEquals(d1, d2);
 		assertEquals(d1.hashCode(), d2.hashCode());

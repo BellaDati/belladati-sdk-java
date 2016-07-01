@@ -14,6 +14,7 @@ import org.apache.http.message.BasicNameValuePair;
 import com.belladati.sdk.BellaDatiConnection;
 import com.belladati.sdk.BellaDatiService;
 import com.belladati.sdk.auth.OAuthRequest;
+import com.belladati.sdk.auth.impl.OAuthRequestImpl;
 import com.belladati.sdk.exception.ConnectionException;
 import com.belladati.sdk.exception.auth.AuthorizationException;
 

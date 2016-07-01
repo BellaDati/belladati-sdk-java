@@ -15,6 +15,9 @@ import org.apache.http.entity.StringEntity;
 import org.testng.annotations.Test;
 
 import com.belladati.sdk.report.Comment;
+import com.belladati.sdk.report.impl.CommentImpl;
+import com.belladati.sdk.report.impl.ReportImpl;
+import com.belladati.sdk.report.impl.ReportInfoImpl;
 import com.belladati.sdk.test.TestRequestHandler;
 import com.belladati.sdk.util.PaginatedList;
 import com.fasterxml.jackson.databind.node.ObjectNode;

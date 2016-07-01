@@ -7,6 +7,7 @@ import static org.testng.Assert.fail;
 import org.testng.annotations.Test;
 
 import com.belladati.sdk.BellaDati;
+import com.belladati.sdk.auth.impl.OAuthRequestImpl;
 import com.belladati.sdk.exception.ConnectionException;
 import com.belladati.sdk.exception.auth.AuthorizationException;
 import com.belladati.sdk.exception.auth.AuthorizationException.Reason;
@@ -30,14 +31,14 @@ public class ExceptionTest extends SDKTest {
 	@Test(expectedExceptions = ConnectionException.class)
 	public void connectionFailed() throws Exception {
 		server.stop();
-		service.client.get(uri, service.tokenHolder);
+		service.getClient().get(uri, service.getTokenHolder());
 	}
 
 	/** internal server error */
 	@Test(expectedExceptions = InternalErrorException.class)
 	public void internalError() {
 		registerError(500, "");
-		service.client.get(uri, service.tokenHolder);
+		service.getClient().get(uri, service.getTokenHolder());
 	}
 
 	/** consumer key was empty or missing */
@@ -67,9 +68,9 @@ public class ExceptionTest extends SDKTest {
 	/** secret didn't match key during OAuth access token request */
 	public void secretMismatchOAuth2() {
 		server.registerError("/oauth/accessToken", 400, "oauth_problem=invalid_signature");
-		service.tokenHolder.setToken("token", "secret");
+		service.getTokenHolder().setToken("token", "secret");
 		try {
-			new OAuthRequestImpl(service.client, service.tokenHolder).requestAccess();
+			new OAuthRequestImpl(service.getClient(), service.getTokenHolder()).requestAccess();
 			fail("Didn't throw authorization exception");
 		} catch (AuthorizationException e) {
 			assertEquals(e.getReason(), Reason.TOKEN_INVALID);
@@ -91,14 +92,14 @@ public class ExceptionTest extends SDKTest {
 	/** secret didn't match key during regular API request */
 	public void secretMismatchOther() {
 		registerOAuthProblem(400, "invalid_signature");
-		service.tokenHolder.setToken("token", "secret");
+		service.getTokenHolder().setToken("token", "secret");
 		assertAuthException(Reason.TOKEN_INVALID);
 	}
 
 	/** current actual server response for secret mismatch */
 	public void secretMismatchReversed() {
 		registerOAuthProblem(403, "signature_invalid");
-		service.tokenHolder.setToken("token", "secret");
+		service.getTokenHolder().setToken("token", "secret");
 		assertAuthException(Reason.TOKEN_INVALID);
 	}
 
@@ -204,7 +205,7 @@ public class ExceptionTest extends SDKTest {
 	public void notFoundError() {
 		registerError(404, "not found");
 		try {
-			service.client.get(uri, service.tokenHolder);
+			service.getClient().get(uri, service.getTokenHolder());
 			fail("Didn't throw not found exception");
 		} catch (NotFoundException e) {
 			assertEquals(e.getUri(), server.getHttpURL() + "/" + uri);
@@ -215,7 +216,7 @@ public class ExceptionTest extends SDKTest {
 	public void otherError() {
 		registerError(400, "not an OAuth problem");
 		try {
-			service.client.get(uri, service.tokenHolder);
+			service.getClient().get(uri, service.getTokenHolder());
 			fail("Didn't throw response exception");
 		} catch (ServerResponseException e) {
 			assertEquals(e.getClass(), UnexpectedResponseException.class);
@@ -226,7 +227,7 @@ public class ExceptionTest extends SDKTest {
 	public void otherErrorCode() {
 		registerError(456, "some weird error code");
 		try {
-			service.client.get(uri, service.tokenHolder);
+			service.getClient().get(uri, service.getTokenHolder());
 			fail("Didn't throw response exception");
 		} catch (ServerResponseException e) {
 			assertEquals(e.getClass(), UnexpectedResponseException.class);
@@ -243,7 +244,7 @@ public class ExceptionTest extends SDKTest {
 
 	private AuthorizationException assertAuthException(Reason reason) {
 		try {
-			service.client.get(uri, service.tokenHolder);
+			service.getClient().get(uri, service.getTokenHolder());
 			fail("Didn't throw authorization exception");
 			return null; // never happens, fail() throws RuntimeException
 		} catch (AuthorizationException e) {

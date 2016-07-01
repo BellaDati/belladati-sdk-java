@@ -17,12 +17,13 @@ import org.apache.http.entity.StringEntity;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import com.belladati.sdk.exception.impl.UnknownViewTypeException;
 import com.belladati.sdk.filter.Filter;
 import com.belladati.sdk.filter.FilterOperation;
-import com.belladati.sdk.impl.ViewImpl.UnknownViewTypeException;
 import com.belladati.sdk.test.TestRequestHandler;
 import com.belladati.sdk.view.TableView;
 import com.belladati.sdk.view.TableView.Table;
+import com.belladati.sdk.view.impl.TableViewImpl;
 import com.belladati.sdk.view.View;
 import com.belladati.sdk.view.ViewType;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -439,8 +440,8 @@ public class TableViewsTest extends SDKTest {
 
 	/** date/time definition still doesn't support intervals */
 	public void hasDateTimeDefinition() throws UnknownViewTypeException {
-		View view = new TableViewImpl(service, builder.insertViewDateTimeDefinition(true, true,
-			builder.buildViewNode(id, name, "table")));
+		View view = new TableViewImpl(service,
+			builder.insertViewDateTimeDefinition(true, true, builder.buildViewNode(id, name, "table")));
 		assertFalse(view.isDateIntervalSupported());
 		assertFalse(view.isTimeIntervalSupported());
 	}
@@ -471,8 +472,8 @@ public class TableViewsTest extends SDKTest {
 		table.loadTopHeader(0, 0);
 		table.loadData(0, 0, 0, 0);
 
-		server.assertRequestUris(viewsUri + id + "/table/bounds", viewsUri + id + "/table/leftHeader", viewsUri + id
-			+ "/table/topHeader", viewsUri + id + "/table/data");
+		server.assertRequestUris(viewsUri + id + "/table/bounds", viewsUri + id + "/table/leftHeader",
+			viewsUri + id + "/table/topHeader", viewsUri + id + "/table/data");
 	}
 
 	/** custom locale is sent */
@@ -501,8 +502,8 @@ public class TableViewsTest extends SDKTest {
 		table.loadTopHeader(0, 0);
 		table.loadData(0, 0, 0, 0);
 
-		server.assertRequestUris(viewsUri + id + "/table/bounds", viewsUri + id + "/table/leftHeader", viewsUri + id
-			+ "/table/topHeader", viewsUri + id + "/table/data");
+		server.assertRequestUris(viewsUri + id + "/table/bounds", viewsUri + id + "/table/leftHeader",
+			viewsUri + id + "/table/topHeader", viewsUri + id + "/table/data");
 	}
 
 	/** table locale is sent */
@@ -530,7 +531,7 @@ public class TableViewsTest extends SDKTest {
 		table.loadTopHeader(0, 0);
 		table.loadData(0, 0, 0, 0);
 
-		server.assertRequestUris(viewsUri + id + "/table/bounds", viewsUri + id + "/table/leftHeader", viewsUri + id
-			+ "/table/topHeader", viewsUri + id + "/table/data");
+		server.assertRequestUris(viewsUri + id + "/table/bounds", viewsUri + id + "/table/leftHeader",
+			viewsUri + id + "/table/topHeader", viewsUri + id + "/table/data");
 	}
 }

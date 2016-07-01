@@ -17,6 +17,7 @@ import com.belladati.sdk.dataset.Indicator;
 import com.belladati.sdk.dataset.IndicatorType;
 import com.belladati.sdk.dataset.data.DataColumn;
 import com.belladati.sdk.dataset.data.DataTable;
+import com.belladati.sdk.dataset.impl.DataSetImpl;
 import com.belladati.sdk.exception.dataset.data.NoColumnsException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;

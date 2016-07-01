@@ -18,6 +18,8 @@ import org.testng.annotations.Test;
 import com.belladati.sdk.dataset.DataSetInfo;
 import com.belladati.sdk.report.Report;
 import com.belladati.sdk.report.ReportInfo;
+import com.belladati.sdk.report.impl.ReportImpl;
+import com.belladati.sdk.report.impl.ReportInfoImpl;
 import com.belladati.sdk.test.TestRequestHandler;
 import com.belladati.sdk.util.PaginatedList;
 import com.fasterxml.jackson.databind.JsonNode;

@@ -10,8 +10,13 @@ import java.util.Locale;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import com.belladati.sdk.impl.ViewImpl.UnknownViewTypeException;
+import com.belladati.sdk.dataset.impl.DataSetImpl;
+import com.belladati.sdk.dataset.impl.DataSetInfoImpl;
+import com.belladati.sdk.exception.impl.UnknownViewTypeException;
+import com.belladati.sdk.report.impl.ReportImpl;
+import com.belladati.sdk.report.impl.ReportInfoImpl;
 import com.belladati.sdk.util.Localizable;
+import com.belladati.sdk.view.impl.ViewImpl;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;

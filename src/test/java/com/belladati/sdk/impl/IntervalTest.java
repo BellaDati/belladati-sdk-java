@@ -19,10 +19,10 @@ import org.apache.http.entity.StringEntity;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import com.belladati.sdk.exception.impl.UnknownViewTypeException;
 import com.belladati.sdk.exception.interval.InvalidAbsoluteIntervalException;
 import com.belladati.sdk.exception.interval.InvalidRelativeIntervalException;
 import com.belladati.sdk.exception.interval.NullIntervalException;
-import com.belladati.sdk.impl.ViewImpl.UnknownViewTypeException;
 import com.belladati.sdk.intervals.AbsoluteInterval;
 import com.belladati.sdk.intervals.CustomInterval;
 import com.belladati.sdk.intervals.DateUnit;
@@ -33,6 +33,7 @@ import com.belladati.sdk.intervals.TimeUnit;
 import com.belladati.sdk.test.TestRequestHandler;
 import com.belladati.sdk.view.View;
 import com.belladati.sdk.view.ViewType;
+import com.belladati.sdk.view.impl.ViewImpl;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.IntNode;
@@ -73,8 +74,8 @@ public class IntervalTest extends SDKTest {
 	public void absoluteMinutesToJson() {
 		Interval<?> interval = new AbsoluteInterval<IntervalUnit>(TimeUnit.MINUTE, start, end);
 
-		ObjectNode from = mapper.createObjectNode().put("hour", start.get(Calendar.HOUR))
-			.put("minute", start.get(Calendar.MINUTE));
+		ObjectNode from = mapper.createObjectNode().put("hour", start.get(Calendar.HOUR)).put("minute",
+			start.get(Calendar.MINUTE));
 		ObjectNode to = mapper.createObjectNode().put("hour", end.get(Calendar.HOUR)).put("minute", end.get(Calendar.MINUTE));
 
 		JsonNode expectedJson = buildIntervalNode(TimeUnit.MINUTE, from, to, "absolute");
@@ -115,8 +116,8 @@ public class IntervalTest extends SDKTest {
 	public void absoluteWeeksToJson() {
 		Interval<?> interval = new AbsoluteInterval<IntervalUnit>(DateUnit.WEEK, start, end);
 
-		ObjectNode from = mapper.createObjectNode().put("year", start.get(Calendar.YEAR))
-			.put("week", start.get(Calendar.WEEK_OF_YEAR));
+		ObjectNode from = mapper.createObjectNode().put("year", start.get(Calendar.YEAR)).put("week",
+			start.get(Calendar.WEEK_OF_YEAR));
 		ObjectNode to = mapper.createObjectNode().put("year", end.get(Calendar.YEAR)).put("week", end.get(Calendar.WEEK_OF_YEAR));
 
 		JsonNode expectedJson = buildIntervalNode(DateUnit.WEEK, from, to, "absolute");
@@ -129,8 +130,8 @@ public class IntervalTest extends SDKTest {
 	public void absoluteMonthsToJson() {
 		Interval<?> interval = new AbsoluteInterval<IntervalUnit>(DateUnit.MONTH, start, end);
 
-		ObjectNode from = mapper.createObjectNode().put("year", start.get(Calendar.YEAR))
-			.put("month", start.get(Calendar.MONTH) + 1);
+		ObjectNode from = mapper.createObjectNode().put("year", start.get(Calendar.YEAR)).put("month",
+			start.get(Calendar.MONTH) + 1);
 		ObjectNode to = mapper.createObjectNode().put("year", end.get(Calendar.YEAR)).put("month", end.get(Calendar.MONTH) + 1);
 
 		JsonNode expectedJson = buildIntervalNode(DateUnit.MONTH, from, to, "absolute");
@@ -143,10 +144,10 @@ public class IntervalTest extends SDKTest {
 	public void absoluteQuartersToJson() {
 		Interval<?> interval = new AbsoluteInterval<IntervalUnit>(DateUnit.QUARTER, start, end);
 
-		ObjectNode from = mapper.createObjectNode().put("year", start.get(Calendar.YEAR))
-			.put("quarter", start.get(Calendar.MONTH) / 3 + 1);
-		ObjectNode to = mapper.createObjectNode().put("year", end.get(Calendar.YEAR))
-			.put("quarter", end.get(Calendar.MONTH) / 3 + 1);
+		ObjectNode from = mapper.createObjectNode().put("year", start.get(Calendar.YEAR)).put("quarter",
+			start.get(Calendar.MONTH) / 3 + 1);
+		ObjectNode to = mapper.createObjectNode().put("year", end.get(Calendar.YEAR)).put("quarter",
+			end.get(Calendar.MONTH) / 3 + 1);
 
 		JsonNode expectedJson = buildIntervalNode(DateUnit.QUARTER, from, to, "absolute");
 
@@ -407,8 +408,8 @@ public class IntervalTest extends SDKTest {
 
 	/** absolute time interval in minutes */
 	public void predefinedMinuteInterval() throws UnknownViewTypeException {
-		ObjectNode from = mapper.createObjectNode().put("hour", start.get(Calendar.HOUR))
-			.put("minute", start.get(Calendar.MINUTE));
+		ObjectNode from = mapper.createObjectNode().put("hour", start.get(Calendar.HOUR)).put("minute",
+			start.get(Calendar.MINUTE));
 		ObjectNode to = mapper.createObjectNode().put("hour", end.get(Calendar.HOUR)).put("minute", end.get(Calendar.MINUTE));
 
 		ObjectNode viewNode = builder.buildViewNode(viewId, viewName, "chart");
@@ -475,8 +476,8 @@ public class IntervalTest extends SDKTest {
 
 	/** absolute week interval in weeks */
 	public void predefinedWeekInterval() throws UnknownViewTypeException {
-		ObjectNode from = mapper.createObjectNode().put("year", start.get(Calendar.YEAR))
-			.put("week", start.get(Calendar.WEEK_OF_YEAR));
+		ObjectNode from = mapper.createObjectNode().put("year", start.get(Calendar.YEAR)).put("week",
+			start.get(Calendar.WEEK_OF_YEAR));
 		ObjectNode to = mapper.createObjectNode().put("year", end.get(Calendar.YEAR)).put("week", end.get(Calendar.WEEK_OF_YEAR));
 
 		ObjectNode viewNode = builder.buildViewNode(viewId, viewName, "chart");
@@ -499,8 +500,8 @@ public class IntervalTest extends SDKTest {
 
 	/** absolute date interval in months */
 	public void predefinedMonthInterval() throws UnknownViewTypeException {
-		ObjectNode from = mapper.createObjectNode().put("year", start.get(Calendar.YEAR))
-			.put("month", start.get(Calendar.MONTH) + 1);
+		ObjectNode from = mapper.createObjectNode().put("year", start.get(Calendar.YEAR)).put("month",
+			start.get(Calendar.MONTH) + 1);
 		ObjectNode to = mapper.createObjectNode().put("year", end.get(Calendar.YEAR)).put("month", end.get(Calendar.MONTH) + 1);
 
 		ObjectNode viewNode = builder.buildViewNode(viewId, viewName, "chart");
@@ -521,10 +522,10 @@ public class IntervalTest extends SDKTest {
 
 	/** absolute date interval in quarters */
 	public void predefinedQuarterInterval() throws UnknownViewTypeException {
-		ObjectNode from = mapper.createObjectNode().put("year", start.get(Calendar.YEAR))
-			.put("quarter", start.get(Calendar.MONTH) / 3 + 1);
-		ObjectNode to = mapper.createObjectNode().put("year", end.get(Calendar.YEAR))
-			.put("quarter", end.get(Calendar.MONTH) / 3 + 1);
+		ObjectNode from = mapper.createObjectNode().put("year", start.get(Calendar.YEAR)).put("quarter",
+			start.get(Calendar.MONTH) / 3 + 1);
+		ObjectNode to = mapper.createObjectNode().put("year", end.get(Calendar.YEAR)).put("quarter",
+			end.get(Calendar.MONTH) / 3 + 1);
 
 		ObjectNode viewNode = builder.buildViewNode(viewId, viewName, "chart");
 		viewNode.put("dateTimeDefinition", buildIntervalNode(DateUnit.QUARTER, from, to, "absolute"));
@@ -845,22 +846,22 @@ public class IntervalTest extends SDKTest {
 
 	/** two intervals with same parameters are equal */
 	public void intervalEquals() {
-		assertEquals(new RelativeInterval<IntervalUnit>(DateUnit.DAY, -1, 1), new RelativeInterval<IntervalUnit>(DateUnit.DAY,
-			-1, 1));
-		assertEquals(new AbsoluteInterval<IntervalUnit>(DateUnit.DAY, start, end), new AbsoluteInterval<IntervalUnit>(
-			DateUnit.DAY, start, end));
+		assertEquals(new RelativeInterval<IntervalUnit>(DateUnit.DAY, -1, 1),
+			new RelativeInterval<IntervalUnit>(DateUnit.DAY, -1, 1));
+		assertEquals(new AbsoluteInterval<IntervalUnit>(DateUnit.DAY, start, end),
+			new AbsoluteInterval<IntervalUnit>(DateUnit.DAY, start, end));
 		assertEquals(new AbsoluteInterval<IntervalUnit>(DateUnit.DAY, Calendar.getInstance(), Calendar.getInstance()),
 			new AbsoluteInterval<IntervalUnit>(DateUnit.DAY, Calendar.getInstance(), Calendar.getInstance()));
 
-		assertNotEquals(new RelativeInterval<IntervalUnit>(DateUnit.DAY, -1, 1), new RelativeInterval<IntervalUnit>(DateUnit.DAY,
-			-1, -1));
-		assertNotEquals(new AbsoluteInterval<IntervalUnit>(DateUnit.DAY, start, end), new AbsoluteInterval<IntervalUnit>(
-			DateUnit.DAY, start, start));
+		assertNotEquals(new RelativeInterval<IntervalUnit>(DateUnit.DAY, -1, 1),
+			new RelativeInterval<IntervalUnit>(DateUnit.DAY, -1, -1));
+		assertNotEquals(new AbsoluteInterval<IntervalUnit>(DateUnit.DAY, start, end),
+			new AbsoluteInterval<IntervalUnit>(DateUnit.DAY, start, start));
 
-		assertNotEquals(new RelativeInterval<IntervalUnit>(DateUnit.DAY, -1, 1), new RelativeInterval<IntervalUnit>(
-			DateUnit.MONTH, -1, 1));
-		assertNotEquals(new AbsoluteInterval<IntervalUnit>(DateUnit.DAY, start, end), new AbsoluteInterval<IntervalUnit>(
-			DateUnit.MONTH, start, end));
+		assertNotEquals(new RelativeInterval<IntervalUnit>(DateUnit.DAY, -1, 1),
+			new RelativeInterval<IntervalUnit>(DateUnit.MONTH, -1, 1));
+		assertNotEquals(new AbsoluteInterval<IntervalUnit>(DateUnit.DAY, start, end),
+			new AbsoluteInterval<IntervalUnit>(DateUnit.MONTH, start, end));
 	}
 
 	/** system locale doesn't affect upper/lowercase conversion */

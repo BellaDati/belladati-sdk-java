@@ -14,9 +14,11 @@ import org.testng.annotations.Test;
 
 import com.belladati.sdk.dataset.Attribute;
 import com.belladati.sdk.dataset.AttributeValue;
+import com.belladati.sdk.dataset.impl.AttributeImpl;
+import com.belladati.sdk.dataset.impl.AttributeValueImpl;
+import com.belladati.sdk.exception.impl.InvalidAttributeException;
+import com.belladati.sdk.exception.impl.InvalidAttributeValueException;
 import com.belladati.sdk.filter.FilterValue;
-import com.belladati.sdk.impl.AttributeImpl.InvalidAttributeException;
-import com.belladati.sdk.impl.AttributeValueImpl.InvalidAttributeValueException;
 import com.belladati.sdk.report.Report;
 import com.belladati.sdk.test.TestRequestHandler;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -77,8 +79,8 @@ public class AttributesTest extends SDKTest {
 		String attCode = "attribute code";
 		ObjectNode node = builder.buildReportNode(reportId, name, description, owner, lastChange);
 		((ObjectNode) node.get("dataSet")).putAll(builder.buildDataSetNode(dataSetId, name, description, owner, lastChange));
-		((ArrayNode) node.get("dataSet").get("drilldownAttributes")).add(builder
-			.buildAttributeNode(attId, attName, attCode, type));
+		((ArrayNode) node.get("dataSet").get("drilldownAttributes"))
+			.add(builder.buildAttributeNode(attId, attName, attCode, type));
 		server.register(reportsUri + "/" + reportId, node.toString());
 		Report report = service.loadReport(reportId);
 

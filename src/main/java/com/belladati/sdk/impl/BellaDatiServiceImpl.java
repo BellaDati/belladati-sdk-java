@@ -28,47 +28,84 @@ import org.apache.http.message.BasicNameValuePair;
 import com.belladati.sdk.BellaDatiService;
 import com.belladati.sdk.dashboard.Dashboard;
 import com.belladati.sdk.dashboard.DashboardInfo;
+import com.belladati.sdk.dashboard.impl.DashboardImpl;
+import com.belladati.sdk.dashboard.impl.DashboardInfoImpl;
 import com.belladati.sdk.dataset.AttributeValue;
 import com.belladati.sdk.dataset.DataSet;
 import com.belladati.sdk.dataset.DataSetInfo;
 import com.belladati.sdk.dataset.data.DataRow;
 import com.belladati.sdk.dataset.data.DataTable;
+import com.belladati.sdk.dataset.impl.AttributeValueImpl;
+import com.belladati.sdk.dataset.impl.DataSetImpl;
+import com.belladati.sdk.dataset.impl.DataSetInfoImpl;
 import com.belladati.sdk.dataset.source.DataSource;
 import com.belladati.sdk.dataset.source.DataSourceImport;
 import com.belladati.sdk.dataset.source.DataSourcePendingImport;
+import com.belladati.sdk.dataset.source.impl.DataSourceImpl;
+import com.belladati.sdk.dataset.source.impl.DataSourceImportImpl;
+import com.belladati.sdk.dataset.source.impl.DataSourcePendingImportImpl;
+import com.belladati.sdk.domain.Domain;
+import com.belladati.sdk.domain.DomainCreateBuilder;
+import com.belladati.sdk.domain.DomainInfo;
+import com.belladati.sdk.domain.impl.DomainCreateBuilderImpl;
+import com.belladati.sdk.domain.impl.DomainImpl;
+import com.belladati.sdk.domain.impl.DomainInfoImpl;
 import com.belladati.sdk.exception.InternalConfigurationException;
 import com.belladati.sdk.exception.dataset.data.UnknownServerColumnException;
+import com.belladati.sdk.exception.impl.InvalidAttributeValueException;
+import com.belladati.sdk.exception.impl.InvalidDataSourceImportException;
 import com.belladati.sdk.exception.server.NotFoundException;
 import com.belladati.sdk.exception.server.UnexpectedResponseException;
 import com.belladati.sdk.filter.Filter;
-import com.belladati.sdk.impl.AttributeValueImpl.InvalidAttributeValueException;
-import com.belladati.sdk.impl.DataSourceImportImpl.InvalidDataSourceImportException;
 import com.belladati.sdk.intervals.DateUnit;
 import com.belladati.sdk.intervals.Interval;
 import com.belladati.sdk.intervals.TimeUnit;
 import com.belladati.sdk.report.Comment;
 import com.belladati.sdk.report.Report;
 import com.belladati.sdk.report.ReportInfo;
+import com.belladati.sdk.report.impl.CommentImpl;
+import com.belladati.sdk.report.impl.ReportImpl;
+import com.belladati.sdk.report.impl.ReportInfoImpl;
 import com.belladati.sdk.user.User;
+import com.belladati.sdk.user.UserCreateBuilder;
+import com.belladati.sdk.user.UserGroup;
+import com.belladati.sdk.user.UserGroupCreateBuilder;
+import com.belladati.sdk.user.impl.UserCreateBuilderImpl;
+import com.belladati.sdk.user.impl.UserGroupCreateBuilderImpl;
+import com.belladati.sdk.user.impl.UserGroupImpl;
+import com.belladati.sdk.user.impl.UserImpl;
 import com.belladati.sdk.util.CachedList;
 import com.belladati.sdk.util.PaginatedIdList;
 import com.belladati.sdk.util.PaginatedList;
+import com.belladati.sdk.util.impl.CachedListImpl;
+import com.belladati.sdk.util.impl.PaginatedIdListImpl;
+import com.belladati.sdk.util.impl.PaginatedListImpl;
 import com.belladati.sdk.view.ViewLoader;
 import com.belladati.sdk.view.ViewType;
 import com.belladati.sdk.view.export.ViewExporter;
+import com.belladati.sdk.view.impl.ViewExporterImpl;
+import com.belladati.sdk.view.impl.ViewLoaderImpl;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-class BellaDatiServiceImpl implements BellaDatiService {
+public class BellaDatiServiceImpl implements BellaDatiService {
 
 	/** The serialVersionUID */
 	private static final long serialVersionUID = 9054278401541000710L;
 
 	public static final String DATE_TIME_FORMAT = "EEE, dd MMM yyyy HH:mm:ss zzz";
 
-	final BellaDatiClient client;
-	final TokenHolder tokenHolder;
+	private final BellaDatiClient client;
+	private final TokenHolder tokenHolder;
+
+	private final transient CachedList<DomainInfo> domainList = new DomainList();
+
+	private final transient Map<String, CachedList<User>> users = Collections
+		.synchronizedMap(new HashMap<String, CachedList<User>>());
+
+	private final transient Map<String, CachedList<UserGroup>> userGroups = Collections
+		.synchronizedMap(new HashMap<String, CachedList<UserGroup>>());
 
 	private final transient PaginatedIdList<DashboardInfo> dashboardList = new DashboardList();
 
@@ -79,15 +116,99 @@ class BellaDatiServiceImpl implements BellaDatiService {
 	private final transient Map<String, PaginatedList<Comment>> commentLists = Collections
 		.synchronizedMap(new HashMap<String, PaginatedList<Comment>>());
 
-	private final transient Map<String, Map<String, CachedListImpl<AttributeValue>>> dataSetAttributeValues = new HashMap<String, Map<String, CachedListImpl<AttributeValue>>>();
+	private final transient Map<String, Map<String, CachedList<AttributeValue>>> dataSetAttributeValues = new HashMap<String, Map<String, CachedList<AttributeValue>>>();
 
-	private final transient Map<String, CachedListImpl<DataSource>> dataSourceList = new HashMap<String, CachedListImpl<DataSource>>();
+	private final transient Map<String, CachedList<DataSource>> dataSourceList = new HashMap<String, CachedList<DataSource>>();
 
-	private final transient Map<String, CachedListImpl<DataSourceImport>> dataSourceImportList = new HashMap<String, CachedListImpl<DataSourceImport>>();
+	private final transient Map<String, CachedList<DataSourceImport>> dataSourceImportList = new HashMap<String, CachedList<DataSourceImport>>();
 
-	BellaDatiServiceImpl(BellaDatiClient client, TokenHolder tokenHolder) {
+	public BellaDatiServiceImpl(BellaDatiClient client, TokenHolder tokenHolder) {
 		this.client = client;
 		this.tokenHolder = tokenHolder;
+	}
+
+	public BellaDatiClient getClient() {
+		return client;
+	}
+
+	public TokenHolder getTokenHolder() {
+		return tokenHolder;
+	}
+
+	@Override
+	public CachedList<DomainInfo> getDomainInfo() {
+		return domainList;
+	}
+
+	@Override
+	public Domain loadDomain(String id) throws NotFoundException {
+		return new DomainImpl(this, loadJson("api/domains/" + id));
+	}
+
+	@Override
+	public CachedList<User> getDomainUsers(String domainId, String userGroupId) {
+		CachedList<User> existing = users.get(domainId + "-" + userGroupId);
+		if (existing != null) {
+			return existing;
+		} else {
+			synchronized (users) {
+				existing = users.get(domainId + "-" + userGroupId);
+				if (existing != null) {
+					return existing;
+				} else {
+					String params = userGroupId != null && !userGroupId.isEmpty() ? "?userGroup_id=" + userGroupId : "";
+					String endpoint = "api/domains/" + domainId + "/users" + params;
+					CachedList<User> newList = new CachedListImpl<User>(this, endpoint, "users") {
+						@Override
+						protected User parse(BellaDatiServiceImpl service, JsonNode node) {
+							return new UserImpl(node);
+						}
+					};
+					users.put(domainId + "-" + userGroupId, newList);
+					return newList;
+				}
+			}
+		}
+	}
+
+	@Override
+	public CachedList<UserGroup> getDomainUserGroups(String domainId) {
+		CachedList<UserGroup> existing = userGroups.get(domainId);
+		if (existing != null) {
+			return existing;
+		} else {
+			synchronized (userGroups) {
+				existing = userGroups.get(domainId);
+				if (existing != null) {
+					return existing;
+				} else {
+					CachedList<UserGroup> newList = new CachedListImpl<UserGroup>(this, "api/domains/" + domainId + "/userGroups",
+						"userGroups") {
+						@Override
+						protected UserGroup parse(BellaDatiServiceImpl service, JsonNode node) {
+							return new UserGroupImpl(node);
+						}
+					};
+					userGroups.put(domainId, newList);
+					return newList;
+				}
+			}
+		}
+	}
+
+	@Override
+	public DomainCreateBuilder setupDomainCreateBuilder() {
+		return new DomainCreateBuilderImpl(this);
+	}
+
+	@Override
+	public UserGroupCreateBuilder setupUserGroupCreateBuilder(String domainId) {
+		return new UserGroupCreateBuilderImpl(this, domainId);
+	}
+
+	@Override
+	public UserCreateBuilder setupUserCreateBuilder(String domainId) {
+		return new UserCreateBuilderImpl(this, domainId);
 	}
 
 	@Override
@@ -127,7 +248,7 @@ class BellaDatiServiceImpl implements BellaDatiService {
 	 * @param uri URI to contact
 	 * @return the resulting JSON response
 	 */
-	JsonNode loadJson(String uri) {
+	public JsonNode loadJson(String uri) {
 		return client.getJson(uri, tokenHolder);
 	}
 
@@ -138,7 +259,7 @@ class BellaDatiServiceImpl implements BellaDatiService {
 	 * @return the image from the server
 	 * @throws IOException if the image cannot be loaded
 	 */
-	Object loadImage(String relativeUrl) throws IOException {
+	public Object loadImage(String relativeUrl) throws IOException {
 		ByteArrayInputStream bais = new ByteArrayInputStream(client.get(relativeUrl, tokenHolder));
 		try {
 			BufferedImage image = ImageIO.read(bais);
@@ -174,10 +295,12 @@ class BellaDatiServiceImpl implements BellaDatiService {
 				} else {
 					PaginatedList<Comment> newList = new PaginatedListImpl<Comment>(this, "api/reports/" + reportId + "/comments",
 						"comments") {
+
 						@Override
 						protected Comment parse(BellaDatiServiceImpl service, JsonNode node) {
 							return new CommentImpl(service, node);
 						}
+
 					};
 					commentLists.put(reportId, newList);
 					return newList;
@@ -217,7 +340,7 @@ class BellaDatiServiceImpl implements BellaDatiService {
 
 	@Override
 	public CachedList<DataSource> getDataSources(String id) throws NotFoundException {
-		CachedListImpl<DataSource> list = dataSourceList.get(id);
+		CachedList<DataSource> list = dataSourceList.get(id);
 		if (list == null) {
 			// we don't have this data set's sources in our cache yet
 			list = new CachedListImpl<DataSource>(this, "api/dataSets/" + id + "/dataSources", "dataSources") {
@@ -233,7 +356,7 @@ class BellaDatiServiceImpl implements BellaDatiService {
 
 	@Override
 	public CachedList<DataSourceImport> getDataSourceImports(String id) throws NotFoundException {
-		CachedListImpl<DataSourceImport> list = dataSourceImportList.get(id);
+		CachedList<DataSourceImport> list = dataSourceImportList.get(id);
 		if (list == null) {
 			// we don't have this data set's sources in our cache yet
 			list = new CachedListImpl<DataSourceImport>(this, "api/dataSets/dataSources/" + id + "/executions", "executions") {
@@ -264,7 +387,7 @@ class BellaDatiServiceImpl implements BellaDatiService {
 	 * @param filters filters to append
 	 * @return the same builder, for chaining
 	 */
-	URIBuilder appendFilter(URIBuilder builder, Collection<Filter<?>> filters) {
+	public URIBuilder appendFilter(URIBuilder builder, Collection<Filter<?>> filters) {
 		if (filters.size() > 0) {
 			ObjectNode filterNode = new ObjectMapper().createObjectNode();
 			for (Filter<?> filter : filters) {
@@ -286,7 +409,7 @@ class BellaDatiServiceImpl implements BellaDatiService {
 	 * @param timeInterval time interval to append, or <tt>null</tt>
 	 * @return the same builder, for chaining
 	 */
-	URIBuilder appendDateTime(URIBuilder builder, Interval<DateUnit> dateInterval, Interval<TimeUnit> timeInterval) {
+	public URIBuilder appendDateTime(URIBuilder builder, Interval<DateUnit> dateInterval, Interval<TimeUnit> timeInterval) {
 		if (dateInterval != null || timeInterval != null) {
 			ObjectNode dateTimeNode = new ObjectMapper().createObjectNode();
 			if (dateInterval != null) {
@@ -308,7 +431,7 @@ class BellaDatiServiceImpl implements BellaDatiService {
 	 * @param locale the locale to append
 	 * @return the same builder, for chaining
 	 */
-	URIBuilder appendLocale(URIBuilder builder, Locale locale) {
+	public URIBuilder appendLocale(URIBuilder builder, Locale locale) {
 		if (locale != null) {
 			builder.addParameter("lang", locale.getLanguage());
 		}
@@ -319,12 +442,12 @@ class BellaDatiServiceImpl implements BellaDatiService {
 	public synchronized CachedList<AttributeValue> getAttributeValues(String dataSetId, String attributeCode) {
 		if (!dataSetAttributeValues.containsKey(dataSetId)) {
 			// we don't have any values for this report yet, insert new map
-			dataSetAttributeValues.put(dataSetId, new HashMap<String, CachedListImpl<AttributeValue>>());
+			dataSetAttributeValues.put(dataSetId, new HashMap<String, CachedList<AttributeValue>>());
 		}
 
-		Map<String, CachedListImpl<AttributeValue>> attributeValues = dataSetAttributeValues.get(dataSetId);
+		Map<String, CachedList<AttributeValue>> attributeValues = dataSetAttributeValues.get(dataSetId);
 
-		CachedListImpl<AttributeValue> values = attributeValues.get(attributeCode);
+		CachedList<AttributeValue> values = attributeValues.get(attributeCode);
 		if (values == null) {
 			// we don't have this attribute in our cache yet
 			values = new CachedListImpl<AttributeValue>(this,
@@ -432,6 +555,18 @@ class BellaDatiServiceImpl implements BellaDatiService {
 		}
 	}
 
+	/** Cached list class for domains. */
+	private class DomainList extends CachedListImpl<DomainInfo> {
+		public DomainList() {
+			super(BellaDatiServiceImpl.this, "api/domains", "domains");
+		}
+
+		@Override
+		protected DomainInfo parse(BellaDatiServiceImpl service, JsonNode node) {
+			return new DomainInfoImpl(service, node);
+		}
+	}
+
 	/** Paginated list class for dashboards. */
 	private class DashboardList extends PaginatedIdListImpl<DashboardInfo> {
 		public DashboardList() {
@@ -524,4 +659,5 @@ class BellaDatiServiceImpl implements BellaDatiService {
 		}
 		return client.get(builder.build().toString(), tokenHolder);
 	}
+
 }

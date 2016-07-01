@@ -6,7 +6,7 @@ import java.util.Random;
 import oauth.signpost.OAuthConsumer;
 import oauth.signpost.commonshttp.CommonsHttpOAuthConsumer;
 
-class TokenHolder implements Serializable {
+public class TokenHolder implements Serializable {
 
 	/** The serialVersionUID */
 	private static final long serialVersionUID = 8122702080702303615L;
@@ -19,7 +19,7 @@ class TokenHolder implements Serializable {
 	private String token;
 	private String tokenSecret;
 
-	TokenHolder(String consumerKey, String consumerSecret) {
+	public TokenHolder(String consumerKey, String consumerSecret) {
 		this.consumerKey = consumerKey;
 		this.consumerSecret = consumerSecret;
 	}

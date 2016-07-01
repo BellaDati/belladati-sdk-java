@@ -54,7 +54,7 @@ public class SerializationTest extends SDKTest {
 		server.register(reportsUri + "/" + id, new TestRequestHandler() {
 			@Override
 			protected void handle(HttpHolder holder) throws IOException {
-				holder.assertAuth(service.tokenHolder.getConsumerKey(), service.tokenHolder.getToken());
+				holder.assertAuth(service.getTokenHolder().getConsumerKey(), service.getTokenHolder().getToken());
 				holder.response.setEntity(new StringEntity(builder.buildReportNode(id, "", "", "", null).toString()));
 			}
 		});
@@ -114,8 +114,8 @@ public class SerializationTest extends SDKTest {
 		input.close();
 		bais.close();
 
-		assertEquals(newRequest.getAuthorizationUrl().toString(), server.getHttpURL() + "/authorizeRequestToken/" + requestToken
-			+ "/" + key);
+		assertEquals(newRequest.getAuthorizationUrl().toString(),
+			server.getHttpURL() + "/authorizeRequestToken/" + requestToken + "/" + key);
 
 		server.register("/oauth/accessToken", new TestRequestHandler() {
 			@Override
