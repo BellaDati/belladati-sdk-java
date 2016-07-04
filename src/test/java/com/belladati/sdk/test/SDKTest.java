@@ -55,12 +55,13 @@ public class SDKTest {
 	@DataProvider(name = "viewTypes")
 	protected Object[][] viewTypeProvider() {
 		return new Object[][] { { "chart", ViewType.CHART }, { "kpi", ViewType.KPI }, { "text", ViewType.TEXT },
-			{ "table", ViewType.TABLE } };
+			{ "table", ViewType.TABLE }, { "map", ViewType.MAP } };
 	}
 
 	@DataProvider(name = "jsonViewTypes")
 	protected Object[][] jsonViewTypeProvider() {
-		return new Object[][] { { "chart", ViewType.CHART }, { "kpi", ViewType.KPI }, { "text", ViewType.TEXT } };
+		return new Object[][] { { "chart", ViewType.CHART }, { "kpi", ViewType.KPI }, { "text", ViewType.TEXT },
+			{ "map", ViewType.MAP } };
 	}
 
 	@DataProvider(name = "unsupportedViewTypes")
