@@ -331,12 +331,9 @@ public class BellaDatiServiceImpl implements BellaDatiService {
 		return new ViewLoaderImpl(this, viewId, viewType);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	@Override
-	public ViewExporter createViewExporter() {
-		return new ViewExporterImpl(this);
+	public ViewExporter createViewExporter(String viewId) {
+		return new ViewExporterImpl(this, viewId);
 	}
 
 	@Override

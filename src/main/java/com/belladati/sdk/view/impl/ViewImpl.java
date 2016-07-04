@@ -26,6 +26,7 @@ import com.belladati.sdk.util.impl.LocalizationImpl;
 import com.belladati.sdk.view.View;
 import com.belladati.sdk.view.ViewLoader;
 import com.belladati.sdk.view.ViewType;
+import com.belladati.sdk.view.export.ViewExporter;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 
@@ -356,7 +357,12 @@ public abstract class ViewImpl implements View {
 
 	@Override
 	public ViewLoader createLoader() {
-		return new ViewLoaderImpl(service, id, type);
+		return service.createViewLoader(id, type);
+	}
+
+	@Override
+	public ViewExporter createExporter() {
+		return service.createViewExporter(id);
 	}
 
 }
