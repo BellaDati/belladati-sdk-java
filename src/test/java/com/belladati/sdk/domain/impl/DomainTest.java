@@ -28,7 +28,8 @@ public class DomainTest extends SDKTest {
 
 	private final String id = "123";
 
-	private final String apiUri = "/api/domains/";
+	private final String baseUri = "/api/domains";
+	private final String apiUri = baseUri + "/";
 	private final String usersUri = String.format("/api/domains/%s/users", id);
 	private final String userGroupsUri = String.format("/api/domains/%s/userGroups", id);
 
@@ -46,6 +47,24 @@ public class DomainTest extends SDKTest {
 	private final String userGroup_id = "456";
 
 	private final String[][] userGroupsJson = { { userGroup_id, userGroup_name } };
+
+	/** Regular domain info data is loaded correctly. */
+	public void loadDomainInfo() {
+		CachedList<DomainInfo> infos = service.getDomainInfo();
+
+		server.registerPaginatedItem(baseUri, "domains", builder.buildDomainInfoNode(id, name, description, active));
+
+		infos.load();
+		server.assertRequestUris(baseUri);
+		assertEquals(infos.get().size(), 1);
+
+		DomainInfo info = infos.get().get(0);
+		assertEquals(info.getId(), id);
+		assertEquals(info.getName(), name);
+		assertEquals(info.getDescription(), description);
+		assertEquals(info.getActive() + "", active);
+		assertEquals(info.toString(), name);
+	}
 
 	/** Individual Domain can be loaded by ID through service. */
 	public void loadDomain() {
