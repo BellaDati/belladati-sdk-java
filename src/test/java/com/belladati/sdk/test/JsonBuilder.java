@@ -1,5 +1,8 @@
 package com.belladati.sdk.test;
 
+import java.util.List;
+
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -157,14 +160,44 @@ public class JsonBuilder {
 			.put("overwritingPolicy", overwritePolicy).put("repeateInterval", interval);
 	}
 
-	/**
-	 * Builds a JSON node representing a data source import with custom interval
-	 * length.
-	 */
+	/** Builds a JSON node representing a data source import with custom interval length. */
 	public ObjectNode buildSourceImportNode(String id, String caller, String lastImport, String overwritePolicy, String interval,
 		Integer customIntervalLength) {
 		return buildSourceImportNode(id, caller, lastImport, overwritePolicy, interval).put("repeateIntervalCustom",
 			customIntervalLength);
+	}
+
+	/** Builds a JSON node representing a import form without any elements. */
+	public ObjectNode buildFormNode(String id, String name, String recordTimestamp) {
+		return new ObjectMapper().createObjectNode().put("id", id).put("name", name).put("recordTimestamp", recordTimestamp);
+	}
+
+	/** Builds a JSON node representing a import form with given elements. */
+	public ObjectNode buildFormNode(String id, String name, String recordTimestamp, List<JsonNode> elements) {
+		ObjectNode formNode = buildFormNode(id, name, recordTimestamp);
+		if (elements != null && !elements.isEmpty()) {
+			ArrayNode arrayNode = formNode.putArray("elements");
+			for (JsonNode elementNode : elements) {
+				arrayNode.add(elementNode);
+			}
+		}
+		return formNode;
+	}
+
+	/** Builds a JSON node representing a import form element. */
+	public ObjectNode buildFormElementNode(String id, String name, String type, String mapToDateColumn, String... items) {
+		ObjectNode elementNode = new ObjectMapper().createObjectNode().put("id", id).put("name", name).put("type", type);
+		if (mapToDateColumn != null) {
+			elementNode.put("mapToDateColumn", mapToDateColumn);
+		}
+		if (items != null && items.length > 0) {
+			ArrayNode arrayNode = elementNode.putArray("items");
+			for (String item : items) {
+				ObjectNode itemNode = new ObjectMapper().createObjectNode().put("name", item);
+				arrayNode.add(itemNode);
+			}
+		}
+		return elementNode;
 	}
 
 	private void put(ObjectNode node, String field, String value) {
