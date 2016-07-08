@@ -57,6 +57,10 @@ import com.belladati.sdk.exception.impl.InvalidDataSourceImportException;
 import com.belladati.sdk.exception.server.NotFoundException;
 import com.belladati.sdk.exception.server.UnexpectedResponseException;
 import com.belladati.sdk.filter.Filter;
+import com.belladati.sdk.form.Form;
+import com.belladati.sdk.form.FormDataPostBuilder;
+import com.belladati.sdk.form.impl.FormDataPostBuilderImpl;
+import com.belladati.sdk.form.impl.FormImpl;
 import com.belladati.sdk.intervals.DateUnit;
 import com.belladati.sdk.intervals.Interval;
 import com.belladati.sdk.intervals.TimeUnit;
@@ -121,6 +125,8 @@ public class BellaDatiServiceImpl implements BellaDatiService {
 	private final transient Map<String, CachedList<DataSource>> dataSourceList = new HashMap<String, CachedList<DataSource>>();
 
 	private final transient Map<String, CachedList<DataSourceImport>> dataSourceImportList = new HashMap<String, CachedList<DataSourceImport>>();
+
+	private final transient CachedList<Form> importFormList = new ImportFormList();
 
 	public BellaDatiServiceImpl(BellaDatiClient client, TokenHolder tokenHolder) {
 		this.client = client;
@@ -323,16 +329,16 @@ public class BellaDatiServiceImpl implements BellaDatiService {
 
 	@Override
 	public Object loadViewContent(String viewId, ViewType viewType, Collection<Filter<?>> filters) {
-		return createViewLoader(viewId, viewType).addFilters(filters).loadContent();
+		return setupViewLoader(viewId, viewType).addFilters(filters).loadContent();
 	}
 
 	@Override
-	public ViewLoader createViewLoader(String viewId, ViewType viewType) {
+	public ViewLoader setupViewLoader(String viewId, ViewType viewType) {
 		return new ViewLoaderImpl(this, viewId, viewType);
 	}
 
 	@Override
-	public ViewExporter createViewExporter(String viewId) {
+	public ViewExporter setupViewExporter(String viewId) {
 		return new ViewExporterImpl(this, viewId);
 	}
 
@@ -543,6 +549,10 @@ public class BellaDatiServiceImpl implements BellaDatiService {
 			dataSourceList.setAccessible(true);
 			dataSourceList.set(this, new HashMap<String, CachedListImpl<DataSource>>());
 
+			Field importFormList = getClass().getDeclaredField("importFormList");
+			importFormList.setAccessible(true);
+			importFormList.set(this, new ImportFormList());
+
 			Field dataSourceImportList = getClass().getDeclaredField("dataSourceImportList");
 			dataSourceImportList.setAccessible(true);
 			dataSourceImportList.set(this, new HashMap<String, CachedListImpl<DataSourceImport>>());
@@ -605,6 +615,18 @@ public class BellaDatiServiceImpl implements BellaDatiService {
 		}
 	}
 
+	/** Cached list class for import forms. */
+	private class ImportFormList extends CachedListImpl<Form> {
+		public ImportFormList() {
+			super(BellaDatiServiceImpl.this, "api/import/forms", "importForms");
+		}
+
+		@Override
+		protected Form parse(BellaDatiServiceImpl service, JsonNode node) {
+			return new FormImpl(node);
+		}
+	}
+
 	@Override
 	public byte[] post(String uri) throws URISyntaxException {
 		return post(uri, Collections.<String, String> emptyMap());
@@ -660,6 +682,21 @@ public class BellaDatiServiceImpl implements BellaDatiService {
 			builder.addParameter(entry.getKey(), entry.getValue());
 		}
 		return client.get(builder.build().toString(), tokenHolder);
+	}
+
+	@Override
+	public CachedList<Form> getImportForms() {
+		return importFormList;
+	}
+
+	@Override
+	public Form loadImportForm(String id) throws NotFoundException {
+		return new FormImpl(loadJson("api/import/forms/" + id));
+	}
+
+	@Override
+	public FormDataPostBuilder setupFormDataPostBuilder(String formId) {
+		return new FormDataPostBuilderImpl(this, formId);
 	}
 
 }

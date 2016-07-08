@@ -167,7 +167,7 @@ public class FilterTest extends SDKTest {
 		});
 
 		view.loadContent();
-		service.createViewLoader(viewId, ViewType.CHART).loadContent();
+		service.setupViewLoader(viewId, ViewType.CHART).loadContent();
 
 		server.assertRequestUris(viewsUri, viewsUri);
 	}
@@ -189,7 +189,7 @@ public class FilterTest extends SDKTest {
 		});
 
 		view.loadContent(FilterOperation.IN.createFilter(attribute).addValue(value));
-		service.createViewLoader(viewId, ViewType.CHART).addFilters(FilterOperation.IN.createFilter(attribute).addValue(value))
+		service.setupViewLoader(viewId, ViewType.CHART).addFilters(FilterOperation.IN.createFilter(attribute).addValue(value))
 			.loadContent();
 
 		server.assertRequestUris(viewsUri, viewsUri);
@@ -223,7 +223,7 @@ public class FilterTest extends SDKTest {
 		AttributeValue value2 = new AttributeValueImpl(builder.buildAttributeValueNode("another label", valueString2));
 		view.loadContent(FilterOperation.IN.createFilter(attribute).addValue(value),
 			FilterOperation.IN.createFilter(attribute2).addValue(value2));
-		service.createViewLoader(viewId, ViewType.CHART).addFilters(FilterOperation.IN.createFilter(attribute).addValue(value),
+		service.setupViewLoader(viewId, ViewType.CHART).addFilters(FilterOperation.IN.createFilter(attribute).addValue(value),
 			FilterOperation.IN.createFilter(attribute2).addValue(value2)).loadContent();
 
 		server.assertRequestUris(viewsUri, viewsUri);
@@ -257,7 +257,7 @@ public class FilterTest extends SDKTest {
 		AttributeValue value2 = new AttributeValueImpl(builder.buildAttributeValueNode("another label", valueString2));
 		view.loadContent(FilterOperation.IN.createFilter(attribute).addValue(value),
 			FilterOperation.IN.createFilter(attribute2).addValue(value2));
-		service.createViewLoader(viewId, ViewType.CHART).addFilters(FilterOperation.IN.createFilter(attribute).addValue(value))
+		service.setupViewLoader(viewId, ViewType.CHART).addFilters(FilterOperation.IN.createFilter(attribute).addValue(value))
 			.addFilters(FilterOperation.IN.createFilter(attribute2).addValue(value2)).loadContent();
 
 		server.assertRequestUris(viewsUri, viewsUri);

@@ -94,7 +94,7 @@ public class TableViewsTest extends SDKTest {
 		int columns = 12;
 		server.register(viewsUri + id + "/table/bounds", builder.buildTableNode(rows, columns, 2, 2).toString());
 
-		TableView.Table table = (Table) service.createViewLoader(id, ViewType.TABLE).loadContent();
+		TableView.Table table = (Table) service.setupViewLoader(id, ViewType.TABLE).loadContent();
 
 		assertEquals(table.getRowCount(), rows);
 		assertEquals(table.getColumnCount(), columns);

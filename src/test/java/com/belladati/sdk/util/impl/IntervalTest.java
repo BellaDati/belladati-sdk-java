@@ -330,8 +330,8 @@ public class IntervalTest extends SDKTest {
 			}
 		});
 
-		service.createViewLoader(viewId, ViewType.CHART)
-			.setTimeInterval(new AbsoluteInterval<TimeUnit>(TimeUnit.HOUR, start, end)).loadContent();
+		service.setupViewLoader(viewId, ViewType.CHART).setTimeInterval(new AbsoluteInterval<TimeUnit>(TimeUnit.HOUR, start, end))
+			.loadContent();
 
 		server.assertRequestUris(viewsUri);
 	}
@@ -352,8 +352,8 @@ public class IntervalTest extends SDKTest {
 			}
 		});
 
-		service.createViewLoader(viewId, ViewType.CHART)
-			.setDateInterval(new AbsoluteInterval<DateUnit>(DateUnit.YEAR, start, end)).loadContent();
+		service.setupViewLoader(viewId, ViewType.CHART).setDateInterval(new AbsoluteInterval<DateUnit>(DateUnit.YEAR, start, end))
+			.loadContent();
 
 		server.assertRequestUris(viewsUri);
 	}
@@ -375,8 +375,7 @@ public class IntervalTest extends SDKTest {
 			}
 		});
 
-		service.createViewLoader(viewId, ViewType.CHART)
-			.setDateInterval(new AbsoluteInterval<DateUnit>(DateUnit.YEAR, start, end))
+		service.setupViewLoader(viewId, ViewType.CHART).setDateInterval(new AbsoluteInterval<DateUnit>(DateUnit.YEAR, start, end))
 			.setTimeInterval(new RelativeInterval<TimeUnit>(TimeUnit.MINUTE, -10, 10)).loadContent();
 
 		server.assertRequestUris(viewsUri);

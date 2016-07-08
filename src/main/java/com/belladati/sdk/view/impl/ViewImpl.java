@@ -357,12 +357,12 @@ public abstract class ViewImpl implements View {
 
 	@Override
 	public ViewLoader createLoader() {
-		return service.createViewLoader(id, type);
+		return service.setupViewLoader(id, type);
 	}
 
 	@Override
 	public ViewExporter createExporter() {
-		return service.createViewExporter(id);
+		return service.setupViewExporter(id);
 	}
 
 }
