@@ -141,6 +141,11 @@ public class ReportImpl implements Report {
 	}
 
 	@Override
+	public void deleteComment(String id) {
+		service.deleteComment(id);
+	}
+
+	@Override
 	public String toString() {
 		return name;
 	}

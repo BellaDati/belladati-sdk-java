@@ -18,6 +18,7 @@ import org.apache.http.NameValuePair;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
@@ -117,6 +118,15 @@ public class BellaDatiClient implements Serializable {
 		} catch (NumberFormatException e) {
 			return defaultValue;
 		}
+	}
+
+	public byte[] delete(String relativeUrl, TokenHolder tokenHolder) {
+		return delete(relativeUrl, tokenHolder, null);
+	}
+
+	public byte[] delete(String relativeUrl, TokenHolder tokenHolder, HttpParameters oauthParams) {
+		HttpDelete delete = new HttpDelete(baseUrl + relativeUrl);
+		return doRequest(delete, tokenHolder, oauthParams);
 	}
 
 	public byte[] post(String relativeUrl, TokenHolder tokenHolder) {

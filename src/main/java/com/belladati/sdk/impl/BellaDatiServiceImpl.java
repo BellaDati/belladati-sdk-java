@@ -323,6 +323,11 @@ public class BellaDatiServiceImpl implements BellaDatiService {
 	}
 
 	@Override
+	public void deleteComment(String commentId) throws NotFoundException {
+		client.delete("api/reports/comments/" + commentId, tokenHolder);
+	}
+
+	@Override
 	public Object loadViewContent(String viewId, ViewType viewType, Filter<?>... filters) {
 		return loadViewContent(viewId, viewType, Arrays.asList(filters));
 	}

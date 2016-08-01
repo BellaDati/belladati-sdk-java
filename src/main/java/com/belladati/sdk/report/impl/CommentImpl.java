@@ -11,13 +11,14 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 public class CommentImpl implements Comment {
 
+	private final String id;
 	private final String text;
 	private final Date date;
 	private final UserInfo authorInfo;
 
 	public CommentImpl(BellaDatiServiceImpl service, JsonNode json) {
+		this.id = json.get("id").asText();
 		this.text = json.hasNonNull("text") ? json.get("text").asText() : "";
-
 		this.authorInfo = new UserInfoImpl(service, json.get("authorId").asText(), json.get("author").asText());
 
 		if (json.hasNonNull("when")) {
@@ -25,6 +26,11 @@ public class CommentImpl implements Comment {
 		} else {
 			this.date = null;
 		}
+	}
+
+	@Override
+	public String getId() {
+		return id;
 	}
 
 	@Override
@@ -45,20 +51,14 @@ public class CommentImpl implements Comment {
 	@Override
 	public boolean equals(Object obj) {
 		if (obj instanceof CommentImpl) {
-			if (authorInfo.equals(((CommentImpl) obj).authorInfo) && text.equals(((CommentImpl) obj).text)) {
-				if (date == null) {
-					return ((CommentImpl) obj).date == null;
-				} else {
-					return date.equals(((CommentImpl) obj).date);
-				}
-			}
+			return id.equals(((CommentImpl) obj).id);
 		}
 		return false;
 	}
 
 	@Override
 	public int hashCode() {
-		return authorInfo.hashCode() ^ text.hashCode();
+		return id.hashCode();
 	}
 
 	@Override
