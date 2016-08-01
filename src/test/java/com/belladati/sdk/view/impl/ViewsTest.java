@@ -20,6 +20,7 @@ import com.belladati.sdk.test.TestRequestHandler;
 import com.belladati.sdk.view.JsonView;
 import com.belladati.sdk.view.TableView;
 import com.belladati.sdk.view.View;
+import com.belladati.sdk.view.ViewLoader;
 import com.belladati.sdk.view.ViewType;
 import com.belladati.sdk.view.impl.ViewImpl;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -78,7 +79,11 @@ public class ViewsTest extends SDKTest {
 		ObjectNode viewNode = new ObjectMapper().createObjectNode().put("some field", "some value");
 		server.register(viewsUri + id + "/" + stringType, viewNode.toString());
 
-		assertEquals(view.createLoader().loadContent(), viewNode);
+		ViewLoader loader = view.createLoader();
+		assertEquals(loader.getId(), id);
+		assertEquals(loader.getType(), viewType);
+
+		assertEquals(loader.loadContent(), viewNode);
 
 		server.assertRequestUris(viewsUri + id + "/" + stringType);
 	}
@@ -89,7 +94,11 @@ public class ViewsTest extends SDKTest {
 		ObjectNode viewNode = new ObjectMapper().createObjectNode().put("some field", "some value");
 		server.register(viewsUri + id + "/" + stringType, viewNode.toString());
 
-		assertEquals(service.setupViewLoader(id, viewType).loadContent(), viewNode);
+		ViewLoader loader = service.setupViewLoader(id, viewType);
+		assertEquals(loader.getId(), id);
+		assertEquals(loader.getType(), viewType);
+
+		assertEquals(loader.loadContent(), viewNode);
 
 		server.assertRequestUris(viewsUri + id + "/" + stringType);
 	}

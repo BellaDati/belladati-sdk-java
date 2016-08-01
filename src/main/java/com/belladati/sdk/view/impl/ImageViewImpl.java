@@ -7,21 +7,22 @@ import com.belladati.sdk.exception.impl.UnknownViewTypeException;
 import com.belladati.sdk.filter.Filter;
 import com.belladati.sdk.impl.BellaDatiServiceImpl;
 import com.belladati.sdk.view.ImageView;
+import com.fasterxml.jackson.databind.JsonNode;
 
 public class ImageViewImpl extends ViewImpl implements ImageView {
 
-	public ImageViewImpl(BellaDatiServiceImpl service, BufferedImage image) throws UnknownViewTypeException {
-		super(service, image);
+	public ImageViewImpl(BellaDatiServiceImpl service, JsonNode node) throws UnknownViewTypeException {
+		super(service, node);
 	}
 
 	@Override
-	public BufferedImage loadContent(Filter<?>... filters) {
-		return (BufferedImage) super.loadContent(filters);
+	public Image loadContent(Filter<?>... filters) {
+		return (Image) super.loadContent(filters);
 	}
 
 	@Override
-	public BufferedImage loadContent(Collection<Filter<?>> filters) {
-		return (BufferedImage) super.loadContent(filters);
+	public Image loadContent(Collection<Filter<?>> filters) {
+		return (Image) super.loadContent(filters);
 	}
 
 	/**
@@ -45,13 +46,34 @@ public class ImageViewImpl extends ViewImpl implements ImageView {
 			this.image = image;
 		}
 
+		@Override
 		public String getId() {
 			return id;
 		}
 
+		@Override
 		public BufferedImage getImage() {
 			return image;
 		}
+
+		@Override
+		public String toString() {
+			return "Image(id: " + id + ")";
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (obj instanceof ImageImpl) {
+				return id.equals(((ImageImpl) obj).id);
+			}
+			return false;
+		}
+
+		@Override
+		public int hashCode() {
+			return id.hashCode();
+		}
+
 	}
 
 }

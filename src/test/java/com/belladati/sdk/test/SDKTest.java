@@ -1,7 +1,14 @@
 package com.belladati.sdk.test;
 
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertNull;
+
+import java.awt.image.BufferedImage;
 import java.io.InputStream;
 import java.util.Locale;
+
+import javax.imageio.ImageIO;
 
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -82,6 +89,24 @@ public class SDKTest {
 			new Object[] { "YEAR", ImportIntervalUnit.YEAR, 1, 525600 } };
 	}
 
+	protected final BufferedImage getTestBufferedImage() {
+		InputStream stream = getTestImageStream();
+		if (stream == null) {
+			return null;
+		} else {
+			try {
+				BufferedImage image = ImageIO.read(stream);
+				if (image == null) {
+					System.err.println("Cannot load test image - InputStream is null");
+				}
+				return image;
+			} catch (Throwable e) {
+				System.err.println("Cannot load test image - Error: " + e);
+				return null;
+			}
+		}
+	}
+
 	protected final InputStream getTestImageStream() {
 		return getResourceAsStream("belladati.png");
 	}
@@ -96,6 +121,16 @@ public class SDKTest {
 		} catch (Throwable e) {
 			System.err.println("Cannot load resource '" + name + "' - Error: " + e);
 			return null;
+		}
+	}
+
+	protected final void assertEqualsBufferedImage(BufferedImage actual, BufferedImage expected) {
+		if (expected == null) {
+			assertNull(actual);
+		} else {
+			assertNotNull(actual);
+			assertEquals(actual.getWidth(), expected.getWidth());
+			assertEquals(actual.getHeight(), expected.getHeight());
 		}
 	}
 

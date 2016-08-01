@@ -1,6 +1,5 @@
 package com.belladati.sdk.view.impl;
 
-import java.awt.image.BufferedImage;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -46,22 +45,11 @@ public abstract class ViewImpl implements View {
 		switch (parseType(node)) {
 		case TABLE:
 			return new TableViewImpl(service, node);
+		case IMAGE:
+			return new ImageViewImpl(service, node);
 		default:
 			return new JsonViewImpl(service, node);
 		}
-	}
-
-	/**
-	 * Builds an instance based on the given node. Will select an appropriate
-	 * class to instantiate based on the view's type.
-	 * 
-	 * @param service BelladatiService
-	 * @param image BufferedImage
-	 * @return assembled ViewImpl
-	 * @throws UnknownViewTypeException
-	 */
-	public static ViewImpl buildView(BellaDatiServiceImpl service, BufferedImage image) throws UnknownViewTypeException {
-		return new ImageViewImpl(service, image);
 	}
 
 	/**
@@ -246,20 +234,6 @@ public abstract class ViewImpl implements View {
 		}
 
 		this.localization = new LocalizationImpl(node);
-	}
-
-	protected ViewImpl(BellaDatiServiceImpl service, BufferedImage image) throws UnknownViewTypeException {
-		this.service = service;
-		this.type = ViewType.IMAGE;
-
-		this.id = "";
-		this.name = "";;
-		this.dateIntervalSupported = false;
-		this.timeIntervalSupported = false;
-		this.dateInterval = null;
-		this.timeInterval = null;
-		this.filters = Collections.emptySet();
-		this.localization = null;;
 	}
 
 	@Override

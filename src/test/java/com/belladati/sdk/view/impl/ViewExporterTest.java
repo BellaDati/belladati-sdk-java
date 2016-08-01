@@ -20,6 +20,7 @@ import com.belladati.sdk.util.PageSize;
 import com.belladati.sdk.view.View;
 import com.belladati.sdk.view.export.ViewExport;
 import com.belladati.sdk.view.export.ViewExportType;
+import com.belladati.sdk.view.export.ViewExporter;
 
 @Test
 public class ViewExporterTest extends SDKTest {
@@ -50,7 +51,10 @@ public class ViewExporterTest extends SDKTest {
 	public void exportPng_defaults() throws UnknownViewTypeException, IOException {
 		View view = new TableViewImpl(service, builder.buildViewNode(id, name, "table"));
 
-		ViewExport result = view.createExporter().exportPng(null, null);
+		ViewExporter exporter = view.createExporter();
+		assertEquals(exporter.getId(), id);
+
+		ViewExport result = exporter.exportPng(null, null);
 		server.assertRequestUris(URI_PNG);
 
 		assertEquals(result.getViewId(), id);
@@ -64,7 +68,10 @@ public class ViewExporterTest extends SDKTest {
 	public void exportPng_params() throws UnknownViewTypeException, IOException {
 		View view = new TableViewImpl(service, builder.buildViewNode(id, name, "chart"));
 
-		ViewExport result = view.createExporter().exportPng(123, 456);
+		ViewExporter exporter = view.createExporter();
+		assertEquals(exporter.getId(), id);
+
+		ViewExport result = exporter.exportPng(123, 456);
 		server.assertRequestUris(URI_PNG);
 
 		assertEquals(result.getViewId(), id);
@@ -78,7 +85,10 @@ public class ViewExporterTest extends SDKTest {
 	public void exportPdf_defaults() throws UnknownViewTypeException, IOException {
 		View view = new TableViewImpl(service, builder.buildViewNode(id, name, "table"));
 
-		ViewExport result = view.createExporter().exportPdf(null, null);
+		ViewExporter exporter = view.createExporter();
+		assertEquals(exporter.getId(), id);
+
+		ViewExport result = exporter.exportPdf(null, null);
 		server.assertRequestUris(URI_PDF);
 
 		assertEquals(result.getViewId(), id);
@@ -91,7 +101,10 @@ public class ViewExporterTest extends SDKTest {
 	public void exportPdf_params() throws UnknownViewTypeException, IOException {
 		View view = new TableViewImpl(service, builder.buildViewNode(id, name, "table"));
 
-		ViewExport result = view.createExporter().exportPdf(PageSize.A3, PageOrientation.LANDSCAPE);
+		ViewExporter exporter = view.createExporter();
+		assertEquals(exporter.getId(), id);
+
+		ViewExport result = exporter.exportPdf(PageSize.A3, PageOrientation.LANDSCAPE);
 		server.assertRequestUris(URI_PDF);
 
 		assertEquals(result.getViewId(), id);
