@@ -44,9 +44,9 @@ public class JsonBuilder {
 	}
 
 	/** Builds a JSON node representing a report comment. */
-	public ObjectNode buildCommentNode(String authorId, String authorName, String text, String when) {
-		return new ObjectMapper().createObjectNode().put("authorId", authorId).put("author", authorName).put("text", text)
-			.put("when", when);
+	public ObjectNode buildCommentNode(String commentId, String authorId, String authorName, String text, String when) {
+		return new ObjectMapper().createObjectNode().put("id", commentId).put("authorId", authorId).put("author", authorName)
+			.put("text", text).put("when", when);
 	}
 
 	/** Builds a JSON node representing a report attribute. */

@@ -28,8 +28,10 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 public class CommentsTest extends SDKTest {
 
 	private final String commentsUri = "/api/reports/%s/comments";
+	private final String deleteUri = "/api/reports/comments/%s";
 
 	private final String reportId = "id";
+	private final String commentId = "comId";
 	private final String authorId = "authorId";
 	private final String author = "comment author";
 	private final String text = "comment text";
@@ -40,7 +42,7 @@ public class CommentsTest extends SDKTest {
 		PaginatedList<Comment> comments = service.getReportComments(reportId);
 
 		server.registerPaginatedItem(String.format(commentsUri, reportId), "comments",
-			builder.buildCommentNode(authorId, author, text, when));
+			builder.buildCommentNode(commentId, authorId, author, text, when));
 
 		comments.load();
 
@@ -48,6 +50,7 @@ public class CommentsTest extends SDKTest {
 		assertEquals(comments.size(), 1);
 
 		Comment comment = comments.get(0);
+		assertEquals(comment.getId(), commentId);
 		assertEquals(comment.getAuthorInfo().getId(), authorId);
 		assertEquals(comment.getAuthorInfo().getName(), author);
 		assertEquals(comment.getText(), text);
@@ -62,14 +65,14 @@ public class CommentsTest extends SDKTest {
 	/** Comment date may be null. */
 	public void commentNullDate() {
 		server.registerPaginatedItem(String.format(commentsUri, reportId), "comments",
-			builder.buildCommentNode(authorId, author, text, null));
+			builder.buildCommentNode(commentId, authorId, author, text, null));
 
 		assertNull(service.getReportComments(reportId).load().get(0).getDateTime());
 	}
 
 	/** Comment date may be missing. */
 	public void commentWithoutDate() {
-		ObjectNode node = builder.buildCommentNode(authorId, author, text, when);
+		ObjectNode node = builder.buildCommentNode(commentId, authorId, author, text, when);
 		node.remove("when");
 		server.registerPaginatedItem(String.format(commentsUri, reportId), "comments", node);
 
@@ -79,14 +82,14 @@ public class CommentsTest extends SDKTest {
 	/** Comment date may be invalid format. */
 	public void commentInvalidDate() {
 		server.registerPaginatedItem(String.format(commentsUri, reportId), "comments",
-			builder.buildCommentNode(authorId, author, text, "something invalid"));
+			builder.buildCommentNode(commentId, authorId, author, text, "something invalid"));
 
 		assertNull(service.getReportComments(reportId).load().get(0).getDateTime());
 	}
 
 	/** Comment text may be missing. */
 	public void commentWithoutText() {
-		ObjectNode node = builder.buildCommentNode(authorId, author, text, when);
+		ObjectNode node = builder.buildCommentNode(commentId, authorId, author, text, when);
 		node.remove("text");
 		server.registerPaginatedItem(String.format(commentsUri, reportId), "comments", node);
 
@@ -136,26 +139,38 @@ public class CommentsTest extends SDKTest {
 		server.assertRequestUris(String.format(commentsUri, reportId));
 	}
 
+	/** Can delete comments from service. */
+	public void deleteCommentFromService() {
+		registerDelete();
+		service.deleteComment(commentId);
+		server.assertRequestUris(String.format(deleteUri, commentId));
+	}
+
+	/** Can delete comments from report info. */
+	public void deleteCommentFromReportInfo() {
+		registerDelete();
+		new ReportInfoImpl(service, builder.buildReportNode(reportId, "name", null, "owner", null)).deleteComment(commentId);
+		server.assertRequestUris(String.format(deleteUri, commentId));
+	}
+
+	/** Can delete comments from report. */
+	public void deleteCommentFromReport() {
+		registerDelete();
+		new ReportImpl(service, builder.buildReportNode(reportId, "name", null, "owner", null)).deleteComment(commentId);
+		server.assertRequestUris(String.format(deleteUri, commentId));
+	}
+
 	/** equals and hashcode work as expected */
 	public void equality() {
-		Comment com1 = new CommentImpl(service, builder.buildCommentNode(authorId, author, text, when));
-		Comment com2 = new CommentImpl(service, builder.buildCommentNode(authorId, "", text, when));
-
-		Comment com3 = new CommentImpl(service, builder.buildCommentNode("otherId", "", text, when));
-		Comment com4 = new CommentImpl(service, builder.buildCommentNode(authorId, "", "other text", when));
-		Comment com5 = new CommentImpl(service, builder.buildCommentNode(authorId, "", text, "Fri, 16 Aug 2013 12:56:51 GMT"));
-		Comment com6 = new CommentImpl(service, builder.buildCommentNode(authorId, "", text, null));
+		Comment com1 = new CommentImpl(service, builder.buildCommentNode(commentId, authorId, author, text, when));
+		Comment com2 = new CommentImpl(service, builder.buildCommentNode(commentId, "", "", "", null));
+		Comment com3 = new CommentImpl(service, builder.buildCommentNode("otherId", authorId, "", text, when));
 
 		assertEquals(com1, com2);
 		assertEquals(com1.hashCode(), com2.hashCode());
 
-		assertNotEquals(com1, com3);
-		assertNotEquals(com1, com4);
-		assertNotEquals(com1, com5);
-		assertNotEquals(com1, com6);
-		assertNotEquals(com6, com1);
-
 		assertFalse(com1.equals(new Object()));
+		assertNotEquals(com1, com3);
 	}
 
 	/**
@@ -170,4 +185,17 @@ public class CommentsTest extends SDKTest {
 			}
 		});
 	}
+
+	/**
+	 * Registers a response to a comment DELETE.
+	 */
+	private void registerDelete() {
+		server.register(String.format(deleteUri, commentId), new TestRequestHandler() {
+			@Override
+			protected void handle(HttpHolder holder) throws IOException {
+				holder.response.setEntity(new StringEntity("OK"));
+			}
+		});
+	}
+
 }

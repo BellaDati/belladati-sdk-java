@@ -101,6 +101,11 @@ public class ReportInfoImpl implements ReportInfo {
 	}
 
 	@Override
+	public void deleteComment(String commentId) {
+		service.deleteComment(commentId);
+	}
+
+	@Override
 	public String toString() {
 		return name;
 	}
