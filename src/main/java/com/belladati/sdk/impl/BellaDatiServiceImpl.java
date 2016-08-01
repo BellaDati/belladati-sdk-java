@@ -168,7 +168,7 @@ public class BellaDatiServiceImpl implements BellaDatiService {
 					CachedList<User> newList = new CachedListImpl<User>(this, endpoint, "users") {
 						@Override
 						protected User parse(BellaDatiServiceImpl service, JsonNode node) {
-							return new UserImpl(node);
+							return new UserImpl(service, node);
 						}
 					};
 					users.put(cacheKey, newList);
@@ -477,12 +477,28 @@ public class BellaDatiServiceImpl implements BellaDatiService {
 
 	@Override
 	public User loadUser(String userId) {
-		return new UserImpl(loadJson("api/users/" + userId));
+		return new UserImpl(this, loadJson("api/users/" + userId));
+	}
+
+	@Override
+	public User loadUserByUsername(String username) {
+		return new UserImpl(this, loadJson("api/users/username/" + username));
 	}
 
 	@Override
 	public Object loadUserImage(String userId) throws IOException {
 		return loadImage("api/users/" + userId + "/image");
+	}
+
+	@Override
+	public String loadUserStatus(String userId) throws NotFoundException {
+		return new String(client.get("api/users/" + userId + "/status", tokenHolder));
+	}
+
+	@Override
+	public void postUserStatus(String userId, String status) throws NotFoundException {
+		client.post("api/users/" + userId + "/status", tokenHolder,
+			Collections.singletonList(new BasicNameValuePair("status", status)));
 	}
 
 	@Override

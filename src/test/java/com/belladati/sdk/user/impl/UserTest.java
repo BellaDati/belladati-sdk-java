@@ -9,11 +9,13 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.TimeZone;
 
 import org.apache.http.entity.InputStreamEntity;
+import org.apache.http.entity.StringEntity;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
@@ -37,6 +39,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 public class UserTest extends SDKTest {
 
 	private final String usersUri = "/api/users";
+	private final String statusUri = "/api/users/%s/status";
+
 	private final String id = "123";
 	private final String username = "username";
 	private final String givenName = "given name";
@@ -63,7 +67,26 @@ public class UserTest extends SDKTest {
 			lastLogin, locale, timeZone, active, domainId, userRolesJson, userGroupsJson).toString());
 
 		User user = service.loadUser(id);
+		assertFullUserDetail(user);
 
+		server.assertRequestUris(usersUri + "/" + id);
+
+		assertEquals(user.toString(), givenName + " " + familyName);
+	}
+
+	public void loadUserByUsername() {
+		server.register(usersUri + "/username/" + username, builder.buildUserNode(id, username, givenName, familyName, email,
+			firstLogin, lastLogin, locale, timeZone, active, domainId, userRolesJson, userGroupsJson).toString());
+
+		User user = service.loadUserByUsername(username);
+		assertFullUserDetail(user);
+
+		server.assertRequestUris(usersUri + "/username/" + username);
+
+		assertEquals(user.toString(), givenName + " " + familyName);
+	}
+
+	private void assertFullUserDetail(User user) {
 		assertEquals(user.getId(), id);
 		assertEquals(user.getUsername(), username);
 		assertEquals(user.getName(), givenName + " " + familyName);
@@ -80,7 +103,7 @@ public class UserTest extends SDKTest {
 		assertEquals(user.getTimeZone(), timeZone);
 		assertEquals(user.getLocale(), locale);
 		assertEquals(user.getActive() + "", active);
-		assertEquals(user.getDomainId(), domainId);;
+		assertEquals(user.getDomainId(), domainId);
 		assertEquals(user.getUserRoles(), userRoles);
 
 		assertEquals(user.getUserGroups().size(), 2);
@@ -91,8 +114,6 @@ public class UserTest extends SDKTest {
 		assertEquals(groups[1].getId(), userGroups0_id);
 		assertEquals(groups[1].getName(), userGroups0_name);
 		assertEquals(groups[1].getDescription(), "");
-
-		server.assertRequestUris(usersUri + "/" + id);
 
 		assertEquals(user.toString(), givenName + " " + familyName);
 	}
@@ -300,9 +321,10 @@ public class UserTest extends SDKTest {
 
 	/** equals/hashcode for User */
 	public void userEquality() {
-		User u1 = new UserImpl(builder.buildUserNode(id, username, givenName, familyName, email, firstLogin, lastLogin, locale));
-		User u2 = new UserImpl(builder.buildUserNode(id, "", "", "", "", "", "", ""));
-		User u3 = new UserImpl(
+		User u1 = new UserImpl(service,
+			builder.buildUserNode(id, username, givenName, familyName, email, firstLogin, lastLogin, locale));
+		User u2 = new UserImpl(service, builder.buildUserNode(id, "", "", "", "", "", "", ""));
+		User u3 = new UserImpl(service,
 			builder.buildUserNode("otherId", username, givenName, familyName, email, firstLogin, lastLogin, locale));
 
 		assertEquals(u1, u2);
@@ -334,6 +356,50 @@ public class UserTest extends SDKTest {
 
 		assertFalse(u1.equals(new Object()));
 		assertNotEquals(u1, u3);
+	}
+
+	public void loadUserStatus() {
+		User user = new UserImpl(service, builder.buildUserNode(id, "", "", "", "", "", "", ""));
+		server.register(String.format(statusUri, id), "ACTIVE");
+		String status = user.loadStatus();
+		assertEquals(status, "ACTIVE");
+		server.assertRequestUris(String.format(statusUri, id));
+	}
+
+	public void loadUserStatusFromInfo() {
+		UserInfo userInfo = new UserInfoImpl(service, id, "some name");
+		server.register(String.format(statusUri, id), "INACTIVE");
+		String status = userInfo.loadStatus();
+		assertEquals(status, "INACTIVE");
+		server.assertRequestUris(String.format(statusUri, id));
+	}
+
+	public void postUserStatus() {
+		User user = new UserImpl(service, builder.buildUserNode(id, "", "", "", "", "", "", ""));
+		final String status = "INACTIVE";
+		server.register(String.format(statusUri, id), new TestRequestHandler() {
+			@Override
+			protected void handle(HttpHolder holder) throws IOException {
+				assertEquals(holder.getFormParameters(), Collections.singletonMap("status", status));
+				holder.response.setEntity(new StringEntity(""));
+			}
+		});
+		user.postStatus(status);
+		server.assertRequestUris(String.format(statusUri, id));
+	}
+
+	public void postUserStatusFromInfo() {
+		UserInfo userInfo = new UserInfoImpl(service, id, "some name");
+		final String status = "ACTIVE";
+		server.register(String.format(statusUri, id), new TestRequestHandler() {
+			@Override
+			protected void handle(HttpHolder holder) throws IOException {
+				assertEquals(holder.getFormParameters(), Collections.singletonMap("status", status));
+				holder.response.setEntity(new StringEntity(""));
+			}
+		});
+		userInfo.postStatus(status);
+		server.assertRequestUris(String.format(statusUri, id));
 	}
 
 }

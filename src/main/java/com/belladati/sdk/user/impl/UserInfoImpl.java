@@ -40,6 +40,16 @@ public class UserInfoImpl implements UserInfo {
 	}
 
 	@Override
+	public String loadStatus() {
+		return service.loadUserStatus(id);
+	}
+
+	@Override
+	public void postStatus(String status) {
+		service.postUserStatus(id, status);
+	}
+
+	@Override
 	public String toString() {
 		return name;
 	}

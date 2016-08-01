@@ -4,6 +4,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.belladati.sdk.impl.BellaDatiServiceImpl;
 import com.belladati.sdk.user.User;
 import com.belladati.sdk.user.UserGroup;
 import com.belladati.sdk.user.UserRole;
@@ -12,6 +13,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 
 public class UserImpl implements User {
+
+	private final BellaDatiServiceImpl service;
 
 	private final String id;
 	private final String username;
@@ -27,7 +30,9 @@ public class UserImpl implements User {
 	private final Set<UserRole> userRoles;
 	private final Set<UserGroup> userGroups;
 
-	public UserImpl(JsonNode json) {
+	public UserImpl(BellaDatiServiceImpl service, JsonNode json) {
+		this.service = service;
+
 		this.id = json.get("id").asText();
 		this.username = json.get("username").asText();
 		this.givenName = getStringOrEmpty(json, "name");
@@ -158,6 +163,16 @@ public class UserImpl implements User {
 	@Override
 	public int hashCode() {
 		return id.hashCode();
+	}
+
+	@Override
+	public String loadStatus() {
+		return service.loadUserStatus(id);
+	}
+
+	@Override
+	public void postStatus(String status) {
+		service.postUserStatus(id, status);
 	}
 
 }
