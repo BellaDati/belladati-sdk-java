@@ -116,6 +116,12 @@ public class ExceptionTest extends SDKTest {
 		assertAuthException(Reason.TOKEN_INVALID);
 	}
 
+	/** request or access token is missing */
+	public void tokenMissing() {
+		registerOAuthProblem(400, "missing_token");
+		assertAuthException(Reason.TOKEN_INVALID);
+	}
+
 	/** request token is unauthorized */
 	public void tokenUnauthorized() {
 		registerOAuthProblem(400, "unauthorized_token");

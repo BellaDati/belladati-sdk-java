@@ -46,8 +46,10 @@ import com.belladati.sdk.dataset.source.impl.DataSourceImportImpl;
 import com.belladati.sdk.dataset.source.impl.DataSourcePendingImportImpl;
 import com.belladati.sdk.domain.Domain;
 import com.belladati.sdk.domain.DomainCreateBuilder;
+import com.belladati.sdk.domain.DomainEditBuilder;
 import com.belladati.sdk.domain.DomainInfo;
 import com.belladati.sdk.domain.impl.DomainCreateBuilderImpl;
+import com.belladati.sdk.domain.impl.DomainEditBuilderImpl;
 import com.belladati.sdk.domain.impl.DomainImpl;
 import com.belladati.sdk.domain.impl.DomainInfoImpl;
 import com.belladati.sdk.exception.InternalConfigurationException;
@@ -72,9 +74,11 @@ import com.belladati.sdk.report.impl.ReportImpl;
 import com.belladati.sdk.report.impl.ReportInfoImpl;
 import com.belladati.sdk.user.User;
 import com.belladati.sdk.user.UserCreateBuilder;
+import com.belladati.sdk.user.UserEditBuilder;
 import com.belladati.sdk.user.UserGroup;
 import com.belladati.sdk.user.UserGroupCreateBuilder;
 import com.belladati.sdk.user.impl.UserCreateBuilderImpl;
+import com.belladati.sdk.user.impl.UserEditBuilderImpl;
 import com.belladati.sdk.user.impl.UserGroupCreateBuilderImpl;
 import com.belladati.sdk.user.impl.UserGroupImpl;
 import com.belladati.sdk.user.impl.UserImpl;
@@ -209,6 +213,11 @@ public class BellaDatiServiceImpl implements BellaDatiService {
 	}
 
 	@Override
+	public DomainEditBuilder setupDomainEditBuilder(String domainId) {
+		return new DomainEditBuilderImpl(this, domainId);
+	}
+
+	@Override
 	public UserGroupCreateBuilder setupUserGroupCreateBuilder(String domainId) {
 		return new UserGroupCreateBuilderImpl(this, domainId);
 	}
@@ -216,6 +225,11 @@ public class BellaDatiServiceImpl implements BellaDatiService {
 	@Override
 	public UserCreateBuilder setupUserCreateBuilder(String domainId) {
 		return new UserCreateBuilderImpl(this, domainId);
+	}
+
+	@Override
+	public UserEditBuilder setupUserEditBuilder(String userId) {
+		return new UserEditBuilderImpl(this, userId);
 	}
 
 	@Override
