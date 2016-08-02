@@ -29,7 +29,13 @@ import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLContexts;
 import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
 import org.apache.http.entity.ByteArrayEntity;
+import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.entity.mime.HttpMultipartMode;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.apache.http.entity.mime.content.ContentBody;
+import org.apache.http.entity.mime.content.FileBody;
+import org.apache.http.entity.mime.content.StringBody;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.cache.CacheConfig;
 import org.apache.http.impl.client.cache.CachingHttpClientBuilder;
@@ -38,6 +44,7 @@ import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import com.belladati.sdk.exception.BellaDatiRuntimeException;
 import com.belladati.sdk.exception.ConnectionException;
 import com.belladati.sdk.exception.InternalConfigurationException;
+import com.belladati.sdk.exception.InvalidImplementationException;
 import com.belladati.sdk.exception.auth.AuthorizationException;
 import com.belladati.sdk.exception.auth.AuthorizationException.Reason;
 import com.belladati.sdk.exception.auth.InvalidTimestampException;
@@ -46,6 +53,9 @@ import com.belladati.sdk.exception.server.InvalidJsonException;
 import com.belladati.sdk.exception.server.MethodNotAllowedException;
 import com.belladati.sdk.exception.server.NotFoundException;
 import com.belladati.sdk.exception.server.UnexpectedResponseException;
+import com.belladati.sdk.util.MultipartPiece;
+import com.belladati.sdk.util.impl.MultipartFileImpl;
+import com.belladati.sdk.util.impl.MultipartTextImpl;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -151,6 +161,38 @@ public class BellaDatiClient implements Serializable {
 				throw new IllegalArgumentException("Invalid URL encoding", e);
 			}
 		}
+		return doRequest(post, tokenHolder, oauthParams);
+	}
+
+	public byte[] postMultipart(String relativeUrl, TokenHolder tokenHolder, List<? extends MultipartPiece<?>> multipart) {
+		return postMultipart(relativeUrl, tokenHolder, null, multipart);
+	}
+
+	public byte[] postMultipart(String relativeUrl, TokenHolder tokenHolder, HttpParameters oauthParams,
+		List<? extends MultipartPiece<?>> multipart) {
+		HttpPost post = new HttpPost(baseUrl + relativeUrl);
+
+		MultipartEntityBuilder builder = MultipartEntityBuilder.create();
+		builder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
+
+		for (MultipartPiece<?> part : multipart) {
+			ContentType contentType = ContentType.create(part.getContentType());
+
+			ContentBody contentBody = null;
+			if (part instanceof MultipartFileImpl) {
+				MultipartFileImpl filePart = (MultipartFileImpl) part;
+				contentBody = new FileBody(filePart.getValue(), contentType, filePart.getFilename());
+			} else if (part instanceof MultipartTextImpl) {
+				MultipartTextImpl textPart = (MultipartTextImpl) part;
+				contentBody = new StringBody(textPart.getValue(), contentType);
+			} else {
+				throw new InvalidImplementationException(
+					"Unknown type " + contentType + " and class " + part.getClass().getSimpleName());
+			}
+			builder.addPart(part.getName(), contentBody);
+		}
+		post.setEntity(builder.build());
+
 		return doRequest(post, tokenHolder, oauthParams);
 	}
 

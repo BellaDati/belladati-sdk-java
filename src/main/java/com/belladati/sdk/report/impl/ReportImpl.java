@@ -1,5 +1,6 @@
 package com.belladati.sdk.report.impl;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -143,6 +144,11 @@ public class ReportImpl implements Report {
 	@Override
 	public void deleteComment(String id) {
 		service.deleteComment(id);
+	}
+
+	@Override
+	public String createImageView(String viewName, File image, Integer width, Integer height) {
+		return service.createImageView(id, viewName, image, width, height);
 	}
 
 	@Override

@@ -340,4 +340,38 @@ public class ReportsTest extends SDKTest {
 	private void registerSingleReport(JsonNode node) {
 		server.registerPaginatedItem(reportsUri, "reports", node);
 	}
+
+	public void createImageView() {
+		String idRep = "id2";
+		String nameRep = "name2";
+		String descRep = "desc2";
+		String ownerRep = "owner2";
+		String lastChangeRep = "Tue, 17 Apr 2012 11:18:27 GMT";
+
+		registerSingleReport(builder.buildReportNode(id, name, description, owner, lastChange));
+		server.register(reportsUri + "/" + id,
+			builder.buildReportNode(idRep, nameRep, descRep, ownerRep, lastChangeRep).toString());
+
+		ReportInfo reportInfo = service.getReportInfo().load().get(0);
+
+		server.register(reportsUri + "/" + id, builder.buildReportNode(id, name, description, owner, lastChange).toString());
+
+		Report report = service.loadReport(id);
+		server.assertRequestUris(reportsUri + "/" + id);
+
+		assertEquals(report.getId(), id);
+		assertEquals(report.getName(), name);
+		assertEquals(report.getDescription(), description);
+		assertEquals(report.getOwnerName(), owner);
+		Calendar expectedChange = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
+		expectedChange.set(2012, 3, 16, 10, 17, 26);
+		expectedChange.set(Calendar.MILLISECOND, 0);
+		assertEquals(report.getLastChange(), expectedChange.getTime());
+
+		assertEquals(report.getAttributes(), Collections.emptyList());
+		assertEquals(report.getViews(), Collections.emptyList());
+
+		assertEquals(report.toString(), name);
+	}
+
 }

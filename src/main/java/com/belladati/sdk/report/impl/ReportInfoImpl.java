@@ -1,5 +1,6 @@
 package com.belladati.sdk.report.impl;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Date;
 import java.util.Locale;
@@ -103,6 +104,11 @@ public class ReportInfoImpl implements ReportInfo {
 	@Override
 	public void deleteComment(String commentId) {
 		service.deleteComment(commentId);
+	}
+
+	@Override
+	public String createImageView(String viewName, File image, Integer width, Integer height) {
+		return service.createImageView(id, viewName, image, width, height);
 	}
 
 	@Override

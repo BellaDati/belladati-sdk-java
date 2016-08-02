@@ -2,6 +2,7 @@ package com.belladati.sdk.impl;
 
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.lang.reflect.Field;
@@ -83,9 +84,13 @@ import com.belladati.sdk.user.impl.UserGroupCreateBuilderImpl;
 import com.belladati.sdk.user.impl.UserGroupImpl;
 import com.belladati.sdk.user.impl.UserImpl;
 import com.belladati.sdk.util.CachedList;
+import com.belladati.sdk.util.MultipartPiece;
 import com.belladati.sdk.util.PaginatedIdList;
 import com.belladati.sdk.util.PaginatedList;
+import com.belladati.sdk.util.impl.BellaDatiSdkUtils;
 import com.belladati.sdk.util.impl.CachedListImpl;
+import com.belladati.sdk.util.impl.MultipartFileImpl;
+import com.belladati.sdk.util.impl.MultipartTextImpl;
 import com.belladati.sdk.util.impl.PaginatedIdListImpl;
 import com.belladati.sdk.util.impl.PaginatedListImpl;
 import com.belladati.sdk.view.ViewLoader;
@@ -687,6 +692,11 @@ public class BellaDatiServiceImpl implements BellaDatiService {
 	}
 
 	@Override
+	public byte[] postMultipart(String relativeUrl, List<? extends MultipartPiece<?>> multipart) {
+		return client.postMultipart(relativeUrl, tokenHolder, multipart);
+	}
+
+	@Override
 	public byte[] postForm(String uri, Map<String, String> formParameters) throws URISyntaxException {
 		return postForm(uri, Collections.<String, String> emptyMap(), formParameters);
 	}
@@ -732,6 +742,33 @@ public class BellaDatiServiceImpl implements BellaDatiService {
 	@Override
 	public FormDataPostBuilder setupFormDataPostBuilder(String formId) {
 		return new FormDataPostBuilderImpl(this, formId);
+	}
+
+	@Override
+	public String createImageView(String reportId, String viewName, File image, Integer width, Integer height) {
+		Map<String, String> uriParams = new HashMap<>();
+		if (width != null) {
+			uriParams.put("width", width.toString());
+		}
+		if (height != null) {
+			uriParams.put("height", height.toString());
+		}
+		String relativeUri = BellaDatiSdkUtils.joinUriWithParams("api/reports/" + reportId + "/images", uriParams);
+
+		List<MultipartPiece<?>> multipart = new ArrayList<>();
+		multipart.add(new MultipartTextImpl("name", viewName));
+		multipart.add(new MultipartFileImpl("file", image));
+
+		byte[] response = postMultipart(relativeUri, multipart);
+		return new String(response);
+	}
+
+	@Override
+	public void editImageView(String viewId, File image) {
+		List<MultipartPiece<?>> multipart = new ArrayList<>();
+		multipart.add(new MultipartFileImpl("file", image));
+
+		postMultipart("api/reports/views/" + viewId + "/images", multipart);
 	}
 
 }

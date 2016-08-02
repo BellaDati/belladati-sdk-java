@@ -188,7 +188,7 @@ public abstract class ViewImpl implements View {
 		return null;
 	}
 
-	private final BellaDatiServiceImpl service;
+	protected final BellaDatiServiceImpl service;
 
 	private final String id;
 	private final String name;

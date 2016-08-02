@@ -1,6 +1,7 @@
 package com.belladati.sdk.view.impl;
 
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.util.Collection;
 
 import com.belladati.sdk.exception.impl.UnknownViewTypeException;
@@ -23,6 +24,11 @@ public class ImageViewImpl extends ViewImpl implements ImageView {
 	@Override
 	public Image loadContent(Collection<Filter<?>> filters) {
 		return (Image) super.loadContent(filters);
+	}
+
+	@Override
+	public void updateImage(File image) {
+		service.editImageView(getId(), image);
 	}
 
 	/**
