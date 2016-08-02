@@ -14,6 +14,7 @@ import java.util.Collections;
 import java.util.TimeZone;
 
 import org.apache.http.entity.InputStreamEntity;
+import org.apache.http.entity.StringEntity;
 import org.testng.annotations.Test;
 
 import com.belladati.sdk.dataset.DataSetInfo;
@@ -42,6 +43,8 @@ public class ReportsTest extends SDKTest {
 	private final String description = "report description";
 	private final String owner = "report owner";
 	private final String lastChange = "Mon, 16 Apr 2012 10:17:26 GMT";
+
+	private final String viewId = id + "-aBcDeFgH";
 
 	/** Regular report info data is loaded correctly. */
 	public void loadReportInfo() {
@@ -331,6 +334,51 @@ public class ReportsTest extends SDKTest {
 		server.assertRequestUris(reportsUri + "/" + id, "/api/dataSets/" + id);
 	}
 
+	public void createImageView_fromService() {
+		registerCreateImage(id, viewId, "50", "100");
+
+		String newViewId = service.createImageView(id, "my view name", getTestImageFile(), 50, 100);
+		assertEquals(newViewId, viewId);
+	}
+
+	public void createImageView_fromReport() {
+		server.register(reportsUri + "/" + id, builder.buildReportNode(id, name, description, owner, lastChange).toString());
+
+		Report report = service.loadReport(id);
+
+		registerCreateImage(id, viewId, "30", "500");
+
+		String newViewId = report.createImageView("my view name", getTestImageFile(), 30, 500);
+		assertEquals(newViewId, viewId);
+	}
+
+	public void createImageView_fromReportInfo() {
+		registerSingleReport(builder.buildReportNode(id, name, description, owner, lastChange));
+		server.register(reportsUri + "/" + id, builder.buildReportNode(id, name, description, owner, lastChange).toString());
+
+		ReportInfo reportInfo = service.getReportInfo().load().get(0);
+
+		registerCreateImage(id, viewId, null, null);
+
+		String newViewId = reportInfo.createImageView("my view name", getTestImageFile(), null, null);
+		assertEquals(newViewId, viewId);
+	}
+
+	private void registerCreateImage(String reportId, String viewId, String width, String height) {
+		server.register(reportsUri + "/" + reportId + "/images", new TestRequestHandler() {
+			@Override
+			protected void handle(HttpHolder holder) throws IOException {
+				if (width != null) {
+					assertEquals(holder.getUrlParameters().get("width"), width);
+				}
+				if (height != null) {
+					assertEquals(holder.getUrlParameters().get("height"), height);
+				}
+				holder.response.setEntity(new StringEntity(viewId));
+			}
+		});
+	}
+
 	/**
 	 * Tells the server to return the specified node as the only report node in
 	 * a <tt>reports</tt> array.
@@ -339,39 +387,6 @@ public class ReportsTest extends SDKTest {
 	 */
 	private void registerSingleReport(JsonNode node) {
 		server.registerPaginatedItem(reportsUri, "reports", node);
-	}
-
-	public void createImageView() {
-		String idRep = "id2";
-		String nameRep = "name2";
-		String descRep = "desc2";
-		String ownerRep = "owner2";
-		String lastChangeRep = "Tue, 17 Apr 2012 11:18:27 GMT";
-
-		registerSingleReport(builder.buildReportNode(id, name, description, owner, lastChange));
-		server.register(reportsUri + "/" + id,
-			builder.buildReportNode(idRep, nameRep, descRep, ownerRep, lastChangeRep).toString());
-
-		ReportInfo reportInfo = service.getReportInfo().load().get(0);
-
-		server.register(reportsUri + "/" + id, builder.buildReportNode(id, name, description, owner, lastChange).toString());
-
-		Report report = service.loadReport(id);
-		server.assertRequestUris(reportsUri + "/" + id);
-
-		assertEquals(report.getId(), id);
-		assertEquals(report.getName(), name);
-		assertEquals(report.getDescription(), description);
-		assertEquals(report.getOwnerName(), owner);
-		Calendar expectedChange = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
-		expectedChange.set(2012, 3, 16, 10, 17, 26);
-		expectedChange.set(Calendar.MILLISECOND, 0);
-		assertEquals(report.getLastChange(), expectedChange.getTime());
-
-		assertEquals(report.getAttributes(), Collections.emptyList());
-		assertEquals(report.getViews(), Collections.emptyList());
-
-		assertEquals(report.toString(), name);
 	}
 
 }

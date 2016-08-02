@@ -8,6 +8,7 @@ import static org.testng.Assert.assertTrue;
 import java.io.IOException;
 
 import org.apache.http.entity.InputStreamEntity;
+import org.apache.http.entity.StringEntity;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -90,6 +91,31 @@ public class ImageViewsTest extends SDKTest {
 		assertEquals(image.getId(), id);
 		assertEqualsBufferedImage(image.getImage(), getTestBufferedImage());
 		assertTrue(image.toString().contains(id));
+	}
+
+	public void updateImage_fromService() {
+		server.register(viewsImageUri, new TestRequestHandler() {
+			@Override
+			protected void handle(HttpHolder holder) throws IOException {
+				assertEquals(holder.getUrlParameters().size(), 0);
+				holder.response.setEntity(new StringEntity(""));
+			}
+		});
+
+		service.editImageView(id, getTestImageFile());
+	}
+
+	public void updateImage_fromImageView() throws UnknownViewTypeException {
+		server.register(viewsImageUri, new TestRequestHandler() {
+			@Override
+			protected void handle(HttpHolder holder) throws IOException {
+				assertEquals(holder.getUrlParameters().size(), 0);
+				holder.response.setEntity(new StringEntity(""));
+			}
+		});
+
+		ImageView view = new ImageViewImpl(service, builder.buildViewNode(id, name, "image"));
+		view.updateImage(getTestImageFile());
 	}
 
 }

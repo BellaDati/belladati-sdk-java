@@ -5,6 +5,7 @@ import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.InputStream;
 import java.util.Locale;
 
@@ -107,6 +108,10 @@ public class SDKTest {
 		}
 	}
 
+	protected final File getTestImageFile() {
+		return getResourceAsFile("belladati.png");
+	}
+
 	protected final InputStream getTestImageStream() {
 		return getResourceAsStream("belladati.png");
 	}
@@ -118,6 +123,15 @@ public class SDKTest {
 				System.err.println("Cannot load resource '" + name + "' - InputStream is null");
 			}
 			return stream;
+		} catch (Throwable e) {
+			System.err.println("Cannot load resource '" + name + "' - Error: " + e);
+			return null;
+		}
+	}
+
+	protected final File getResourceAsFile(String name) {
+		try {
+			return new File(SDKTest.class.getResource(name).toURI());
 		} catch (Throwable e) {
 			System.err.println("Cannot load resource '" + name + "' - Error: " + e);
 			return null;
