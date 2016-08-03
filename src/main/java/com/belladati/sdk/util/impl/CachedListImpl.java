@@ -38,7 +38,7 @@ public abstract class CachedListImpl<T> implements CachedList<T> {
 	@Override
 	public CachedList<T> load() {
 		data.clear();
-		JsonNode json = service.loadJson(uri);
+		JsonNode json = service.getAsJson(uri);
 
 		if (json.get(field) instanceof ArrayNode) {
 			ArrayNode nodes = (ArrayNode) json.get(field);

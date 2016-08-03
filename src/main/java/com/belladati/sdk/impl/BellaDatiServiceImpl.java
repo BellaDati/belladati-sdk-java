@@ -20,8 +20,6 @@ import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.imageio.ImageIO;
-
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.message.BasicNameValuePair;
@@ -57,6 +55,8 @@ import com.belladati.sdk.exception.InternalConfigurationException;
 import com.belladati.sdk.exception.dataset.data.UnknownServerColumnException;
 import com.belladati.sdk.exception.impl.InvalidAttributeValueException;
 import com.belladati.sdk.exception.impl.InvalidDataSourceImportException;
+import com.belladati.sdk.exception.server.InvalidJsonException;
+import com.belladati.sdk.exception.server.InvalidStreamException;
 import com.belladati.sdk.exception.server.NotFoundException;
 import com.belladati.sdk.exception.server.UnexpectedResponseException;
 import com.belladati.sdk.filter.Filter;
@@ -157,7 +157,7 @@ public class BellaDatiServiceImpl implements BellaDatiService {
 
 	@Override
 	public Domain loadDomain(String id) throws NotFoundException {
-		return new DomainImpl(this, loadJson("api/domains/" + id));
+		return new DomainImpl(this, getAsJson("api/domains/" + id));
 	}
 
 	@Override
@@ -244,12 +244,12 @@ public class BellaDatiServiceImpl implements BellaDatiService {
 
 	@Override
 	public Dashboard loadDashboard(String id) {
-		return new DashboardImpl(this, loadJson("api/dashboards/" + id));
+		return new DashboardImpl(this, getAsJson("api/dashboards/" + id));
 	}
 
 	@Override
 	public Object loadDashboardThumbnail(String id) throws IOException {
-		return loadImage("api/dashboards/" + id + "/thumbnail");
+		return getAsImage("api/dashboards/" + id + "/thumbnail");
 	}
 
 	@Override
@@ -259,53 +259,12 @@ public class BellaDatiServiceImpl implements BellaDatiService {
 
 	@Override
 	public Report loadReport(String id) {
-		return new ReportImpl(this, loadJson("api/reports/" + id));
+		return new ReportImpl(this, getAsJson("api/reports/" + id));
 	}
 
 	@Override
 	public Object loadReportThumbnail(String reportId) throws IOException {
-		return loadImage("api/reports/" + reportId + "/thumbnail");
-	}
-
-	/**
-	 * Convenience method for other parts of the implementation to easily load
-	 * data through the API.
-	 * 
-	 * @param uri URI to contact
-	 * @return the resulting JSON response
-	 */
-	public JsonNode loadJson(String uri) {
-		return client.getJson(uri, tokenHolder);
-	}
-
-	/**
-	 * Loads an image from the given URI.
-	 * 
-	 * @param relativeUrl the URI to load from
-	 * @return the image from the server
-	 * @throws IOException if the image cannot be loaded
-	 */
-	public Object loadImage(String relativeUrl) throws IOException {
-		ByteArrayInputStream bais = new ByteArrayInputStream(client.get(relativeUrl, tokenHolder));
-		try {
-			BufferedImage image = ImageIO.read(bais);
-			if (image == null) {
-				throw new IOException("Could not load image");
-			}
-			return image;
-		} finally {
-			bais.close();
-		}
-	}
-
-	/**
-	 * {@inheritDoc}
-	 * 
-	 * @return {@link ByteArrayInputStream}
-	 */
-	@Override
-	public Object loadFile(String relativeUrl) throws IOException {
-		return new ByteArrayInputStream(client.get(relativeUrl, tokenHolder));
+		return getAsImage("api/reports/" + reportId + "/thumbnail");
 	}
 
 	@Override
@@ -509,17 +468,17 @@ public class BellaDatiServiceImpl implements BellaDatiService {
 
 	@Override
 	public User loadUser(String userId) {
-		return new UserImpl(this, loadJson("api/users/" + userId));
+		return new UserImpl(this, getAsJson("api/users/" + userId));
 	}
 
 	@Override
 	public User loadUserByUsername(String username) {
-		return new UserImpl(this, loadJson("api/users/username/" + username));
+		return new UserImpl(this, getAsJson("api/users/username/" + username));
 	}
 
 	@Override
 	public Object loadUserImage(String userId) throws IOException {
-		return loadImage("api/users/" + userId + "/image");
+		return getAsImage("api/users/" + userId + "/image");
 	}
 
 	@Override
@@ -546,7 +505,7 @@ public class BellaDatiServiceImpl implements BellaDatiService {
 
 	@Override
 	public DataSet loadDataSet(String id) throws NotFoundException {
-		return new DataSetImpl(this, loadJson("api/dataSets/" + id));
+		return new DataSetImpl(this, getAsJson("api/dataSets/" + id));
 	}
 
 	@Override
@@ -753,6 +712,38 @@ public class BellaDatiServiceImpl implements BellaDatiService {
 		return client.get(builder.build().toString(), tokenHolder);
 	}
 
+	/**
+	 * Helper method to invoke GET operation on the specified relative URI and to read result as JSON data.
+	 * 
+	 * @param relativeUri the relative URI to load JSON from
+	 * @return the JsonNode parsed from the response
+	 * @throws InvalidJsonException if response cannot be parsed into JSON
+	 */
+	public JsonNode getAsJson(String relativeUri) throws InvalidJsonException {
+		return client.getAsJson(relativeUri, tokenHolder);
+	}
+
+	/**
+	 * Helper method to invoke GET operation on the specified relative URI and to read result as {@link BufferedImage}.
+	 * 
+	 * @param relativeUri the relative URI to load image from
+	 * @return the BufferedImage parsed from the response
+	 * @throws InvalidStreamException if response cannot be parsed into image
+	 */
+	public BufferedImage getAsImage(String relativeUri) throws InvalidStreamException {
+		return client.getAsImage(relativeUri, tokenHolder);
+	}
+
+	/**
+	 * Helper method to invoke GET operation on the specified relative URI and to read result as {@link ByteArrayInputStream}.
+	 * 
+	 * @param relativeUri the relative URI to load stream from
+	 * @return the ByteArrayInputStream parsed from the response
+	 */
+	public ByteArrayInputStream getAsStream(String relativeUri) {
+		return client.getAsStream(relativeUri, tokenHolder);
+	}
+
 	@Override
 	public CachedList<Form> getImportForms() {
 		return importFormList;
@@ -760,7 +751,7 @@ public class BellaDatiServiceImpl implements BellaDatiService {
 
 	@Override
 	public Form loadImportForm(String id) throws NotFoundException {
-		return new FormImpl(loadJson("api/import/forms/" + id));
+		return new FormImpl(getAsJson("api/import/forms/" + id));
 	}
 
 	@Override

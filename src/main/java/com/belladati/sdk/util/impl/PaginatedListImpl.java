@@ -80,7 +80,7 @@ public abstract class PaginatedListImpl<T> implements PaginatedList<T> {
 	}
 
 	private PaginatedList<T> addFrom(String parameterizedUri) {
-		JsonNode json = service.loadJson(parameterizedUri);
+		JsonNode json = service.getAsJson(parameterizedUri);
 
 		size = json.get("size").asInt();
 		page = json.get("offset").asInt() / size;

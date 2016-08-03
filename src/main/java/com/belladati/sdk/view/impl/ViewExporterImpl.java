@@ -1,12 +1,9 @@
 package com.belladati.sdk.view.impl;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.net.URISyntaxException;
 
 import org.apache.http.client.utils.URIBuilder;
 
-import com.belladati.sdk.exception.ConnectionException;
 import com.belladati.sdk.exception.InternalConfigurationException;
 import com.belladati.sdk.impl.BellaDatiServiceImpl;
 import com.belladati.sdk.util.PageOrientation;
@@ -48,11 +45,9 @@ public final class ViewExporterImpl implements ViewExporter {
 			}
 			viewExport.setViewId(viewId);
 			viewExport.setExportType(ViewExportType.PDF);
-			viewExport.setInputStream((InputStream) this.service.loadFile(builder.build().toString()));
+			viewExport.setInputStream(this.service.getAsStream(builder.build().toString()));
 		} catch (URISyntaxException e) {
 			throw new InternalConfigurationException("Invalid URI", e);
-		} catch (IOException e) {
-			throw new ConnectionException(e);
 		}
 		return viewExport;
 	}
@@ -70,11 +65,9 @@ public final class ViewExporterImpl implements ViewExporter {
 			}
 			viewExport.setViewId(viewId);
 			viewExport.setExportType(ViewExportType.PNG);
-			viewExport.setInputStream((InputStream) this.service.loadFile(builder.build().toString()));
+			viewExport.setInputStream(this.service.getAsStream(builder.build().toString()));
 		} catch (URISyntaxException e) {
 			throw new InternalConfigurationException("Invalid URI", e);
-		} catch (IOException e) {
-			throw new ConnectionException(e);
 		}
 		return viewExport;
 	}

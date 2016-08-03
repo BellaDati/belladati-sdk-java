@@ -95,7 +95,7 @@ public class TableViewImpl extends ViewImpl implements TableView {
 				builder.addParameter("rowsTo", "" + endRow);
 				service.appendFilter(builder, filters);
 				service.appendLocale(builder, locale);
-				return service.loadJson(builder.build().toString());
+				return service.getAsJson(builder.build().toString());
 			} catch (URISyntaxException e) {
 				throw new InternalConfigurationException(e);
 			}
@@ -118,7 +118,7 @@ public class TableViewImpl extends ViewImpl implements TableView {
 				builder.addParameter("columnsTo", "" + endColumn);
 				service.appendFilter(builder, filters);
 				service.appendLocale(builder, locale);
-				return service.loadJson(builder.build().toString());
+				return service.getAsJson(builder.build().toString());
 			} catch (URISyntaxException e) {
 				throw new InternalConfigurationException(e);
 			}
@@ -152,7 +152,7 @@ public class TableViewImpl extends ViewImpl implements TableView {
 				builder.addParameter("columnsTo", "" + endColumn);
 				service.appendFilter(builder, filters);
 				service.appendLocale(builder, locale);
-				return service.loadJson(builder.build().toString());
+				return service.getAsJson(builder.build().toString());
 			} catch (URISyntaxException e) {
 				throw new InternalConfigurationException(e);
 			}

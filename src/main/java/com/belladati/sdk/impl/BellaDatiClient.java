@@ -1,7 +1,9 @@
 package com.belladati.sdk.impl;
 
+import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
@@ -11,6 +13,7 @@ import java.lang.reflect.Field;
 import java.security.GeneralSecurityException;
 import java.util.List;
 
+import javax.imageio.ImageIO;
 import javax.net.ssl.SSLContext;
 
 import org.apache.http.HttpEntity;
@@ -50,6 +53,7 @@ import com.belladati.sdk.exception.auth.AuthorizationException.Reason;
 import com.belladati.sdk.exception.auth.InvalidTimestampException;
 import com.belladati.sdk.exception.server.InternalErrorException;
 import com.belladati.sdk.exception.server.InvalidJsonException;
+import com.belladati.sdk.exception.server.InvalidStreamException;
 import com.belladati.sdk.exception.server.MethodNotAllowedException;
 import com.belladati.sdk.exception.server.NotFoundException;
 import com.belladati.sdk.exception.server.UnexpectedResponseException;
@@ -246,12 +250,42 @@ public class BellaDatiClient implements Serializable {
 		return doRequest(new HttpGet(baseUrl + relativeUrl), tokenHolder);
 	}
 
-	public JsonNode getJson(String relativeUrl, TokenHolder tokenHolder) {
+	public JsonNode getAsJson(String relativeUrl, TokenHolder tokenHolder) throws InvalidJsonException {
 		byte[] response = get(relativeUrl, tokenHolder);
 		try {
 			return new ObjectMapper().readTree(response);
 		} catch (IOException e) {
 			throw new InvalidJsonException("Could not parse JSON response, was " + new String(response), e);
+		}
+	}
+
+	public ByteArrayInputStream getAsStream(String relativeUrl, TokenHolder tokenHolder) {
+		byte[] response = get(relativeUrl, tokenHolder);
+		return new ByteArrayInputStream(response);
+	}
+
+	public BufferedImage getAsImage(String relativeUrl, TokenHolder tokenHolder) throws InvalidStreamException {
+		ByteArrayInputStream bais = getAsStream(relativeUrl, tokenHolder);
+		try {
+			BufferedImage image = ImageIO.read(bais);
+			if (image == null) {
+				throw new IOException("Loaded image is null");
+			}
+			return image;
+		} catch (IOException e) {
+			throw new InvalidStreamException("Could not parse image response", e);
+		} finally {
+			closeQuietly(bais);
+		}
+	}
+
+	private void closeQuietly(Closeable c) {
+		if (c == null) {
+			return;
+		} else {
+			try {
+				c.close();
+			} catch (IOException e) {}
 		}
 	}
 
