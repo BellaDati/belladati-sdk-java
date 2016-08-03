@@ -19,6 +19,7 @@ import org.apache.http.entity.StringEntity;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import com.belladati.sdk.exception.server.InvalidStreamException;
 import com.belladati.sdk.test.SDKTest;
 import com.belladati.sdk.test.TestRequestHandler;
 import com.belladati.sdk.user.User;
@@ -235,7 +236,7 @@ public class UserTest extends SDKTest {
 	}
 
 	/** Can load a user's image from service. */
-	public void loadImageFromService() throws IOException {
+	public void loadImageFromService() {
 		server.register(usersUri + "/" + id + "/image", new TestRequestHandler() {
 			@Override
 			protected void handle(HttpHolder holder) throws IOException {
@@ -252,7 +253,7 @@ public class UserTest extends SDKTest {
 	}
 
 	/** Can load a user's image from info. */
-	public void loadImageFromReportInfo() throws IOException {
+	public void loadImageFromReportInfo() {
 		UserInfo userInfo = new UserInfoImpl(service, id, "");
 
 		server.register(usersUri + "/" + id + "/image", new TestRequestHandler() {
@@ -271,8 +272,8 @@ public class UserTest extends SDKTest {
 	}
 
 	/** Invalid image results in exception. */
-	@Test(expectedExceptions = IOException.class)
-	public void loadInvalidImage() throws IOException {
+	@Test(expectedExceptions = InvalidStreamException.class)
+	public void loadInvalidImage() throws InvalidStreamException {
 		UserInfo userInfo = new UserInfoImpl(service, id, "");
 
 		server.register(usersUri + "/" + id + "/image", "not an image");
@@ -281,8 +282,8 @@ public class UserTest extends SDKTest {
 	}
 
 	/** Missing image results in exception. */
-	@Test(expectedExceptions = IOException.class)
-	public void loadMissingImage() throws IOException {
+	@Test(expectedExceptions = InvalidStreamException.class)
+	public void loadMissingImage() throws InvalidStreamException {
 		UserInfo userInfo = new UserInfoImpl(service, id, "");
 
 		server.register(usersUri + "/" + id + "/image", "");
@@ -291,8 +292,8 @@ public class UserTest extends SDKTest {
 	}
 
 	/** Empty content for image results in exception. */
-	@Test(expectedExceptions = IOException.class)
-	public void loadEmptyContentImage() throws IOException {
+	@Test(expectedExceptions = InvalidStreamException.class)
+	public void loadEmptyContentImage() throws InvalidStreamException {
 		UserInfo userInfo = new UserInfoImpl(service, id, "");
 
 		server.register(usersUri + "/" + id + "/image", new TestRequestHandler() {

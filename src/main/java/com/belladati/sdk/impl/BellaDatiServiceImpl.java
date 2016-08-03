@@ -248,7 +248,7 @@ public class BellaDatiServiceImpl implements BellaDatiService {
 	}
 
 	@Override
-	public Object loadDashboardThumbnail(String id) throws IOException {
+	public Object loadDashboardThumbnail(String id) {
 		return getAsImage("api/dashboards/" + id + "/thumbnail");
 	}
 
@@ -263,7 +263,7 @@ public class BellaDatiServiceImpl implements BellaDatiService {
 	}
 
 	@Override
-	public Object loadReportThumbnail(String reportId) throws IOException {
+	public Object loadReportThumbnail(String reportId) {
 		return getAsImage("api/reports/" + reportId + "/thumbnail");
 	}
 
@@ -477,7 +477,7 @@ public class BellaDatiServiceImpl implements BellaDatiService {
 	}
 
 	@Override
-	public Object loadUserImage(String userId) throws IOException {
+	public Object loadUserImage(String userId) {
 		return getAsImage("api/users/" + userId + "/image");
 	}
 
@@ -713,7 +713,7 @@ public class BellaDatiServiceImpl implements BellaDatiService {
 	}
 
 	/**
-	 * Helper method to invoke GET operation on the specified relative URI and to read result as JSON data.
+	 * Helper method to invoke GET operation on the specified relative URI and to read result as {@link JsonNode}.
 	 * 
 	 * @param relativeUri the relative URI to load JSON from
 	 * @return the JsonNode parsed from the response

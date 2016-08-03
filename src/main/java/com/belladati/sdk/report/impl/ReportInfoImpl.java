@@ -1,7 +1,6 @@
 package com.belladati.sdk.report.impl;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Date;
 import java.util.Locale;
 
@@ -87,7 +86,7 @@ public class ReportInfoImpl implements ReportInfo {
 	}
 
 	@Override
-	public Object loadThumbnail() throws IOException {
+	public Object loadThumbnail() {
 		return service.loadReportThumbnail(id);
 	}
 

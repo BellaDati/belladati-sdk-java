@@ -1,7 +1,5 @@
 package com.belladati.sdk.user.impl;
 
-import java.io.IOException;
-
 import com.belladati.sdk.impl.BellaDatiServiceImpl;
 import com.belladati.sdk.user.User;
 import com.belladati.sdk.user.UserInfo;
@@ -35,7 +33,7 @@ public class UserInfoImpl implements UserInfo {
 	}
 
 	@Override
-	public Object loadImage() throws IOException {
+	public Object loadImage() {
 		return service.loadUserImage(id);
 	}
 

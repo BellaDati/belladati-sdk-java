@@ -18,6 +18,8 @@ import org.apache.http.entity.StringEntity;
 import org.testng.annotations.Test;
 
 import com.belladati.sdk.dataset.DataSetInfo;
+import com.belladati.sdk.exception.server.InvalidJsonException;
+import com.belladati.sdk.exception.server.InvalidStreamException;
 import com.belladati.sdk.report.Report;
 import com.belladati.sdk.report.ReportInfo;
 import com.belladati.sdk.report.impl.ReportImpl;
@@ -206,8 +208,18 @@ public class ReportsTest extends SDKTest {
 		assertEquals(report.getViews(), Collections.emptyList());
 	}
 
+	/** Invalid JSON. */
+	@Test(expectedExceptions = InvalidJsonException.class)
+	public void loadInvalidJson() throws InvalidJsonException {
+
+		registerSingleReport(builder.buildReportNode(id, name, description, owner, lastChange));
+		server.register(reportsUri + "/" + id, "invalid JSON");
+
+		service.getReportInfo().load().get(0).loadDetails();
+	}
+
 	/** Can load a report's thumbnail from service. */
-	public void loadThumbnailFromService() throws IOException {
+	public void loadThumbnailFromService() {
 		server.register(reportsUri + "/" + id + "/thumbnail", new TestRequestHandler() {
 			@Override
 			protected void handle(HttpHolder holder) throws IOException {
@@ -224,7 +236,7 @@ public class ReportsTest extends SDKTest {
 	}
 
 	/** Can load a report's thumbnail from info. */
-	public void loadThumbnailFromReportInfo() throws IOException {
+	public void loadThumbnailFromReportInfo() {
 		ReportInfo reportInfo = new ReportInfoImpl(service, builder.buildReportNode(id, name, description, owner, lastChange));
 
 		server.register(reportsUri + "/" + id + "/thumbnail", new TestRequestHandler() {
@@ -243,8 +255,8 @@ public class ReportsTest extends SDKTest {
 	}
 
 	/** Invalid thumbnail results in exception. */
-	@Test(expectedExceptions = IOException.class)
-	public void loadInvalidThumbnail() throws IOException {
+	@Test(expectedExceptions = InvalidStreamException.class)
+	public void loadInvalidThumbnail() throws InvalidStreamException {
 		ReportInfo reportInfo = new ReportInfoImpl(service, builder.buildReportNode(id, name, description, owner, lastChange));
 
 		server.register(reportsUri + "/" + id + "/thumbnail", "not a thumbnail image");

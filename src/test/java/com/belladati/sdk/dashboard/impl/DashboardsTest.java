@@ -19,6 +19,7 @@ import com.belladati.sdk.dashboard.Dashboard;
 import com.belladati.sdk.dashboard.DashboardInfo;
 import com.belladati.sdk.dashboard.impl.DashboardImpl;
 import com.belladati.sdk.dashboard.impl.DashboardInfoImpl;
+import com.belladati.sdk.exception.server.InvalidStreamException;
 import com.belladati.sdk.test.SDKTest;
 import com.belladati.sdk.test.TestRequestHandler;
 import com.belladati.sdk.util.PaginatedList;
@@ -155,7 +156,7 @@ public class DashboardsTest extends SDKTest {
 	}
 
 	/** Can load a dashboard thumbnail from service. */
-	public void loadThumbnailFromService() throws IOException {
+	public void loadThumbnailFromService() {
 		server.register(dashboardsUri + "/" + id + "/thumbnail", new TestRequestHandler() {
 			@Override
 			protected void handle(HttpHolder holder) throws IOException {
@@ -172,7 +173,7 @@ public class DashboardsTest extends SDKTest {
 	}
 
 	/** Can load a dashboard thumbnail from info. */
-	public void loadThumbnailFromDashboardInfo() throws IOException {
+	public void loadThumbnailFromDashboardInfo() {
 		DashboardInfo dashboardInfo = new DashboardInfoImpl(service, builder.buildDashboardNode(id, name, lastChange));
 
 		server.register(dashboardsUri + "/" + id + "/thumbnail", new TestRequestHandler() {
@@ -191,8 +192,8 @@ public class DashboardsTest extends SDKTest {
 	}
 
 	/** Invalid thumbnail results in exception. */
-	@Test(expectedExceptions = IOException.class)
-	public void loadInvalidThumbnail() throws IOException {
+	@Test(expectedExceptions = InvalidStreamException.class)
+	public void loadInvalidThumbnail() throws InvalidStreamException {
 		DashboardInfo dashboardInfo = new DashboardInfoImpl(service, builder.buildDashboardNode(id, name, lastChange));
 
 		server.register(dashboardsUri + "/" + id + "/thumbnail", "not a thumbnail image");

@@ -1,6 +1,5 @@
 package com.belladati.sdk.dashboard.impl;
 
-import java.io.IOException;
 import java.util.Date;
 
 import com.belladati.sdk.dashboard.Dashboard;
@@ -51,7 +50,7 @@ public class DashboardInfoImpl implements DashboardInfo {
 	}
 
 	@Override
-	public Object loadThumbnail() throws IOException {
+	public Object loadThumbnail() {
 		return service.loadDashboardThumbnail(id);
 	}
 
