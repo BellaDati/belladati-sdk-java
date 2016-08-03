@@ -6,6 +6,7 @@ import static org.testng.Assert.assertNotEquals;
 import static org.testng.Assert.assertSame;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.List;
 
@@ -33,6 +34,7 @@ public class AttributesTest extends SDKTest {
 
 	private final String reportsUri = "/api/reports";
 	private final String valuesUri = "/api/dataSets/%s/attributes/%s/values";
+	private final String imageUri = "/api/dataSets/%s/attributes/%s/%s/image";
 
 	private final String reportId = "123";
 	private final String dataSetId = "456";
@@ -43,6 +45,11 @@ public class AttributesTest extends SDKTest {
 	private final String lastChange = "Mon, 16 Apr 2012 10:17:26 GMT";
 	private final String code = "code";
 	private final String type = "string";
+
+	private final String value1 = "Simple";
+	private final String value2 = "Some Spaces";
+	private final String value3 = "Test Characters /.,;!@#$%^&*()_+][\' End";
+	private final String value4 = "Chinese 把百度 And Latin ľščťžýáíéúäňô End";
 
 	/** No data set field means no attributes. */
 	public void reportWithoutDataSet() {
@@ -253,4 +260,24 @@ public class AttributesTest extends SDKTest {
 			}
 		});
 	}
+
+	@DataProvider(name = "postAttributeValueImage_provider")
+	private Object[][] postAttributeValueImage_provider() {
+		return new Object[][] { { value1 }, { value2 }, { value3 }, { value4 } };
+	}
+
+	@Test(dataProvider = "postAttributeValueImage_provider")
+	public void postAttributeValueImage(String value) throws URISyntaxException {
+		String url = String.format(imageUri, dataSetId, code, value);
+		server.register(url, new TestRequestHandler() {
+			@Override
+			protected void handle(HttpHolder holder) throws IOException {
+				assertEquals(holder.getUrlParameters().size(), 0);
+				holder.response.setEntity(new StringEntity(""));
+			}
+		});
+
+		service.postAttributeValueImage(dataSetId, code, value, getTestImageFile());
+	}
+
 }

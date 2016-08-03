@@ -495,6 +495,19 @@ public class BellaDatiServiceImpl implements BellaDatiService {
 	}
 
 	@Override
+	public void postAttributeValueImage(String dataSetId, String attributeCode, String attributeValue, File image)
+		throws URISyntaxException {
+		URIBuilder builder = new URIBuilder();
+		builder.setPath("api/dataSets/" + dataSetId + "/attributes/" + attributeCode + "/" + attributeValue + "/image");
+		String relativeUri = builder.build().toString();
+
+		List<MultipartPiece<?>> multipart = new ArrayList<>();
+		multipart.add(new MultipartFileImpl("file", image));
+
+		postMultipart(relativeUri, multipart);
+	}
+
+	@Override
 	public User loadUser(String userId) {
 		return new UserImpl(this, loadJson("api/users/" + userId));
 	}
@@ -555,6 +568,17 @@ public class BellaDatiServiceImpl implements BellaDatiService {
 			}
 			throw new UnexpectedResponseException(e.getResponseCode(), e.getResponseContent(), e);
 		}
+	}
+
+	@Override
+	public void uploadImage(File image, String name) {
+		List<MultipartPiece<?>> multipart = new ArrayList<>();
+		multipart.add(new MultipartFileImpl("file", image));
+		if (name != null) {
+			multipart.add(new MultipartTextImpl("name", name));
+		}
+
+		postMultipart("api/import/media/image", multipart);
 	}
 
 	/** Deserialization. Sets up the element lists and maps as empty objects. */
