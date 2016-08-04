@@ -20,6 +20,7 @@ import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.message.BasicNameValuePair;
@@ -784,6 +785,21 @@ public class BellaDatiServiceImpl implements BellaDatiService {
 		multipart.add(new MultipartFileImpl("file", image));
 
 		postMultipart("api/reports/views/" + viewId + "/images", multipart);
+	}
+
+	@Override
+	public Object loadFile(String absolutePath) throws URISyntaxException {
+		URIBuilder builder = new URIBuilder();
+		builder.setPath("api/utils/file/" + absolutePath);
+		return getAsStream(builder.build().toString());
+	}
+
+	@Override
+	public Object mergePdfFiles(List<String> paths) throws URISyntaxException {
+		String joinedPaths = StringUtils.join(paths, ";");
+		URIBuilder builder = new URIBuilder();
+		builder.setPath("api/utils/mergePdfFiles/" + joinedPaths);
+		return getAsStream(builder.build().toString());
 	}
 
 }
