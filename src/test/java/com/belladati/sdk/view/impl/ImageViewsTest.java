@@ -94,28 +94,34 @@ public class ImageViewsTest extends SDKTest {
 	}
 
 	public void updateImage_fromService() {
+		final boolean[] executed = new boolean[1];
 		server.register(viewsImageUri, new TestRequestHandler() {
 			@Override
 			protected void handle(HttpHolder holder) throws IOException {
 				assertEquals(holder.getUrlParameters().size(), 0);
 				holder.response.setEntity(new StringEntity(""));
+				executed[0] = true;
 			}
 		});
 
 		service.editImageView(id, getTestImageFile());
+		assertTrue(executed[0]);
 	}
 
 	public void updateImage_fromImageView() throws UnknownViewTypeException {
+		final boolean[] executed = new boolean[1];
 		server.register(viewsImageUri, new TestRequestHandler() {
 			@Override
 			protected void handle(HttpHolder holder) throws IOException {
 				assertEquals(holder.getUrlParameters().size(), 0);
 				holder.response.setEntity(new StringEntity(""));
+				executed[0] = true;
 			}
 		});
 
 		ImageView view = new ImageViewImpl(service, builder.buildViewNode(id, name, "image"));
 		view.updateImage(getTestImageFile());
+		assertTrue(executed[0]);
 	}
 
 }

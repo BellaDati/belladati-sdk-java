@@ -784,7 +784,8 @@ public class BellaDatiServiceImpl implements BellaDatiService {
 		List<MultipartPiece<?>> multipart = new ArrayList<>();
 		multipart.add(new MultipartFileImpl("file", image));
 
-		postMultipart("api/reports/views/" + viewId + "/images", multipart);
+		String relativeUri = "api/reports/views/" + viewId + "/image";
+		postMultipart(relativeUri, multipart);
 	}
 
 	@Override

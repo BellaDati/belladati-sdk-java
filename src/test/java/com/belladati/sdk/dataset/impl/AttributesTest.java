@@ -4,6 +4,7 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotEquals;
 import static org.testng.Assert.assertSame;
+import static org.testng.Assert.assertTrue;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -13,6 +14,7 @@ import java.util.List;
 import org.apache.http.entity.StringEntity;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+import org.yaml.snakeyaml.util.UriEncoder;
 
 import com.belladati.sdk.dataset.Attribute;
 import com.belladati.sdk.dataset.AttributeValue;
@@ -48,7 +50,7 @@ public class AttributesTest extends SDKTest {
 
 	private final String value1 = "Simple";
 	private final String value2 = "Some Spaces";
-	private final String value3 = "Test Characters /.,;!@#$%^&*()_+][\' End";
+	private final String value3 = "Test Characters /.,:;!@#$%^&*()_\\' End";
 	private final String value4 = "Chinese 把百度 And Latin ľščťžýáíéúäňô End";
 
 	/** No data set field means no attributes. */
@@ -268,16 +270,21 @@ public class AttributesTest extends SDKTest {
 
 	@Test(dataProvider = "postAttributeValueImage_provider")
 	public void postAttributeValueImage(String value) throws URISyntaxException {
-		String url = String.format(imageUri, dataSetId, code, value);
+		String url = String.format(imageUri, dataSetId, code, UriEncoder.encode(value));
+
+		final boolean[] executed = new boolean[1];
 		server.register(url, new TestRequestHandler() {
 			@Override
 			protected void handle(HttpHolder holder) throws IOException {
 				assertEquals(holder.getUrlParameters().size(), 0);
 				holder.response.setEntity(new StringEntity(""));
+				executed[0] = true;
 			}
 		});
 
 		service.postAttributeValueImage(dataSetId, code, value, getTestImageFile());
+
+		assertTrue(executed[0]);
 	}
 
 }
