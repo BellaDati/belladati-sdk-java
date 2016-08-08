@@ -10,7 +10,9 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
 
@@ -25,6 +27,7 @@ import com.belladati.sdk.test.TestRequestHandler;
 import com.belladati.sdk.user.User;
 import com.belladati.sdk.user.UserGroup;
 import com.belladati.sdk.user.UserInfo;
+import com.belladati.sdk.user.UserRequestType;
 import com.belladati.sdk.user.UserRole;
 import com.belladati.sdk.user.impl.UserGroupImpl;
 import com.belladati.sdk.user.impl.UserImpl;
@@ -41,6 +44,8 @@ public class UserTest extends SDKTest {
 
 	private final String usersUri = "/api/users";
 	private final String statusUri = "/api/users/%s/status";
+	private final String accessTokenUri = "/api/users/%s/accessToken";
+	private final String userRequestUri = "/api/users/%s/requests";
 
 	private final String id = "123";
 	private final String username = "username";
@@ -401,6 +406,64 @@ public class UserTest extends SDKTest {
 		});
 		userInfo.postStatus(status);
 		server.assertRequestUris(String.format(statusUri, id));
+	}
+
+	public void createUserRequest_fromService() {
+		server.register(String.format(userRequestUri, username), new TestRequestHandler() {
+			@Override
+			protected void handle(HttpHolder holder) throws IOException {
+				assertEquals(holder.getFormParameters(), Collections.singletonMap("request_type", "PASSWORD_RESET"));
+				holder.response.setEntity(new StringEntity("12345;AbCdEfGh"));
+			}
+		});
+		String response = service.createUserRequest(username, UserRequestType.PASSWORD_RESET);
+		assertEquals(response, "12345;AbCdEfGh");
+		server.assertRequestUris(String.format(userRequestUri, username));
+	}
+
+	public void createUserRequest_fromUser() {
+		User user = new UserImpl(service, builder.buildUserNode(id, username, "", "", "", "", "", ""));
+		server.register(String.format(userRequestUri, username), new TestRequestHandler() {
+			@Override
+			protected void handle(HttpHolder holder) throws IOException {
+				assertEquals(holder.getFormParameters(), Collections.singletonMap("request_type", "LOGIN_UNATTENDED"));
+				holder.response.setEntity(new StringEntity("98765;RDQX1Qx"));
+			}
+		});
+		String response = user.createUserRequest(UserRequestType.LOGIN_UNATTENDED);
+		assertEquals(response, "98765;RDQX1Qx");
+		server.assertRequestUris(String.format(userRequestUri, username));
+	}
+
+	public void createAccessToken_fromService() {
+		server.register(String.format(accessTokenUri, username), new TestRequestHandler() {
+			@Override
+			protected void handle(HttpHolder holder) throws IOException {
+				assertEquals(holder.getFormParameters().size(), 0);
+				holder.response.setEntity(new StringEntity("myToken1;myTokenSecret1"));
+			}
+		});
+		String response = service.createAccessToken(username, null, null);
+		assertEquals(response, "myToken1;myTokenSecret1");
+		server.assertRequestUris(String.format(accessTokenUri, username));
+	}
+
+	public void createAccessToken_fromUser() {
+		User user = new UserImpl(service, builder.buildUserNode(id, username, "", "", "", "", "", ""));
+		server.register(String.format(accessTokenUri, username), new TestRequestHandler() {
+			@Override
+			protected void handle(HttpHolder holder) throws IOException {
+				Map<String, String> formParams = new HashMap<>();
+				formParams.put("validity", "66");
+				formParams.put("domain_id", domainId);
+
+				assertEquals(holder.getFormParameters(), formParams);
+				holder.response.setEntity(new StringEntity("myToken2;myTokenSecret2"));
+			}
+		});
+		String response = user.createAccessToken(66, domainId);
+		assertEquals(response, "myToken2;myTokenSecret2");
+		server.assertRequestUris(String.format(accessTokenUri, username));
 	}
 
 }

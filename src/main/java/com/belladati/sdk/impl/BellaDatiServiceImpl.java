@@ -79,6 +79,7 @@ import com.belladati.sdk.user.UserCreateBuilder;
 import com.belladati.sdk.user.UserEditBuilder;
 import com.belladati.sdk.user.UserGroup;
 import com.belladati.sdk.user.UserGroupCreateBuilder;
+import com.belladati.sdk.user.UserRequestType;
 import com.belladati.sdk.user.impl.UserCreateBuilderImpl;
 import com.belladati.sdk.user.impl.UserEditBuilderImpl;
 import com.belladati.sdk.user.impl.UserGroupCreateBuilderImpl;
@@ -801,6 +802,29 @@ public class BellaDatiServiceImpl implements BellaDatiService {
 		URIBuilder builder = new URIBuilder();
 		builder.setPath("api/utils/mergePdfFiles/" + joinedPaths);
 		return getAsStream(builder.build().toString());
+	}
+
+	@Override
+	public String createUserRequest(String username, UserRequestType requestType) {
+		List<NameValuePair> formParams = new ArrayList<NameValuePair>();
+		formParams.add(new BasicNameValuePair("request_type", requestType.name()));
+
+		byte[] response = client.post("api/users/" + username + "/requests", tokenHolder, formParams);
+		return new String(response);
+	}
+
+	@Override
+	public String createAccessToken(String username, Integer validity, String domainId) {
+		List<NameValuePair> formParams = new ArrayList<NameValuePair>();
+		if (validity != null) {
+			formParams.add(new BasicNameValuePair("validity", validity.toString()));
+		}
+		if (domainId != null) {
+			formParams.add(new BasicNameValuePair("domain_id", domainId));
+		}
+
+		byte[] response = client.post("api/users/" + username + "/accessToken", tokenHolder, formParams);
+		return new String(response);
 	}
 
 }

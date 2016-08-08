@@ -7,6 +7,7 @@ import java.util.Set;
 import com.belladati.sdk.impl.BellaDatiServiceImpl;
 import com.belladati.sdk.user.User;
 import com.belladati.sdk.user.UserGroup;
+import com.belladati.sdk.user.UserRequestType;
 import com.belladati.sdk.user.UserRole;
 import com.belladati.sdk.util.impl.BellaDatiSdkUtils;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -173,6 +174,16 @@ public class UserImpl implements User {
 	@Override
 	public void postStatus(String status) {
 		service.postUserStatus(id, status);
+	}
+
+	@Override
+	public String createUserRequest(UserRequestType requestType) {
+		return service.createUserRequest(username, requestType);
+	}
+
+	@Override
+	public String createAccessToken(Integer validity, String domainId) {
+		return service.createAccessToken(username, validity, domainId);
 	}
 
 }
