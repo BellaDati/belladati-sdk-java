@@ -300,6 +300,7 @@ public class BellaDatiClient implements Serializable {
 	private byte[] doRequest(HttpRequestBase request, TokenHolder tokenHolder, HttpParameters oauthParams) {
 		CloseableHttpResponse response = null;
 		try {
+			request.setHeader("Connection", "close");
 			OAuthConsumer consumer = tokenHolder.createConsumer();
 			consumer.setAdditionalParameters(oauthParams);
 			consumer.sign(request);
