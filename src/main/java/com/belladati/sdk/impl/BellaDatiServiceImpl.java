@@ -13,6 +13,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -33,6 +34,7 @@ import com.belladati.sdk.dashboard.impl.DashboardInfoImpl;
 import com.belladati.sdk.dataset.AttributeValue;
 import com.belladati.sdk.dataset.DataSet;
 import com.belladati.sdk.dataset.DataSetInfo;
+import com.belladati.sdk.dataset.data.DataColumn;
 import com.belladati.sdk.dataset.data.DataRow;
 import com.belladati.sdk.dataset.data.DataTable;
 import com.belladati.sdk.dataset.impl.AttributeValueImpl;
@@ -136,6 +138,9 @@ public class BellaDatiServiceImpl implements BellaDatiService {
 	private final transient Map<String, CachedList<DataSource>> dataSourceList = new HashMap<String, CachedList<DataSource>>();
 
 	private final transient Map<String, CachedList<DataSourceImport>> dataSourceImportList = new HashMap<String, CachedList<DataSourceImport>>();
+
+	private final transient Map<String, PaginatedIdList<DataRow>> dataSetData = Collections
+		.synchronizedMap(new HashMap<String, PaginatedIdList<DataRow>>());
 
 	private final transient CachedList<Form> importFormList = new ImportFormList();
 
@@ -825,6 +830,56 @@ public class BellaDatiServiceImpl implements BellaDatiService {
 
 		byte[] response = client.post("api/users/" + username + "/accessToken", tokenHolder, formParams);
 		return new String(response);
+	}
+
+	@Override
+	public PaginatedIdList<DataRow> getDataSetData(String dataSetId) {
+		PaginatedIdList<DataRow> existing = dataSetData.get(dataSetId);
+		if (existing != null) {
+			return existing;
+		} else {
+			synchronized (dataSetData) {
+				existing = dataSetData.get(dataSetId);
+				if (existing != null) {
+					return existing;
+				} else {
+					DataRowList newList = new DataRowList(dataSetId);
+					dataSetData.put(dataSetId, newList);
+					return newList;
+				}
+			}
+		}
+	}
+
+	/** Paginated list class for data rows. */
+	private class DataRowList extends PaginatedIdListImpl<DataRow> {
+
+		public DataRowList(String dataSetId) {
+			super(BellaDatiServiceImpl.this, "api/dataSets/" + dataSetId + "/data", "data");
+		}
+
+		@Override
+		protected DataRow parse(BellaDatiServiceImpl service, JsonNode node) {
+			String rowId = node.hasNonNull("UID") ? node.get("UID").asText() : null;
+
+			List<DataColumn> columns = new ArrayList<>();
+			Iterator<String> fieldNames = node.fieldNames();
+			while (fieldNames.hasNext()) {
+				String fieldName = fieldNames.next();
+				if (!fieldName.equalsIgnoreCase("UID")) {
+					columns.add(new DataColumn(fieldName));
+				}
+			}
+
+			DataRow row = new DataRow(rowId, columns);
+			List<String> values = new ArrayList<>();
+			for (DataColumn column : columns) {
+				values.add(node.get(column.getCode()).asText());
+			}
+			row.setAll(values.toArray(new String[values.size()]));
+
+			return row;
+		}
 	}
 
 }

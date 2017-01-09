@@ -14,10 +14,12 @@ import org.testng.annotations.Test;
 
 import com.belladati.sdk.dataset.DataSet;
 import com.belladati.sdk.dataset.DataSetInfo;
+import com.belladati.sdk.dataset.data.DataRow;
 import com.belladati.sdk.dataset.impl.DataSetImpl;
 import com.belladati.sdk.dataset.impl.DataSetInfoImpl;
 import com.belladati.sdk.report.ReportInfo;
 import com.belladati.sdk.test.SDKTest;
+import com.belladati.sdk.util.PaginatedIdList;
 import com.belladati.sdk.util.PaginatedList;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -287,5 +289,27 @@ public class DataSetsTest extends SDKTest {
 	 */
 	private void registerSingleDataSet(JsonNode node) {
 		server.registerPaginatedItem(dataSetsUri, "dataSets", node);
+	}
+
+	/** Regular data set info data is loaded correctly. */
+	public void loadDataSetData() {
+		server.register(dataSetsUri + "/" + id, builder.buildDataSetNode(id, name, description, owner, lastChange).toString());
+
+		DataSet dataSet = service.loadDataSet(id);
+		server.assertRequestUris(dataSetsUri + "/" + id);
+
+		server.register(dataSetsUri + "/" + id + "/data", builder
+			.buildDataSetDataNode(id, name, description, owner, lastChange, 456, "L_ATTRIBUTE", "My Value", "M_INDICATOR", 11.99)
+			.toString());
+
+		PaginatedIdList<DataRow> dataList = dataSet.getData();
+		dataList.load();
+		server.assertRequestUris(dataSetsUri + "/" + id, dataSetsUri + "/" + id + "/data");
+
+		assertEquals(dataList.size(), 1);
+
+		DataRow info = dataList.get(0);
+		assertEquals(info.getId(), "456");
+		assertEquals(info.getColumns().size(), 2);
 	}
 }

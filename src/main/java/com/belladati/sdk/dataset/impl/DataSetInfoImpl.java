@@ -5,7 +5,9 @@ import java.util.Locale;
 
 import com.belladati.sdk.dataset.DataSet;
 import com.belladati.sdk.dataset.DataSetInfo;
+import com.belladati.sdk.dataset.data.DataRow;
 import com.belladati.sdk.impl.BellaDatiServiceImpl;
+import com.belladati.sdk.util.PaginatedIdList;
 import com.belladati.sdk.util.impl.BellaDatiSdkUtils;
 import com.belladati.sdk.util.impl.LocalizationImpl;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -76,6 +78,11 @@ public class DataSetInfoImpl implements DataSetInfo {
 	@Override
 	public DataSet loadDetails() {
 		return service.loadDataSet(id);
+	}
+
+	@Override
+	public PaginatedIdList<DataRow> getData() {
+		return service.getDataSetData(id);
 	}
 
 	@Override

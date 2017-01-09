@@ -9,6 +9,7 @@ import java.util.Locale;
 import com.belladati.sdk.dataset.Attribute;
 import com.belladati.sdk.dataset.DataSet;
 import com.belladati.sdk.dataset.Indicator;
+import com.belladati.sdk.dataset.data.DataRow;
 import com.belladati.sdk.dataset.data.DataTable;
 import com.belladati.sdk.dataset.source.DataSource;
 import com.belladati.sdk.exception.impl.InvalidAttributeException;
@@ -18,6 +19,7 @@ import com.belladati.sdk.impl.BellaDatiServiceImpl;
 import com.belladati.sdk.report.ReportInfo;
 import com.belladati.sdk.report.impl.ReportInfoImpl;
 import com.belladati.sdk.util.CachedList;
+import com.belladati.sdk.util.PaginatedIdList;
 import com.belladati.sdk.util.impl.BellaDatiSdkUtils;
 import com.belladati.sdk.util.impl.LocalizationImpl;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -180,4 +182,10 @@ public class DataSetImpl implements DataSet {
 		service.uploadData(id, data);
 		return this;
 	}
+
+	@Override
+	public PaginatedIdList<DataRow> getData() {
+		return service.getDataSetData(id);
+	}
+
 }
