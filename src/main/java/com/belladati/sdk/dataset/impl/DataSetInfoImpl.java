@@ -86,6 +86,11 @@ public class DataSetInfoImpl implements DataSetInfo {
 	}
 
 	@Override
+	public void postData(DataRow row) {
+		service.postDataSetData(id, row);
+	}
+
+	@Override
 	public String toString() {
 		return name;
 	}

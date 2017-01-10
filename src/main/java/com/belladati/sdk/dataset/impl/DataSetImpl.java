@@ -188,4 +188,9 @@ public class DataSetImpl implements DataSet {
 		return service.getDataSetData(id);
 	}
 
+	@Override
+	public void postData(DataRow row) {
+		service.postDataSetData(id, row);
+	}
+
 }

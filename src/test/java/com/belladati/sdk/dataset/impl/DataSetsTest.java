@@ -5,20 +5,28 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotEquals;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertSame;
+import static org.testng.Assert.assertTrue;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.TimeZone;
 
+import org.apache.http.entity.StringEntity;
 import org.testng.annotations.Test;
 
 import com.belladati.sdk.dataset.DataSet;
 import com.belladati.sdk.dataset.DataSetInfo;
+import com.belladati.sdk.dataset.data.DataColumn;
 import com.belladati.sdk.dataset.data.DataRow;
 import com.belladati.sdk.dataset.impl.DataSetImpl;
 import com.belladati.sdk.dataset.impl.DataSetInfoImpl;
 import com.belladati.sdk.report.ReportInfo;
 import com.belladati.sdk.test.SDKTest;
+import com.belladati.sdk.test.TestRequestHandler;
 import com.belladati.sdk.util.PaginatedIdList;
 import com.belladati.sdk.util.PaginatedList;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -34,6 +42,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 public class DataSetsTest extends SDKTest {
 
 	private final String dataSetsUri = "/api/dataSets";
+	private final String dataUri = "/api/dataSets/%s/data";
 
 	private final String id = "123";
 	private final String name = "data set name";
@@ -291,25 +300,110 @@ public class DataSetsTest extends SDKTest {
 		server.registerPaginatedItem(dataSetsUri, "dataSets", node);
 	}
 
-	/** Regular data set info data is loaded correctly. */
+	/** Regular data set data is loaded correctly. */
 	public void loadDataSetData() {
 		server.register(dataSetsUri + "/" + id, builder.buildDataSetNode(id, name, description, owner, lastChange).toString());
 
 		DataSet dataSet = service.loadDataSet(id);
 		server.assertRequestUris(dataSetsUri + "/" + id);
 
-		server.register(dataSetsUri + "/" + id + "/data", builder
-			.buildDataSetDataNode(id, name, description, owner, lastChange, 456, "L_ATTRIBUTE", "My Value", "M_INDICATOR", 11.99)
-			.toString());
+		server.register(String.format(dataUri, id), builder.buildDataSetDataNode(id, name, description, owner, lastChange, "456",
+			"L_ATTRIBUTE", "My Value", "M_INDICATOR", "11.99").toString());
 
 		PaginatedIdList<DataRow> dataList = dataSet.getData();
 		dataList.load();
-		server.assertRequestUris(dataSetsUri + "/" + id, dataSetsUri + "/" + id + "/data");
+		server.assertRequestUris(dataSetsUri + "/" + id, String.format(dataUri, id));
 
 		assertEquals(dataList.size(), 1);
+		assertEquals(dataList.toList().size(), 1);
 
 		DataRow info = dataList.get(0);
 		assertEquals(info.getId(), "456");
 		assertEquals(info.getColumns().size(), 2);
 	}
+
+	/** Regular data set info data is loaded correctly. */
+	public void loadDataSetDataFromInfo() {
+		String idDS = "id2";
+		String nameDS = "name2";
+		String descDS = "desc2";
+		String ownerDS = "owner2";
+		String lastChangeDS = "Tue, 17 Apr 2012 11:18:27 GMT";
+
+		registerSingleDataSet(builder.buildDataSetNode(id, name, description, owner, lastChange));
+		server.register(dataSetsUri + "/" + id, builder.buildDataSetNode(idDS, nameDS, descDS, ownerDS, lastChangeDS).toString());
+
+		DataSetInfo dataSetInfo = service.getDataSetInfo().load().get(0);
+		server.assertRequestUris(dataSetsUri);
+
+		server.register(String.format(dataUri, id), builder.buildDataSetDataNode(id, name, description, owner, lastChange, "456",
+			"L_ATTRIBUTE", "My Value", "M_INDICATOR", "11.99").toString());
+
+		PaginatedIdList<DataRow> dataList = dataSetInfo.getData();
+		dataList.load();
+		server.assertRequestUris(dataSetsUri, String.format(dataUri, id));
+
+		assertEquals(dataList.size(), 1);
+		assertEquals(dataList.toList().size(), 1);
+
+		DataRow info = dataList.get(0);
+		assertEquals(info.getId(), "456");
+		assertEquals(info.getColumns().size(), 2);
+	}
+
+	/** Posts data set data row. */
+	public void postDataSetData() {
+		DataSet dataSet = new DataSetImpl(service, builder.buildDataSetNode(id, name, description, owner, lastChange));
+
+		ObjectNode expectedNode = builder.buildDataSetDataRowNode("456", "L_ATTRIBUTE", "My Value", "M_INDICATOR", "11.99");
+
+		server.register(String.format(dataUri, id), new TestRequestHandler() {
+			@Override
+			protected void handle(HttpHolder holder) throws IOException {
+				Map<String, String> formParams = holder.getFormParameters();
+				assertEquals(formParams.size(), 1);
+				assertTrue(formParams.containsKey("dataRow"));
+				assertEquals(formParams.get("dataRow"), expectedNode.toString());
+				holder.response.setEntity(new StringEntity(""));
+			}
+		});
+
+		List<DataColumn> columns = new ArrayList<>();
+		columns.add(new DataColumn("L_ATTRIBUTE"));
+		columns.add(new DataColumn("M_INDICATOR"));
+
+		DataRow dataRow = new DataRow("456", columns);
+		dataRow.setAll("My Value", "11.99");
+
+		dataSet.postData(dataRow);
+	}
+
+	/** Posts data set info data row. */
+	public void postDataSetDataFromInfo() {
+		DataSetInfo dataSetInfo = new DataSetInfoImpl(service,
+			builder.buildDataSetNode(id, name, description, owner, lastChange));
+
+		ObjectNode expectedNode = builder.buildDataSetDataRowNode("456", "L_ATTRIBUTE", "My Value", "M_INDICATOR", "11.99");
+
+		server.register(String.format(dataUri, id), new TestRequestHandler() {
+			@Override
+			protected void handle(HttpHolder holder) throws IOException {
+				Map<String, String> formParams = holder.getFormParameters();
+				assertEquals(formParams.size(), 1);
+				assertTrue(formParams.containsKey("dataRow"));
+				assertEquals(formParams.get("dataRow"), expectedNode.toString());
+				holder.response.setEntity(new StringEntity(""));
+			}
+		});
+
+		List<DataColumn> columns = new ArrayList<>();
+		columns.add(new DataColumn("L_ATTRIBUTE"));
+		columns.add(new DataColumn("M_INDICATOR"));
+
+		DataRow dataRow = new DataRow("456", columns);
+		dataRow.setAll("My Value", "11.99");
+
+		dataSetInfo.postData(dataRow);
+	}
+
 }

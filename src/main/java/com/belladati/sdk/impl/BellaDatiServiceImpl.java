@@ -851,6 +851,12 @@ public class BellaDatiServiceImpl implements BellaDatiService {
 		}
 	}
 
+	@Override
+	public void postDataSetData(String dataSetId, DataRow row) throws NotFoundException {
+		client.post("api/dataSets/" + dataSetId + "/data", tokenHolder,
+			Collections.singletonList(new BasicNameValuePair("dataRow", row.toJsonObject().toString())));
+	}
+
 	/** Paginated list class for data rows. */
 	private class DataRowList extends PaginatedIdListImpl<DataRow> {
 

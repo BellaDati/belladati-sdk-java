@@ -138,8 +138,15 @@ public class JsonBuilder {
 	}
 
 	/** Builds a JSON node representing a data set or data set info item. */
+	public ObjectNode buildDataSetDataRowNode(String uid1, String attName1, String attValue1, String indName1, String indValue1) {
+		ObjectNode row1 = new ObjectMapper().createObjectNode();
+		row1.put("id", uid1).put(attName1, attValue1).put(indName1, indValue1);
+		return row1;
+	}
+
+	/** Builds a JSON node representing a data set or data set info item. */
 	public ObjectNode buildDataSetDataNode(String id, String name, String description, String owner, String lastChange,
-		Integer uid1, String attName1, String attValue1, String indName1, double indValue1) {
+		String uid1, String attName1, String attValue1, String indName1, String indValue1) {
 		ObjectNode json = new ObjectMapper().createObjectNode();
 		ObjectNode dataSet = new ObjectMapper().createObjectNode();
 		dataSet.put("id", id).put("name", name).put("description", description).put("owner", owner).put("lastChange", lastChange);
