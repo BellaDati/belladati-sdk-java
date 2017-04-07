@@ -2,7 +2,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.belladati</groupId>
 	<artifactId>sdk-java</artifactId>
-	<version>0.9.10</version>
+	<version>0.9.11-SNAPSHOT</version>
 	<packaging>jar</packaging>
 	<name>BellaDati SDK for Standard Java</name>
 	<url>http://www.belladati.com</url>
@@ -38,7 +38,7 @@
 
 	<properties>
 		<java.version>1.8</java.version>
-        <belladati.sdk.api.version>0.9.10</belladati.sdk.api.version>
+        <belladati.sdk.api.version>0.9.11-SNAPSHOT</belladati.sdk.api.version>
 	</properties>
 
 	<dependencies>
