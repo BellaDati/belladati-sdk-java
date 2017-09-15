@@ -39,7 +39,7 @@ public abstract class ViewImpl implements View {
 	 * @param service BelladatiService
 	 * @param node json node to create view from
 	 * @return assembled ViewImpl
-	 * @throws UnknownViewTypeException
+	 * @throws UnknownViewTypeException Thrown if view is unknow or not supported
 	 */
 	public static ViewImpl buildView(BellaDatiServiceImpl service, JsonNode node) throws UnknownViewTypeException {
 		switch (parseType(node)) {

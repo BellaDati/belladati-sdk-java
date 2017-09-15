@@ -547,7 +547,12 @@ public class BellaDatiServiceImpl implements BellaDatiService {
 		postMultipart("api/import/media/image", multipart);
 	}
 
-	/** Deserialization. Sets up the element lists and maps as empty objects. */
+	/**
+	 * Deserialization. Sets up the element lists and maps as empty objects.
+	 * @param in Input stream of object to be de-serialized
+	 * @throws IOException Thrown if IO error occurs during class reading
+	 * @throws ClassNotFoundException Thrown if desired class does not exist
+	 */
 	private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
 		in.defaultReadObject();
 		try {

@@ -404,7 +404,12 @@ public class BellaDatiClient implements Serializable {
 		return buf.toByteArray();
 	}
 
-	/** Deserialization. Sets up an HTTP client instance. */
+	/**
+	 * Deserialization. Sets up an HTTP client instance.
+	 * @param in Input stream of object to be de-serialized
+	 * @throws IOException Thrown if IO error occurs during class reading
+	 * @throws ClassNotFoundException Thrown if desired class does not exist
+	 */
 	private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
 		in.defaultReadObject();
 		try {
