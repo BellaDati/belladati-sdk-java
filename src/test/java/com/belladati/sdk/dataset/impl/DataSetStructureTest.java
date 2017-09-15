@@ -19,7 +19,6 @@ import com.belladati.sdk.dataset.Indicator;
 import com.belladati.sdk.dataset.IndicatorType;
 import com.belladati.sdk.dataset.data.DataColumn;
 import com.belladati.sdk.dataset.data.DataTable;
-import com.belladati.sdk.dataset.impl.DataSetImpl;
 import com.belladati.sdk.exception.dataset.data.NoColumnsException;
 import com.belladati.sdk.exception.impl.InvalidIndicatorException;
 import com.belladati.sdk.test.SDKTest;
@@ -45,7 +44,7 @@ public class DataSetStructureTest extends SDKTest {
 	public void attributesMissing() {
 		server.register(dataSetsUri + "/" + dataSetId,
 			builder.buildDataSetNode(dataSetId, name, description, owner, lastChange).toString());
-		DataSet dataSet = service.loadDataSet(dataSetId);
+		DataSet dataSet = getService().loadDataSet(dataSetId);
 
 		assertEquals(dataSet.getAttributes(), Collections.emptyList());
 	}
@@ -55,7 +54,7 @@ public class DataSetStructureTest extends SDKTest {
 		ObjectNode node = builder.buildDataSetNode(dataSetId, name, description, owner, lastChange);
 		node.put("attributes", new ObjectMapper().createArrayNode());
 		server.register(dataSetsUri + "/" + dataSetId, node.toString());
-		DataSet dataSet = service.loadDataSet(dataSetId);
+		DataSet dataSet = getService().loadDataSet(dataSetId);
 
 		assertEquals(dataSet.getAttributes(), Collections.emptyList());
 	}
@@ -66,7 +65,7 @@ public class DataSetStructureTest extends SDKTest {
 		ObjectNode node = builder.buildDataSetNode(dataSetId, name, description, owner, lastChange);
 		node.put("attributes", new ObjectMapper().createArrayNode().add(attribute));
 		server.register(dataSetsUri + "/" + dataSetId, node.toString());
-		DataSet dataSet = service.loadDataSet(dataSetId);
+		DataSet dataSet = getService().loadDataSet(dataSetId);
 
 		assertEquals(dataSet.getAttributes(), Collections.emptyList());
 	}
@@ -77,7 +76,7 @@ public class DataSetStructureTest extends SDKTest {
 		ObjectNode node = builder.buildDataSetNode(dataSetId, name, description, owner, lastChange);
 		node.put("attributes", new ObjectMapper().createArrayNode().add(builder.buildAttributeNode(id, name, code, jsonType)));
 		server.register(dataSetsUri + "/" + dataSetId, node.toString());
-		DataSet dataSet = service.loadDataSet(dataSetId);
+		DataSet dataSet = getService().loadDataSet(dataSetId);
 
 		assertEquals(dataSet.getAttributes().size(), 1);
 
@@ -94,16 +93,14 @@ public class DataSetStructureTest extends SDKTest {
 		ObjectNode node = builder.buildDataSetNode(dataSetId, name, description, owner, lastChange);
 		node.put("attributes", new ObjectMapper().createArrayNode().add(builder.buildAttributeNode(id, name, code, "string")));
 		server.register(dataSetsUri + "/" + dataSetId, node.toString());
-		DataSet dataSet = service.loadDataSet(dataSetId);
-		Attribute attribute = dataSet.getAttributes().get(0);
-
 		String label = "label";
 		String value = "value";
 		final ObjectNode valueNode = new ObjectMapper().createObjectNode();
 		valueNode.put("values", new ObjectMapper().createArrayNode().add(builder.buildAttributeValueNode(label, value)));
-
 		server.register(dataSetsUri + "/" + dataSetId + "/attributes/" + code + "/values", valueNode.toString());
 
+		DataSet dataSet = getService().loadDataSet(dataSetId);
+		Attribute attribute = dataSet.getAttributes().get(0);
 		List<AttributeValue> values = attribute.getValues().load().get();
 		assertEquals(values.size(), 1);
 
@@ -118,7 +115,7 @@ public class DataSetStructureTest extends SDKTest {
 	public void indicatorsMissing() {
 		server.register(dataSetsUri + "/" + dataSetId,
 			builder.buildDataSetNode(dataSetId, name, description, owner, lastChange).toString());
-		DataSet dataSet = service.loadDataSet(dataSetId);
+		DataSet dataSet = getService().loadDataSet(dataSetId);
 
 		assertEquals(dataSet.getIndicators(), Collections.emptyList());
 	}
@@ -128,7 +125,7 @@ public class DataSetStructureTest extends SDKTest {
 		ObjectNode node = builder.buildDataSetNode(dataSetId, name, description, owner, lastChange);
 		node.put("indicators", new ObjectMapper().createArrayNode());
 		server.register(dataSetsUri + "/" + dataSetId, node.toString());
-		DataSet dataSet = service.loadDataSet(dataSetId);
+		DataSet dataSet = getService().loadDataSet(dataSetId);
 
 		assertEquals(dataSet.getIndicators(), Collections.emptyList());
 	}
@@ -139,7 +136,7 @@ public class DataSetStructureTest extends SDKTest {
 		ObjectNode node = builder.buildDataSetNode(dataSetId, name, description, owner, lastChange);
 		node.put("indicators", new ObjectMapper().createArrayNode().add(indicator));
 		server.register(dataSetsUri + "/" + dataSetId, node.toString());
-		DataSet dataSet = service.loadDataSet(dataSetId);
+		DataSet dataSet = getService().loadDataSet(dataSetId);
 
 		assertEquals(dataSet.getIndicators(), Collections.emptyList());
 	}
@@ -150,7 +147,7 @@ public class DataSetStructureTest extends SDKTest {
 		node.put("indicators",
 			new ObjectMapper().createArrayNode().add(builder.buildIndicatorNode(id, name, code, formula, "data_indicator")));
 		server.register(dataSetsUri + "/" + dataSetId, node.toString());
-		DataSet dataSet = service.loadDataSet(dataSetId);
+		DataSet dataSet = getService().loadDataSet(dataSetId);
 
 		assertEquals(dataSet.getIndicators().size(), 1);
 
@@ -181,7 +178,7 @@ public class DataSetStructureTest extends SDKTest {
 		node.put("indicators",
 			new ObjectMapper().createArrayNode().add(builder.buildIndicatorNode(id, name, code, formula, "formula_indicator")));
 		server.register(dataSetsUri + "/" + dataSetId, node.toString());
-		DataSet dataSet = service.loadDataSet(dataSetId);
+		DataSet dataSet = getService().loadDataSet(dataSetId);
 
 		assertEquals(dataSet.getIndicators().size(), 1);
 
@@ -199,7 +196,7 @@ public class DataSetStructureTest extends SDKTest {
 		node.put("indicators",
 			new ObjectMapper().createArrayNode().add(builder.buildIndicatorNode(id, name, code, formula, "indicator_group")));
 		server.register(dataSetsUri + "/" + dataSetId, node.toString());
-		DataSet dataSet = service.loadDataSet(dataSetId);
+		DataSet dataSet = getService().loadDataSet(dataSetId);
 
 		assertEquals(dataSet.getIndicators().size(), 1);
 
@@ -214,7 +211,7 @@ public class DataSetStructureTest extends SDKTest {
 	/** data set without columns can't create import table */
 	@Test(expectedExceptions = NoColumnsException.class)
 	public void emptyDataSetTable() {
-		DataSet dataSet = new DataSetImpl(service, builder.buildDataSetNode(id, name, description, owner, lastChange));
+		DataSet dataSet = new DataSetImpl(getService(), builder.buildDataSetNode(id, name, description, owner, lastChange));
 		dataSet.createDataTable();
 	}
 
@@ -227,7 +224,7 @@ public class DataSetStructureTest extends SDKTest {
 			new ObjectMapper().createArrayNode().add(builder.buildAttributeNode(id, name, attributeCode, "String")));
 		node.put("indicators", new ObjectMapper().createArrayNode()
 			.add(builder.buildIndicatorNode(id, name, indicatorCode, formula, "data_indicator")));
-		DataTable table = new DataSetImpl(service, node).createDataTable();
+		DataTable table = new DataSetImpl(getService(), node).createDataTable();
 		assertEquals(table.getColumns(), Arrays.asList(new DataColumn(attributeCode), new DataColumn(indicatorCode)));
 	}
 

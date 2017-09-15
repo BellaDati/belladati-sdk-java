@@ -23,10 +23,11 @@ import com.belladati.sdk.test.TestRequestHandler;
 public class SerializationTest extends SDKTest {
 
 	/** Connections can be saved and restored. */
-	public void saveRestoreConnection() throws IOException, ClassNotFoundException {
+	public void saveRestoreConnection() throws Exception {
 		// set up connnection and server
-		BellaDatiConnection oldConnection = BellaDati.connect(server.getHttpURL());
 		server.register("/oauth/accessToken", "oauth_token=abc123&oauth_token_secret=123abc");
+		server.start();
+		BellaDatiConnection oldConnection = BellaDati.connect(server.getHttpURL());
 
 		// serialize connection
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -55,7 +56,7 @@ public class SerializationTest extends SDKTest {
 		server.register(reportsUri + "/" + id, new TestRequestHandler() {
 			@Override
 			protected void handle(HttpHolder holder) throws IOException {
-				holder.assertAuth(service.getTokenHolder().getConsumerKey(), service.getTokenHolder().getToken());
+				holder.assertAuth(getService().getTokenHolder().getConsumerKey(), getService().getTokenHolder().getToken());
 				holder.response.setEntity(new StringEntity(builder.buildReportNode(id, "", "", "", null).toString()));
 			}
 		});
@@ -63,7 +64,7 @@ public class SerializationTest extends SDKTest {
 		// serialize service
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		ObjectOutputStream output = new ObjectOutputStream(baos);
-		output.writeObject(service);
+		output.writeObject(getService());
 		output.close();
 		baos.close();
 		byte[] bytes = baos.toByteArray();
@@ -91,12 +92,22 @@ public class SerializationTest extends SDKTest {
 	/**
 	 * Pending OAuth requests can be saved and restored, including their tokens.
 	 */
-	public void saveRestoreOAuthRequest() throws IOException, ClassNotFoundException {
+	public void saveRestoreOAuthRequest() throws Exception {
 		// set up connnection and server
-		BellaDatiConnection connection = BellaDati.connect(server.getHttpURL());
 		final String key = "key";
 		final String requestToken = "abc123";
 		server.register("/oauth/requestToken", "oauth_token=" + requestToken + "&oauth_token_secret=123abc");
+
+		server.register("/oauth/accessToken", new TestRequestHandler() {
+			@Override
+			protected void handle(HttpHolder holder) throws IOException {
+				holder.assertAuth(key, requestToken);
+				holder.response.setEntity(new StringEntity("oauth_token=access&oauth_token_secret=accessSecret"));
+			}
+		});
+		server.start();
+
+		BellaDatiConnection connection = BellaDati.connect(server.getHttpURL());
 		OAuthRequest oldRequest = connection.oAuth(key, "secret");
 		server.resetRequestUris();
 
@@ -118,13 +129,6 @@ public class SerializationTest extends SDKTest {
 		assertEquals(newRequest.getAuthorizationUrl().toString(),
 			server.getHttpURL() + "/authorizeRequestToken/" + requestToken + "/" + key);
 
-		server.register("/oauth/accessToken", new TestRequestHandler() {
-			@Override
-			protected void handle(HttpHolder holder) throws IOException {
-				holder.assertAuth(key, requestToken);
-				holder.response.setEntity(new StringEntity("oauth_token=access&oauth_token_secret=accessSecret"));
-			}
-		});
 		newRequest.requestAccess();
 		server.assertRequestUris("/oauth/accessToken");
 	}

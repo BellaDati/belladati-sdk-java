@@ -34,8 +34,6 @@ public class DomainCreateBuilderTest extends SDKTest {
 
 	@BeforeMethod(alwaysRun = true)
 	protected void setupSource() throws Exception {
-		builder = service.setupDomainCreateBuilder();
-
 		server.register(requestUri, new TestRequestHandler() {
 			@Override
 			protected void handle(HttpHolder holder) throws IOException {
@@ -43,6 +41,7 @@ public class DomainCreateBuilderTest extends SDKTest {
 				holder.response.setEntity(new StringEntity(id));
 			}
 		});
+		builder = getService().setupDomainCreateBuilder();
 	}
 
 	public void postToServer_empty() {

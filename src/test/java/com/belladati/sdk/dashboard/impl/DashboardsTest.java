@@ -17,8 +17,6 @@ import org.testng.annotations.Test;
 
 import com.belladati.sdk.dashboard.Dashboard;
 import com.belladati.sdk.dashboard.DashboardInfo;
-import com.belladati.sdk.dashboard.impl.DashboardImpl;
-import com.belladati.sdk.dashboard.impl.DashboardInfoImpl;
 import com.belladati.sdk.exception.server.InvalidStreamException;
 import com.belladati.sdk.test.SDKTest;
 import com.belladati.sdk.test.TestRequestHandler;
@@ -42,10 +40,9 @@ public class DashboardsTest extends SDKTest {
 
 	/** Regular dashboard info data is loaded correctly. */
 	public void loadDashboardInfo() {
-		PaginatedList<DashboardInfo> dashboardInfos = service.getDashboardInfo();
-
 		registerSingleDashboard(builder.buildDashboardNode(id, name, lastChange));
 
+		PaginatedList<DashboardInfo> dashboardInfos = getService().getDashboardInfo();
 		dashboardInfos.load();
 		server.assertRequestUris(dashboardsUri);
 		assertEquals(dashboardInfos.size(), 1);
@@ -65,7 +62,7 @@ public class DashboardsTest extends SDKTest {
 	public void infoNullLastChange() {
 		registerSingleDashboard(builder.buildDashboardNode(id, name, null));
 
-		assertNull(service.getDashboardInfo().load().get(0).getLastChange());
+		assertNull(getService().getDashboardInfo().load().get(0).getLastChange());
 	}
 
 	/** Dashboard last change may be missing. */
@@ -74,26 +71,26 @@ public class DashboardsTest extends SDKTest {
 		node.remove("lastChange");
 		registerSingleDashboard(node);
 
-		assertNull(service.getDashboardInfo().load().get(0).getLastChange());
+		assertNull(getService().getDashboardInfo().load().get(0).getLastChange());
 	}
 
 	/** Dashboard last change may be invalid format. */
 	public void infoInvalidLastChange() {
 		registerSingleDashboard(builder.buildDashboardNode(id, name, "something invalid"));
 
-		assertNull(service.getDashboardInfo().load().get(0).getLastChange());
+		assertNull(getService().getDashboardInfo().load().get(0).getLastChange());
 	}
 
 	/** Getting a dashboard info list multiple times returns the same list. */
 	public void dashboardInfoListSame() {
-		assertSame(service.getDashboardInfo(), service.getDashboardInfo());
+		assertSame(getService().getDashboardInfo(), getService().getDashboardInfo());
 	}
 
-	/** Individual dashboard can be loaded by ID through service. */
+	/** Individual dashboard can be loaded by ID through getService(). */
 	public void loadDashboard() {
 		server.register(dashboardsUri + "/" + id, builder.buildDashboardNode(id, name, lastChange).toString());
 
-		Dashboard dashboard = service.loadDashboard(id);
+		Dashboard dashboard = getService().loadDashboard(id);
 		server.assertRequestUris(dashboardsUri + "/" + id);
 
 		assertEquals(dashboard.getId(), id);
@@ -111,7 +108,7 @@ public class DashboardsTest extends SDKTest {
 	/** Dashboard last change may be null. */
 	public void dashboardNullLastChange() {
 		server.register(dashboardsUri + "/" + id, builder.buildDashboardNode(id, name, null).toString());
-		Dashboard dashboard = service.loadDashboard(id);
+		Dashboard dashboard = getService().loadDashboard(id);
 
 		assertNull(dashboard.getLastChange());
 	}
@@ -121,7 +118,7 @@ public class DashboardsTest extends SDKTest {
 		ObjectNode node = builder.buildDashboardNode(id, name, lastChange);
 		node.remove("lastChange");
 		server.register(dashboardsUri + "/" + id, node.toString());
-		Dashboard dashboard = service.loadDashboard(id);
+		Dashboard dashboard = getService().loadDashboard(id);
 
 		assertNull(dashboard.getLastChange());
 	}
@@ -129,7 +126,7 @@ public class DashboardsTest extends SDKTest {
 	/** Dashboard last change may be invalid format. */
 	public void dashboardInvalidLastChange() {
 		server.register(dashboardsUri + "/" + id, builder.buildDashboardNode(id, name, "something invalid").toString());
-		Dashboard dashboard = service.loadDashboard(id);
+		Dashboard dashboard = getService().loadDashboard(id);
 
 		assertNull(dashboard.getLastChange());
 	}
@@ -143,7 +140,7 @@ public class DashboardsTest extends SDKTest {
 		registerSingleDashboard(builder.buildDashboardNode(id, name, lastChange));
 		server.register(dashboardsUri + "/" + id, builder.buildDashboardNode(idDash, nameDash, lastChangeDash).toString());
 
-		Dashboard dashboard = service.getDashboardInfo().load().get(0).loadDetails();
+		Dashboard dashboard = getService().getDashboardInfo().load().get(0).loadDetails();
 
 		assertEquals(dashboard.getId(), idDash);
 		assertEquals(dashboard.getName(), nameDash);
@@ -155,7 +152,7 @@ public class DashboardsTest extends SDKTest {
 		assertEquals(dashboard.getDashlets(), Collections.emptyList());
 	}
 
-	/** Can load a dashboard thumbnail from service. */
+	/** Can load a dashboard thumbnail from getService(). */
 	public void loadThumbnailFromService() {
 		server.register(dashboardsUri + "/" + id + "/thumbnail", new TestRequestHandler() {
 			@Override
@@ -164,7 +161,7 @@ public class DashboardsTest extends SDKTest {
 			}
 		});
 
-		BufferedImage thumbnail = (BufferedImage) service.loadDashboardThumbnail(id);
+		BufferedImage thumbnail = (BufferedImage) getService().loadDashboardThumbnail(id);
 
 		server.assertRequestUris(dashboardsUri + "/" + id + "/thumbnail");
 
@@ -174,8 +171,6 @@ public class DashboardsTest extends SDKTest {
 
 	/** Can load a dashboard thumbnail from info. */
 	public void loadThumbnailFromDashboardInfo() {
-		DashboardInfo dashboardInfo = new DashboardInfoImpl(service, builder.buildDashboardNode(id, name, lastChange));
-
 		server.register(dashboardsUri + "/" + id + "/thumbnail", new TestRequestHandler() {
 			@Override
 			protected void handle(HttpHolder holder) throws IOException {
@@ -183,6 +178,7 @@ public class DashboardsTest extends SDKTest {
 			}
 		});
 
+		DashboardInfo dashboardInfo = new DashboardInfoImpl(getService(), builder.buildDashboardNode(id, name, lastChange));
 		BufferedImage thumbnail = (BufferedImage) dashboardInfo.loadThumbnail();
 
 		server.assertRequestUris(dashboardsUri + "/" + id + "/thumbnail");
@@ -194,18 +190,17 @@ public class DashboardsTest extends SDKTest {
 	/** Invalid thumbnail results in exception. */
 	@Test(expectedExceptions = InvalidStreamException.class)
 	public void loadInvalidThumbnail() throws InvalidStreamException {
-		DashboardInfo dashboardInfo = new DashboardInfoImpl(service, builder.buildDashboardNode(id, name, lastChange));
-
 		server.register(dashboardsUri + "/" + id + "/thumbnail", "not a thumbnail image");
 
+		DashboardInfo dashboardInfo = new DashboardInfoImpl(getService(), builder.buildDashboardNode(id, name, lastChange));
 		dashboardInfo.loadThumbnail();
 	}
 
 	/** equals/hashcode for dashboard info */
 	public void dashboardInfoEquality() {
-		DashboardInfo d1 = new DashboardInfoImpl(service, builder.buildDashboardNode(id, name, lastChange));
-		DashboardInfo d2 = new DashboardInfoImpl(service, builder.buildDashboardNode(id, "", null));
-		DashboardInfo d3 = new DashboardInfoImpl(service, builder.buildDashboardNode("otherId", name, lastChange));
+		DashboardInfo d1 = new DashboardInfoImpl(getService(), builder.buildDashboardNode(id, name, lastChange));
+		DashboardInfo d2 = new DashboardInfoImpl(getService(), builder.buildDashboardNode(id, "", null));
+		DashboardInfo d3 = new DashboardInfoImpl(getService(), builder.buildDashboardNode("otherId", name, lastChange));
 
 		assertEquals(d1, d2);
 		assertEquals(d1.hashCode(), d2.hashCode());
@@ -216,9 +211,9 @@ public class DashboardsTest extends SDKTest {
 
 	/** equals/hashcode for dashboard */
 	public void dashboardEquality() {
-		Dashboard d1 = new DashboardImpl(service, builder.buildDashboardNode(id, name, lastChange));
-		Dashboard d2 = new DashboardImpl(service, builder.buildDashboardNode(id, "", null));
-		Dashboard d3 = new DashboardImpl(service, builder.buildDashboardNode("otherId", name, lastChange));
+		Dashboard d1 = new DashboardImpl(getService(), builder.buildDashboardNode(id, name, lastChange));
+		Dashboard d2 = new DashboardImpl(getService(), builder.buildDashboardNode(id, "", null));
+		Dashboard d3 = new DashboardImpl(getService(), builder.buildDashboardNode("otherId", name, lastChange));
 
 		assertEquals(d1, d2);
 		assertEquals(d1.hashCode(), d2.hashCode());

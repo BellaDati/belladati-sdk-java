@@ -15,10 +15,10 @@ import org.testng.annotations.Test;
 import com.belladati.sdk.exception.impl.UnknownViewTypeException;
 import com.belladati.sdk.test.SDKTest;
 import com.belladati.sdk.test.TestRequestHandler;
-import com.belladati.sdk.view.View;
-import com.belladati.sdk.view.ViewType;
 import com.belladati.sdk.view.ImageView;
 import com.belladati.sdk.view.ImageView.Image;
+import com.belladati.sdk.view.View;
+import com.belladati.sdk.view.ViewType;
 
 @Test
 public class ImageViewsTest extends SDKTest {
@@ -53,7 +53,7 @@ public class ImageViewsTest extends SDKTest {
 
 	/** image is loaded correctly. */
 	public void loadViewTable() throws UnknownViewTypeException {
-		View view = new ImageViewImpl(service, builder.buildViewNode(id, name, "image"));
+		View view = new ImageViewImpl(getService(), builder.buildViewNode(id, name, "image"));
 
 		ImageView.Image image = (Image) view.loadContent();
 
@@ -65,7 +65,7 @@ public class ImageViewsTest extends SDKTest {
 
 	/** image is loaded correctly via service. */
 	public void loadViewTableFromService() {
-		ImageView.Image image = (Image) service.loadViewContent(id, ViewType.IMAGE);
+		ImageView.Image image = (Image) getService().loadViewContent(id, ViewType.IMAGE);
 
 		assertEquals(image.getId(), id);
 		assertEqualsBufferedImage(image.getImage(), getTestBufferedImage());
@@ -74,7 +74,7 @@ public class ImageViewsTest extends SDKTest {
 
 	/** image is loaded correctly. */
 	public void loadViewTableFromLoader() throws UnknownViewTypeException {
-		View view = new ImageViewImpl(service, builder.buildViewNode(id, name, "image"));
+		View view = new ImageViewImpl(getService(), builder.buildViewNode(id, name, "image"));
 
 		ImageView.Image image = (Image) view.createLoader().loadContent();
 
@@ -86,7 +86,7 @@ public class ImageViewsTest extends SDKTest {
 
 	/** image is loaded correctly via service. */
 	public void loadViewTableFromServiceLoader() {
-		ImageView.Image image = (Image) service.setupViewLoader(id, ViewType.IMAGE).loadContent();
+		ImageView.Image image = (Image) getService().setupViewLoader(id, ViewType.IMAGE).loadContent();
 
 		assertEquals(image.getId(), id);
 		assertEqualsBufferedImage(image.getImage(), getTestBufferedImage());
@@ -104,7 +104,7 @@ public class ImageViewsTest extends SDKTest {
 			}
 		});
 
-		service.editImageView(id, getTestImageFile());
+		getService().editImageView(id, getTestImageFile());
 		assertTrue(executed[0]);
 	}
 
@@ -119,7 +119,7 @@ public class ImageViewsTest extends SDKTest {
 			}
 		});
 
-		ImageView view = new ImageViewImpl(service, builder.buildViewNode(id, name, "image"));
+		ImageView view = new ImageViewImpl(getService(), builder.buildViewNode(id, name, "image"));
 		view.updateImage(getTestImageFile());
 		assertTrue(executed[0]);
 	}

@@ -8,7 +8,6 @@ import static org.testng.Assert.assertSame;
 import org.testng.annotations.Test;
 
 import com.belladati.sdk.dataset.DataSet;
-import com.belladati.sdk.dataset.impl.DataSetImpl;
 import com.belladati.sdk.dataset.source.DataSource;
 import com.belladati.sdk.dataset.source.impl.DataSourceImpl;
 import com.belladati.sdk.test.SDKTest;
@@ -27,10 +26,9 @@ public class DataSourcesTest extends SDKTest {
 
 	/** Data source is loaded correctly from service. */
 	public void loadDataSource() {
-		CachedList<DataSource> dataSources = service.getDataSources(dsId);
-
 		registerSingleDataSource(builder.buildDataSourceNode(id, name, type));
 
+		CachedList<DataSource> dataSources = getService().getDataSources(dsId);
 		dataSources.load();
 		server.assertRequestUris(dataSourcesUri);
 		assertEquals(dataSources.toList().size(), 1);
@@ -46,11 +44,10 @@ public class DataSourcesTest extends SDKTest {
 
 	/** Data source is loaded correctly from data set. */
 	public void loadFromDataSet() {
-		DataSet dataSet = new DataSetImpl(service, builder.buildDataSetNode(dsId, "", null, null, null));
-		CachedList<DataSource> dataSources = dataSet.getDataSources();
-
 		registerSingleDataSource(builder.buildDataSourceNode(id, name, type));
 
+		DataSet dataSet = new DataSetImpl(getService(), builder.buildDataSetNode(dsId, "", null, null, null));
+		CachedList<DataSource> dataSources = dataSet.getDataSources();
 		dataSources.load();
 		server.assertRequestUris(dataSourcesUri);
 		assertEquals(dataSources.toList().size(), 1);
@@ -66,16 +63,16 @@ public class DataSourcesTest extends SDKTest {
 
 	/** given the same ID, the same collection is returned */
 	public void sameCollection() {
-		DataSet dataSet = new DataSetImpl(service, builder.buildDataSetNode(dsId, "", null, null, null));
+		DataSet dataSet = new DataSetImpl(getService(), builder.buildDataSetNode(dsId, "", null, null, null));
 
-		assertSame(dataSet.getDataSources(), service.getDataSources(dsId));
+		assertSame(dataSet.getDataSources(), getService().getDataSources(dsId));
 	}
 
 	/** equals/hashcode for data source */
 	public void dataSourceEquality() {
-		DataSource d1 = new DataSourceImpl(service, builder.buildDataSourceNode(id, name, type));
-		DataSource d2 = new DataSourceImpl(service, builder.buildDataSourceNode(id, "", ""));
-		DataSource d3 = new DataSourceImpl(service, builder.buildDataSourceNode("otherId", name, type));
+		DataSource d1 = new DataSourceImpl(getService(), builder.buildDataSourceNode(id, name, type));
+		DataSource d2 = new DataSourceImpl(getService(), builder.buildDataSourceNode(id, "", ""));
+		DataSource d3 = new DataSourceImpl(getService(), builder.buildDataSourceNode("otherId", name, type));
 
 		assertEquals(d1, d2);
 		assertEquals(d1.hashCode(), d2.hashCode());
@@ -86,7 +83,8 @@ public class DataSourcesTest extends SDKTest {
 
 	/** trailing 'ImportTable' is removed from type */
 	public void importTableType() {
-		assertEquals(new DataSourceImpl(service, builder.buildDataSourceNode(id, name, type + "ImportTable")).getType(), type);
+		assertEquals(new DataSourceImpl(getService(), builder.buildDataSourceNode(id, name, type + "ImportTable")).getType(),
+			type);
 	}
 
 	private void registerSingleDataSource(JsonNode node) {

@@ -95,28 +95,28 @@ public class LocalizableTest extends SDKTest {
 		return new Object[][] { { builder.buildDataSetNode(id, name, null, null, null), new ElementCreator() {
 			@Override
 			public Localizable create(JsonNode json) {
-				return new DataSetImpl(service, json);
+				return new DataSetImpl(getService(), json);
 			}
 		} }, { builder.buildDataSetNode(id, name, null, null, null), new ElementCreator() {
 			@Override
 			public Localizable create(JsonNode json) {
-				return new DataSetInfoImpl(service, json);
+				return new DataSetInfoImpl(getService(), json);
 			}
 		} }, { builder.buildReportNode(id, name, null, null, null), new ElementCreator() {
 			@Override
 			public Localizable create(JsonNode json) {
-				return new ReportImpl(service, json);
+				return new ReportImpl(getService(), json);
 			}
 		} }, { builder.buildReportNode(id, name, null, "", null), new ElementCreator() {
 			@Override
 			public Localizable create(JsonNode json) {
-				return new ReportInfoImpl(service, json);
+				return new ReportInfoImpl(getService(), json);
 			}
 		} }, { builder.buildViewNode(id, name, "chart"), new ElementCreator() {
 			@Override
 			public Localizable create(JsonNode json) {
 				try {
-					return ViewImpl.buildView(service, json);
+					return ViewImpl.buildView(getService(), json);
 				} catch (UnknownViewTypeException e) {
 					fail("Exception building the view");
 					return null;

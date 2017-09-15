@@ -22,8 +22,6 @@ import com.belladati.sdk.exception.server.InvalidJsonException;
 import com.belladati.sdk.exception.server.InvalidStreamException;
 import com.belladati.sdk.report.Report;
 import com.belladati.sdk.report.ReportInfo;
-import com.belladati.sdk.report.impl.ReportImpl;
-import com.belladati.sdk.report.impl.ReportInfoImpl;
 import com.belladati.sdk.test.SDKTest;
 import com.belladati.sdk.test.TestRequestHandler;
 import com.belladati.sdk.util.PaginatedList;
@@ -50,10 +48,9 @@ public class ReportsTest extends SDKTest {
 
 	/** Regular report info data is loaded correctly. */
 	public void loadReportInfo() {
-		PaginatedList<ReportInfo> reportInfos = service.getReportInfo();
-
 		registerSingleReport(builder.buildReportNode(id, name, description, owner, lastChange));
 
+		PaginatedList<ReportInfo> reportInfos = getService().getReportInfo();
 		reportInfos.load();
 		server.assertRequestUris(reportsUri);
 		assertEquals(reportInfos.size(), 1);
@@ -75,7 +72,7 @@ public class ReportsTest extends SDKTest {
 	public void infoNullDescription() {
 		registerSingleReport(builder.buildReportNode(id, name, null, owner, lastChange));
 
-		assertEquals(service.getReportInfo().load().get(0).getDescription(), "");
+		assertEquals(getService().getReportInfo().load().get(0).getDescription(), "");
 	}
 
 	/** Report description may be missing. */
@@ -84,14 +81,14 @@ public class ReportsTest extends SDKTest {
 		node.remove("description");
 		registerSingleReport(node);
 
-		assertEquals(service.getReportInfo().load().get(0).getDescription(), "");
+		assertEquals(getService().getReportInfo().load().get(0).getDescription(), "");
 	}
 
 	/** Report last change may be null. */
 	public void infoNullLastChange() {
 		registerSingleReport(builder.buildReportNode(id, name, description, owner, null));
 
-		assertNull(service.getReportInfo().load().get(0).getLastChange());
+		assertNull(getService().getReportInfo().load().get(0).getLastChange());
 	}
 
 	/** Report last change may be missing. */
@@ -100,26 +97,26 @@ public class ReportsTest extends SDKTest {
 		node.remove("lastChange");
 		registerSingleReport(node);
 
-		assertNull(service.getReportInfo().load().get(0).getLastChange());
+		assertNull(getService().getReportInfo().load().get(0).getLastChange());
 	}
 
 	/** Report last change may be invalid format. */
 	public void infoInvalidLastChange() {
 		registerSingleReport(builder.buildReportNode(id, name, description, owner, "something invalid"));
 
-		assertNull(service.getReportInfo().load().get(0).getLastChange());
+		assertNull(getService().getReportInfo().load().get(0).getLastChange());
 	}
 
 	/** Getting a report info list multiple times returns the same list. */
 	public void reportInfoListSame() {
-		assertSame(service.getReportInfo(), service.getReportInfo());
+		assertSame(getService().getReportInfo(), getService().getReportInfo());
 	}
 
-	/** Individual report can be loaded by ID through service. */
+	/** Individual report can be loaded by ID through getService(). */
 	public void loadReport() {
 		server.register(reportsUri + "/" + id, builder.buildReportNode(id, name, description, owner, lastChange).toString());
 
-		Report report = service.loadReport(id);
+		Report report = getService().loadReport(id);
 		server.assertRequestUris(reportsUri + "/" + id);
 
 		assertEquals(report.getId(), id);
@@ -140,7 +137,7 @@ public class ReportsTest extends SDKTest {
 	/** Report description may be null. */
 	public void reportNullDescription() {
 		server.register(reportsUri + "/" + id, builder.buildReportNode(id, name, null, owner, lastChange).toString());
-		Report report = service.loadReport(id);
+		Report report = getService().loadReport(id);
 
 		assertEquals(report.getDescription(), "");
 	}
@@ -150,7 +147,7 @@ public class ReportsTest extends SDKTest {
 		ObjectNode node = builder.buildReportNode(id, name, description, owner, lastChange);
 		node.remove("description");
 		server.register(reportsUri + "/" + id, node.toString());
-		Report report = service.loadReport(id);
+		Report report = getService().loadReport(id);
 
 		assertEquals(report.getDescription(), "");
 	}
@@ -158,7 +155,7 @@ public class ReportsTest extends SDKTest {
 	/** Report last change may be null. */
 	public void reportNullLastChange() {
 		server.register(reportsUri + "/" + id, builder.buildReportNode(id, name, description, owner, null).toString());
-		Report report = service.loadReport(id);
+		Report report = getService().loadReport(id);
 
 		assertNull(report.getLastChange());
 	}
@@ -168,7 +165,7 @@ public class ReportsTest extends SDKTest {
 		ObjectNode node = builder.buildReportNode(id, name, description, owner, lastChange);
 		node.remove("lastChange");
 		server.register(reportsUri + "/" + id, node.toString());
-		Report report = service.loadReport(id);
+		Report report = getService().loadReport(id);
 
 		assertNull(report.getLastChange());
 	}
@@ -177,7 +174,7 @@ public class ReportsTest extends SDKTest {
 	public void reportInvalidLastChange() {
 		server.register(reportsUri + "/" + id,
 			builder.buildReportNode(id, name, description, owner, "something invalid").toString());
-		Report report = service.loadReport(id);
+		Report report = getService().loadReport(id);
 
 		assertNull(report.getLastChange());
 	}
@@ -194,7 +191,7 @@ public class ReportsTest extends SDKTest {
 		server.register(reportsUri + "/" + id,
 			builder.buildReportNode(idRep, nameRep, descRep, ownerRep, lastChangeRep).toString());
 
-		Report report = service.getReportInfo().load().get(0).loadDetails();
+		Report report = getService().getReportInfo().load().get(0).loadDetails();
 
 		assertEquals(report.getId(), idRep);
 		assertEquals(report.getName(), nameRep);
@@ -215,10 +212,10 @@ public class ReportsTest extends SDKTest {
 		registerSingleReport(builder.buildReportNode(id, name, description, owner, lastChange));
 		server.register(reportsUri + "/" + id, "invalid JSON");
 
-		service.getReportInfo().load().get(0).loadDetails();
+		getService().getReportInfo().load().get(0).loadDetails();
 	}
 
-	/** Can load a report's thumbnail from service. */
+	/** Can load a report's thumbnail from getService(). */
 	public void loadThumbnailFromService() {
 		server.register(reportsUri + "/" + id + "/thumbnail", new TestRequestHandler() {
 			@Override
@@ -227,7 +224,7 @@ public class ReportsTest extends SDKTest {
 			}
 		});
 
-		BufferedImage thumbnail = (BufferedImage) service.loadReportThumbnail(id);
+		BufferedImage thumbnail = (BufferedImage) getService().loadReportThumbnail(id);
 
 		server.assertRequestUris(reportsUri + "/" + id + "/thumbnail");
 
@@ -237,8 +234,6 @@ public class ReportsTest extends SDKTest {
 
 	/** Can load a report's thumbnail from info. */
 	public void loadThumbnailFromReportInfo() {
-		ReportInfo reportInfo = new ReportInfoImpl(service, builder.buildReportNode(id, name, description, owner, lastChange));
-
 		server.register(reportsUri + "/" + id + "/thumbnail", new TestRequestHandler() {
 			@Override
 			protected void handle(HttpHolder holder) throws IOException {
@@ -246,6 +241,8 @@ public class ReportsTest extends SDKTest {
 			}
 		});
 
+		ReportInfo reportInfo = new ReportInfoImpl(getService(),
+			builder.buildReportNode(id, name, description, owner, lastChange));
 		BufferedImage thumbnail = (BufferedImage) reportInfo.loadThumbnail();
 
 		server.assertRequestUris(reportsUri + "/" + id + "/thumbnail");
@@ -257,18 +254,19 @@ public class ReportsTest extends SDKTest {
 	/** Invalid thumbnail results in exception. */
 	@Test(expectedExceptions = InvalidStreamException.class)
 	public void loadInvalidThumbnail() throws InvalidStreamException {
-		ReportInfo reportInfo = new ReportInfoImpl(service, builder.buildReportNode(id, name, description, owner, lastChange));
-
 		server.register(reportsUri + "/" + id + "/thumbnail", "not a thumbnail image");
 
+		ReportInfo reportInfo = new ReportInfoImpl(getService(),
+			builder.buildReportNode(id, name, description, owner, lastChange));
 		reportInfo.loadThumbnail();
 	}
 
 	/** equals/hashcode for report info */
 	public void reportInfoEquality() {
-		ReportInfo r1 = new ReportInfoImpl(service, builder.buildReportNode(id, name, description, owner, lastChange));
-		ReportInfo r2 = new ReportInfoImpl(service, builder.buildReportNode(id, "", "", "", null));
-		ReportInfo r3 = new ReportInfoImpl(service, builder.buildReportNode("otherId", name, description, owner, lastChange));
+		ReportInfo r1 = new ReportInfoImpl(getService(), builder.buildReportNode(id, name, description, owner, lastChange));
+		ReportInfo r2 = new ReportInfoImpl(getService(), builder.buildReportNode(id, "", "", "", null));
+		ReportInfo r3 = new ReportInfoImpl(getService(),
+			builder.buildReportNode("otherId", name, description, owner, lastChange));
 
 		assertEquals(r1, r2);
 		assertEquals(r1.hashCode(), r2.hashCode());
@@ -279,9 +277,9 @@ public class ReportsTest extends SDKTest {
 
 	/** equals/hashcode for report */
 	public void reportEquality() {
-		Report r1 = new ReportImpl(service, builder.buildReportNode(id, name, description, owner, lastChange));
-		Report r2 = new ReportImpl(service, builder.buildReportNode(id, "", "", "", null));
-		Report r3 = new ReportImpl(service, builder.buildReportNode("otherId", name, description, owner, lastChange));
+		Report r1 = new ReportImpl(getService(), builder.buildReportNode(id, name, description, owner, lastChange));
+		Report r2 = new ReportImpl(getService(), builder.buildReportNode(id, "", "", "", null));
+		Report r3 = new ReportImpl(getService(), builder.buildReportNode("otherId", name, description, owner, lastChange));
 
 		assertEquals(r1, r2);
 		assertEquals(r1.hashCode(), r2.hashCode());
@@ -302,7 +300,7 @@ public class ReportsTest extends SDKTest {
 		((ObjectNode) reportNode.get("dataSet")).putAll(dataSetNode);
 
 		server.register(reportsUri + "/" + id, reportNode.toString());
-		Report report = service.loadReport(id);
+		Report report = getService().loadReport(id);
 
 		DataSetInfo dataSet = report.getDataSet();
 
@@ -319,7 +317,7 @@ public class ReportsTest extends SDKTest {
 	/** incomplete data set information is ignored */
 	public void incompleteDataSet() {
 		server.register(reportsUri + "/" + id, builder.buildReportNode(id, name, description, owner, lastChange).toString());
-		assertNull(service.loadReport(id).getDataSet());
+		assertNull(getService().loadReport(id).getDataSet());
 	}
 
 	/** missing data set information is ignored */
@@ -327,7 +325,7 @@ public class ReportsTest extends SDKTest {
 		ObjectNode reportNode = builder.buildReportNode(id, name, description, owner, lastChange);
 		reportNode.remove("dataSet");
 		server.register(reportsUri + "/" + id, reportNode.toString());
-		assertNull(service.loadReport(id).getDataSet());
+		assertNull(getService().loadReport(id).getDataSet());
 	}
 
 	/** data set details can be loaded from a report's data set info */
@@ -338,7 +336,7 @@ public class ReportsTest extends SDKTest {
 
 		server.register(reportsUri + "/" + id, reportNode.toString());
 		server.register("/api/dataSets/" + id, dataSetNode.toString());
-		Report report = service.loadReport(id);
+		Report report = getService().loadReport(id);
 
 		DataSetInfo dataSet = report.getDataSet();
 		assertNotNull(dataSet.loadDetails());
@@ -349,17 +347,15 @@ public class ReportsTest extends SDKTest {
 	public void createImageView_fromService() {
 		registerCreateImage(id, viewId, "50", "100");
 
-		String newViewId = service.createImageView(id, "my view name", getTestImageFile(), 50, 100);
+		String newViewId = getService().createImageView(id, "my view name", getTestImageFile(), 50, 100);
 		assertEquals(newViewId, viewId);
 	}
 
 	public void createImageView_fromReport() {
 		server.register(reportsUri + "/" + id, builder.buildReportNode(id, name, description, owner, lastChange).toString());
-
-		Report report = service.loadReport(id);
-
 		registerCreateImage(id, viewId, "30", "500");
 
+		Report report = getService().loadReport(id);
 		String newViewId = report.createImageView("my view name", getTestImageFile(), 30, 500);
 		assertEquals(newViewId, viewId);
 	}
@@ -367,11 +363,9 @@ public class ReportsTest extends SDKTest {
 	public void createImageView_fromReportInfo() {
 		registerSingleReport(builder.buildReportNode(id, name, description, owner, lastChange));
 		server.register(reportsUri + "/" + id, builder.buildReportNode(id, name, description, owner, lastChange).toString());
-
-		ReportInfo reportInfo = service.getReportInfo().load().get(0);
-
 		registerCreateImage(id, viewId, null, null);
 
+		ReportInfo reportInfo = getService().getReportInfo().load().get(0);
 		String newViewId = reportInfo.createImageView("my view name", getTestImageFile(), null, null);
 		assertEquals(newViewId, viewId);
 	}

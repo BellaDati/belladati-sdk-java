@@ -49,7 +49,7 @@ public class ViewExporterTest extends SDKTest {
 	}
 
 	public void exportPng_defaults() throws UnknownViewTypeException, IOException {
-		View view = new TableViewImpl(service, builder.buildViewNode(id, name, "table"));
+		View view = new TableViewImpl(getService(), builder.buildViewNode(id, name, "table"));
 
 		ViewExporter exporter = view.createExporter();
 		assertEquals(exporter.getId(), id);
@@ -66,7 +66,7 @@ public class ViewExporterTest extends SDKTest {
 	}
 
 	public void exportPng_params() throws UnknownViewTypeException, IOException {
-		View view = new TableViewImpl(service, builder.buildViewNode(id, name, "chart"));
+		View view = new TableViewImpl(getService(), builder.buildViewNode(id, name, "chart"));
 
 		ViewExporter exporter = view.createExporter();
 		assertEquals(exporter.getId(), id);
@@ -83,7 +83,7 @@ public class ViewExporterTest extends SDKTest {
 	}
 
 	public void exportPdf_defaults() throws UnknownViewTypeException, IOException {
-		View view = new TableViewImpl(service, builder.buildViewNode(id, name, "table"));
+		View view = new TableViewImpl(getService(), builder.buildViewNode(id, name, "table"));
 
 		ViewExporter exporter = view.createExporter();
 		assertEquals(exporter.getId(), id);
@@ -99,7 +99,7 @@ public class ViewExporterTest extends SDKTest {
 	}
 
 	public void exportPdf_params() throws UnknownViewTypeException, IOException {
-		View view = new TableViewImpl(service, builder.buildViewNode(id, name, "table"));
+		View view = new TableViewImpl(getService(), builder.buildViewNode(id, name, "table"));
 
 		ViewExporter exporter = view.createExporter();
 		assertEquals(exporter.getId(), id);

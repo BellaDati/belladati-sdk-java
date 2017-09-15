@@ -18,8 +18,6 @@ import org.yaml.snakeyaml.util.UriEncoder;
 
 import com.belladati.sdk.dataset.Attribute;
 import com.belladati.sdk.dataset.AttributeValue;
-import com.belladati.sdk.dataset.impl.AttributeImpl;
-import com.belladati.sdk.dataset.impl.AttributeValueImpl;
 import com.belladati.sdk.exception.impl.InvalidAttributeException;
 import com.belladati.sdk.exception.impl.InvalidAttributeValueException;
 import com.belladati.sdk.filter.FilterValue;
@@ -58,7 +56,7 @@ public class AttributesTest extends SDKTest {
 		ObjectNode node = builder.buildReportNode(reportId, name, description, owner, lastChange);
 		node.remove("dataSet");
 		server.register(reportsUri + "/" + reportId, node.toString());
-		Report report = service.loadReport(reportId);
+		Report report = getService().loadReport(reportId);
 
 		assertEquals(report.getAttributes(), Collections.emptyList());
 	}
@@ -68,7 +66,7 @@ public class AttributesTest extends SDKTest {
 		ObjectNode node = builder.buildReportNode(reportId, name, description, owner, lastChange);
 		((ObjectNode) node.get("dataSet")).remove("drilldownAttributes");
 		server.register(reportsUri + "/" + reportId, node.toString());
-		Report report = service.loadReport(reportId);
+		Report report = getService().loadReport(reportId);
 
 		assertEquals(report.getAttributes(), Collections.emptyList());
 	}
@@ -78,7 +76,7 @@ public class AttributesTest extends SDKTest {
 		ObjectNode node = builder.buildReportNode(reportId, name, description, owner, lastChange);
 		((ObjectNode) node.get("dataSet")).put("drilldownAttributes", "not an array");
 		server.register(reportsUri + "/" + reportId, node.toString());
-		Report report = service.loadReport(reportId);
+		Report report = getService().loadReport(reportId);
 
 		assertEquals(report.getAttributes(), Collections.emptyList());
 	}
@@ -93,7 +91,7 @@ public class AttributesTest extends SDKTest {
 		((ArrayNode) node.get("dataSet").get("drilldownAttributes"))
 			.add(builder.buildAttributeNode(attId, attName, attCode, type));
 		server.register(reportsUri + "/" + reportId, node.toString());
-		Report report = service.loadReport(reportId);
+		Report report = getService().loadReport(reportId);
 
 		assertEquals(report.getAttributes().size(), 1);
 		assertEquals(report.getAttributes().get(0).getName(), attName);
@@ -107,42 +105,42 @@ public class AttributesTest extends SDKTest {
 		((ObjectNode) node.get("dataSet")).putAll(builder.buildDataSetNode(dataSetId, name, description, owner, lastChange));
 		((ArrayNode) node.get("dataSet").get("drilldownAttributes")).add(attribute);
 		server.register(reportsUri + "/" + reportId, node.toString());
-		Report report = service.loadReport(reportId);
+		Report report = getService().loadReport(reportId);
 
 		assertEquals(report.getAttributes(), Collections.emptyList());
 	}
 
 	/** Missing values attribute means no attribute values. */
 	public void valuesWithoutValues() throws InvalidAttributeException {
-		Attribute attribute = new AttributeImpl(service, dataSetId, builder.buildAttributeNode(id, name, code, type));
 		registerValues(new ObjectMapper().createObjectNode());
 
+		Attribute attribute = new AttributeImpl(getService(), dataSetId, builder.buildAttributeNode(id, name, code, type));
 		assertEquals(attribute.getValues().load().get(), Collections.emptyList());
 	}
 
 	/** Null values attribute means no attribute values. */
 	public void valuesNull() throws InvalidAttributeException {
-		Attribute attribute = new AttributeImpl(service, dataSetId, builder.buildAttributeNode(id, name, code, type));
 		registerValues(new ObjectMapper().createObjectNode().put("values", (String) null));
 
+		Attribute attribute = new AttributeImpl(getService(), dataSetId, builder.buildAttributeNode(id, name, code, type));
 		assertEquals(attribute.getValues().load().get(), Collections.emptyList());
 	}
 
 	/** Values attribute not an array means no attribute values. */
 	public void valuesNotArray() throws InvalidAttributeException {
-		Attribute attribute = new AttributeImpl(service, dataSetId, builder.buildAttributeNode(id, name, code, type));
 		registerValues(new ObjectMapper().createObjectNode().put("values", "not an array"));
 
+		Attribute attribute = new AttributeImpl(getService(), dataSetId, builder.buildAttributeNode(id, name, code, type));
 		assertEquals(attribute.getValues().load().get(), Collections.emptyList());
 	}
 
 	/** Values attribute empty means no attribute values. */
 	public void valuesEmpty() throws InvalidAttributeException {
-		Attribute attribute = new AttributeImpl(service, dataSetId, builder.buildAttributeNode(id, name, code, type));
 		ObjectNode node = new ObjectMapper().createObjectNode();
 		node.put("values", new ObjectMapper().createArrayNode());
 		registerValues(node);
 
+		Attribute attribute = new AttributeImpl(getService(), dataSetId, builder.buildAttributeNode(id, name, code, type));
 		assertEquals(attribute.getValues().load().get(), Collections.emptyList());
 	}
 
@@ -150,11 +148,11 @@ public class AttributesTest extends SDKTest {
 	public void valueValid() throws InvalidAttributeException {
 		String label = "label";
 		String value = "value";
-		Attribute attribute = new AttributeImpl(service, dataSetId, builder.buildAttributeNode(id, name, code, type));
 		ObjectNode node = new ObjectMapper().createObjectNode();
 		node.put("values", new ObjectMapper().createArrayNode().add(builder.buildAttributeValueNode(label, value)));
 		registerValues(node);
 
+		Attribute attribute = new AttributeImpl(getService(), dataSetId, builder.buildAttributeNode(id, name, code, type));
 		List<AttributeValue> values = attribute.getValues().load().get();
 		assertEquals(values.size(), 1);
 
@@ -168,17 +166,18 @@ public class AttributesTest extends SDKTest {
 	/** Invalid values in values attribute are ignored. */
 	@Test(dataProvider = "invalidValues")
 	public void valueInvalid(JsonNode value) throws InvalidAttributeException {
-		Attribute attribute = new AttributeImpl(service, dataSetId, builder.buildAttributeNode(id, name, code, type));
 		ObjectNode node = new ObjectMapper().createObjectNode();
 		node.put("values", new ObjectMapper().createArrayNode().add(value));
 		registerValues(node);
+
+		Attribute attribute = new AttributeImpl(getService(), dataSetId, builder.buildAttributeNode(id, name, code, type));
 
 		assertEquals(attribute.getValues().load().get(), Collections.emptyList());
 	}
 
 	/** getValues() always returns the same object. */
 	public void cacheSame() throws InvalidAttributeException {
-		Attribute attribute = new AttributeImpl(service, dataSetId, builder.buildAttributeNode(id, name, code, type));
+		Attribute attribute = new AttributeImpl(getService(), dataSetId, builder.buildAttributeNode(id, name, code, type));
 
 		assertSame(attribute.getValues(), attribute.getValues());
 	}
@@ -188,17 +187,17 @@ public class AttributesTest extends SDKTest {
 	 * from attribute.
 	 */
 	public void cacheFromServiceSame() throws InvalidAttributeException {
-		Attribute attribute = new AttributeImpl(service, dataSetId, builder.buildAttributeNode(id, name, code, type));
+		Attribute attribute = new AttributeImpl(getService(), dataSetId, builder.buildAttributeNode(id, name, code, type));
 
-		assertSame(service.getAttributeValues(dataSetId, code), attribute.getValues());
+		assertSame(getService().getAttributeValues(dataSetId, code), attribute.getValues());
 	}
 
 	/** equals and hashcode work as expected for attributes */
 	public void attributeEquality() throws InvalidAttributeException {
-		Attribute att1 = new AttributeImpl(service, dataSetId, builder.buildAttributeNode(id, "1", "1", type));
-		Attribute att2 = new AttributeImpl(service, dataSetId, builder.buildAttributeNode(id, "2", "2", type));
-		Attribute att3 = new AttributeImpl(service, dataSetId, builder.buildAttributeNode("other", "3", "3", type));
-		Attribute att4 = new AttributeImpl(service, "4", builder.buildAttributeNode(id, name, code, type));
+		Attribute att1 = new AttributeImpl(getService(), dataSetId, builder.buildAttributeNode(id, "1", "1", type));
+		Attribute att2 = new AttributeImpl(getService(), dataSetId, builder.buildAttributeNode(id, "2", "2", type));
+		Attribute att3 = new AttributeImpl(getService(), dataSetId, builder.buildAttributeNode("other", "3", "3", type));
+		Attribute att4 = new AttributeImpl(getService(), "4", builder.buildAttributeNode(id, name, code, type));
 
 		assertEquals(att1, att2);
 		assertEquals(att1.hashCode(), att2.hashCode());
@@ -282,7 +281,7 @@ public class AttributesTest extends SDKTest {
 			}
 		});
 
-		service.postAttributeValueImage(dataSetId, code, value, getTestImageFile());
+		getService().postAttributeValueImage(dataSetId, code, value, getTestImageFile());
 
 		assertTrue(executed[0]);
 	}

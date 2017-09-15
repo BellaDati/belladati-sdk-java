@@ -22,7 +22,6 @@ import com.belladati.sdk.view.TableView;
 import com.belladati.sdk.view.View;
 import com.belladati.sdk.view.ViewLoader;
 import com.belladati.sdk.view.ViewType;
-import com.belladati.sdk.view.impl.ViewImpl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -47,11 +46,11 @@ public class ViewsTest extends SDKTest {
 	/** View JSON is loaded correctly. */
 	@Test(dataProvider = "jsonViewTypes")
 	public void loadViewJson(String stringType, ViewType viewType) throws UnknownViewTypeException {
-		View view = ViewImpl.buildView(service, builder.buildViewNode(id, name, stringType));
 
 		ObjectNode viewNode = new ObjectMapper().createObjectNode().put("some field", "some value");
 		server.register(viewsUri + id + "/" + stringType, viewNode.toString());
 
+		View view = ViewImpl.buildView(getService(), builder.buildViewNode(id, name, stringType));
 		assertEquals(view.toString(), name);
 		assertEquals(view.loadContent(), viewNode);
 
@@ -60,13 +59,13 @@ public class ViewsTest extends SDKTest {
 		assertTrue(view instanceof JsonView, "Wrong view instance type, was " + view.getClass());
 	}
 
-	/** View JSON is loaded correctly via service. */
+	/** View JSON is loaded correctly via getService(). */
 	@Test(dataProvider = "jsonViewTypes")
 	public void loadViewJsonFromService(String stringType, ViewType viewType) throws UnknownViewTypeException {
 		ObjectNode viewNode = new ObjectMapper().createObjectNode().put("some field", "some value");
 		server.register(viewsUri + id + "/" + stringType, viewNode.toString());
 
-		assertEquals(service.loadViewContent(id, viewType), viewNode);
+		assertEquals(getService().loadViewContent(id, viewType), viewNode);
 
 		server.assertRequestUris(viewsUri + id + "/" + stringType);
 	}
@@ -74,11 +73,10 @@ public class ViewsTest extends SDKTest {
 	/** View JSON is loaded correctly through a loader. */
 	@Test(dataProvider = "jsonViewTypes")
 	public void loadViewJsonFromLoader(String stringType, ViewType viewType) throws UnknownViewTypeException {
-		View view = ViewImpl.buildView(service, builder.buildViewNode(id, name, stringType));
-
 		ObjectNode viewNode = new ObjectMapper().createObjectNode().put("some field", "some value");
 		server.register(viewsUri + id + "/" + stringType, viewNode.toString());
 
+		View view = ViewImpl.buildView(getService(), builder.buildViewNode(id, name, stringType));
 		ViewLoader loader = view.createLoader();
 		assertEquals(loader.getId(), id);
 		assertEquals(loader.getType(), viewType);
@@ -94,7 +92,7 @@ public class ViewsTest extends SDKTest {
 		ObjectNode viewNode = new ObjectMapper().createObjectNode().put("some field", "some value");
 		server.register(viewsUri + id + "/" + stringType, viewNode.toString());
 
-		ViewLoader loader = service.setupViewLoader(id, viewType);
+		ViewLoader loader = getService().setupViewLoader(id, viewType);
 		assertEquals(loader.getId(), id);
 		assertEquals(loader.getType(), viewType);
 
@@ -107,7 +105,7 @@ public class ViewsTest extends SDKTest {
 	public void reportViewsNull() {
 		ObjectNode node = builder.buildReportNode(id, name, description, owner, lastChange).put("views", (String) null);
 		server.register(reportsUri + "/" + id, node.toString());
-		Report report = service.loadReport(id);
+		Report report = getService().loadReport(id);
 
 		assertEquals(report.getViews(), Collections.emptyList());
 	}
@@ -116,7 +114,7 @@ public class ViewsTest extends SDKTest {
 	public void reportViewsNotArray() {
 		ObjectNode node = builder.buildReportNode(id, name, description, owner, lastChange).put("views", "not an array");
 		server.register(reportsUri + "/" + id, node.toString());
-		Report report = service.loadReport(id);
+		Report report = getService().loadReport(id);
 
 		assertEquals(report.getViews(), Collections.emptyList());
 	}
@@ -132,7 +130,7 @@ public class ViewsTest extends SDKTest {
 		ObjectNode node = builder.buildReportNode(id, name, description, owner, lastChange);
 		node.put("views", views);
 		server.register(reportsUri + "/" + id, node.toString());
-		Report report = service.loadReport(id);
+		Report report = getService().loadReport(id);
 
 		assertEquals(report.getViews().size(), 1);
 		View view = report.getViews().get(0);
@@ -158,7 +156,7 @@ public class ViewsTest extends SDKTest {
 		ObjectNode node = builder.buildReportNode(id, name, description, owner, lastChange);
 		node.put("views", views);
 		server.register(reportsUri + "/" + id, node.toString());
-		Report report = service.loadReport(id);
+		Report report = getService().loadReport(id);
 
 		assertEquals(report.getViews(), Collections.emptyList());
 	}
@@ -175,16 +173,16 @@ public class ViewsTest extends SDKTest {
 		ObjectNode node = builder.buildReportNode(id, name, description, owner, lastChange);
 		node.put("views", views);
 		server.register(reportsUri + "/" + id, node.toString());
-		Report report = service.loadReport(id);
+		Report report = getService().loadReport(id);
 
 		assertEquals(report.getViews(), Collections.emptyList());
 	}
 
 	/** equals/hashcode for views (JSON and tables) */
 	public void equality() throws UnknownViewTypeException {
-		View v1 = ViewImpl.buildView(service, builder.buildViewNode(id, name, "chart"));
-		View v2 = ViewImpl.buildView(service, builder.buildViewNode(id, "", "table"));
-		View v3 = ViewImpl.buildView(service, builder.buildViewNode("otherId", name, "chart"));
+		View v1 = ViewImpl.buildView(getService(), builder.buildViewNode(id, name, "chart"));
+		View v2 = ViewImpl.buildView(getService(), builder.buildViewNode(id, "", "table"));
+		View v3 = ViewImpl.buildView(getService(), builder.buildViewNode("otherId", name, "chart"));
 
 		assertEquals(v1, v2);
 		assertEquals(v1.hashCode(), v2.hashCode());
@@ -195,7 +193,7 @@ public class ViewsTest extends SDKTest {
 
 	/** no date/time definition means neither is supported, nothing is set */
 	public void noDateTimeDefinition() throws UnknownViewTypeException {
-		View view = ViewImpl.buildView(service, builder.buildViewNode(id, name, "chart"));
+		View view = ViewImpl.buildView(getService(), builder.buildViewNode(id, name, "chart"));
 		assertFalse(view.isDateIntervalSupported());
 		assertFalse(view.isTimeIntervalSupported());
 		assertFalse(view.hasPredefinedDateInterval());
@@ -206,7 +204,7 @@ public class ViewsTest extends SDKTest {
 
 	/** neither is supported in the definition */
 	public void neitherSupported() throws UnknownViewTypeException {
-		View view = ViewImpl.buildView(service,
+		View view = ViewImpl.buildView(getService(),
 			builder.insertViewDateTimeDefinition(false, false, builder.buildViewNode(id, name, "chart")));
 		assertFalse(view.isDateIntervalSupported());
 		assertFalse(view.isTimeIntervalSupported());
@@ -214,7 +212,7 @@ public class ViewsTest extends SDKTest {
 
 	/** only date is supported in the definition */
 	public void dateSupported() throws UnknownViewTypeException {
-		View view = ViewImpl.buildView(service,
+		View view = ViewImpl.buildView(getService(),
 			builder.insertViewDateTimeDefinition(true, false, builder.buildViewNode(id, name, "chart")));
 		assertTrue(view.isDateIntervalSupported());
 		assertFalse(view.isTimeIntervalSupported());
@@ -222,7 +220,7 @@ public class ViewsTest extends SDKTest {
 
 	/** only time is supported in the definition */
 	public void timeSupported() throws UnknownViewTypeException {
-		View view = ViewImpl.buildView(service,
+		View view = ViewImpl.buildView(getService(),
 			builder.insertViewDateTimeDefinition(false, true, builder.buildViewNode(id, name, "chart")));
 		assertFalse(view.isDateIntervalSupported());
 		assertTrue(view.isTimeIntervalSupported());
@@ -230,7 +228,7 @@ public class ViewsTest extends SDKTest {
 
 	/** both are supported in the definition */
 	public void bothSupported() throws UnknownViewTypeException {
-		View view = ViewImpl.buildView(service,
+		View view = ViewImpl.buildView(getService(),
 			builder.insertViewDateTimeDefinition(true, true, builder.buildViewNode(id, name, "chart")));
 		assertTrue(view.isDateIntervalSupported());
 		assertTrue(view.isTimeIntervalSupported());
@@ -240,15 +238,13 @@ public class ViewsTest extends SDKTest {
 	@Test(dataProvider = "viewTypes", groups = "locale")
 	public void localeCaseConversion(String stringType, ViewType viewType) throws UnknownViewTypeException {
 		Locale.setDefault(new Locale("tr"));
-		View view = ViewImpl.buildView(service, builder.buildViewNode(id, name, stringType));
+		View view = ViewImpl.buildView(getService(), builder.buildViewNode(id, name, stringType));
 		assertEquals(view.getType(), viewType);
 	}
 
 	/** No locale means no parameter. */
 	@Test(dataProvider = "jsonViewTypes")
 	public void noLocale(String stringType, ViewType viewType) throws UnknownViewTypeException {
-		View view = ViewImpl.buildView(service, builder.buildViewNode(id, name, stringType));
-
 		server.register(viewsUri + id + "/" + stringType, new TestRequestHandler() {
 			@Override
 			protected void handle(HttpHolder holder) throws IOException {
@@ -256,6 +252,7 @@ public class ViewsTest extends SDKTest {
 				holder.response.setEntity(new StringEntity("{}"));
 			}
 		});
+		View view = ViewImpl.buildView(getService(), builder.buildViewNode(id, name, stringType));
 		view.createLoader().loadContent();
 		view.loadContent();
 
@@ -265,8 +262,6 @@ public class ViewsTest extends SDKTest {
 	/** custom locale is passed as parameter. */
 	@Test(dataProvider = "jsonViewTypes")
 	public void customLocale(String stringType, ViewType viewType) throws UnknownViewTypeException {
-		View view = ViewImpl.buildView(service, builder.buildViewNode(id, name, stringType));
-
 		server.register(viewsUri + id + "/" + stringType, new TestRequestHandler() {
 			@Override
 			protected void handle(HttpHolder holder) throws IOException {
@@ -274,6 +269,7 @@ public class ViewsTest extends SDKTest {
 				holder.response.setEntity(new StringEntity("{}"));
 			}
 		});
+		View view = ViewImpl.buildView(getService(), builder.buildViewNode(id, name, stringType));
 		view.createLoader().setLocale(new Locale("tR")).loadContent();
 
 		server.assertRequestUris(viewsUri + id + "/" + stringType);
@@ -282,8 +278,6 @@ public class ViewsTest extends SDKTest {
 	/** predefined locale is passed as parameter. */
 	@Test(dataProvider = "jsonViewTypes")
 	public void builtInLocale(String stringType, ViewType viewType) throws UnknownViewTypeException {
-		View view = ViewImpl.buildView(service, builder.buildViewNode(id, name, stringType));
-
 		server.register(viewsUri + id + "/" + stringType, new TestRequestHandler() {
 			@Override
 			protected void handle(HttpHolder holder) throws IOException {
@@ -291,6 +285,7 @@ public class ViewsTest extends SDKTest {
 				holder.response.setEntity(new StringEntity("{}"));
 			}
 		});
+		View view = ViewImpl.buildView(getService(), builder.buildViewNode(id, name, stringType));
 		view.createLoader().setLocale(Locale.GERMAN).loadContent();
 
 		server.assertRequestUris(viewsUri + id + "/" + stringType);
@@ -298,7 +293,7 @@ public class ViewsTest extends SDKTest {
 
 	/** no predefined filter set */
 	public void noPredefinedFilter() throws UnknownViewTypeException {
-		View view = ViewImpl.buildView(service, builder.buildViewNode(id, name, "chart"));
+		View view = ViewImpl.buildView(getService(), builder.buildViewNode(id, name, "chart"));
 		assertFalse(view.hasPredefinedFilters());
 		assertEquals(view.getPredefinedFilters(), Collections.emptyList());
 	}

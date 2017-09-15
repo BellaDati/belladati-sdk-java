@@ -8,9 +8,6 @@ import java.io.IOException;
 import org.apache.http.entity.StringEntity;
 import org.testng.annotations.Test;
 
-import com.belladati.sdk.test.SDKTest;
-import com.belladati.sdk.test.TestRequestHandler;
-
 @Test
 public class MediaTest extends SDKTest {
 
@@ -30,7 +27,7 @@ public class MediaTest extends SDKTest {
 			}
 		});
 
-		service.uploadImage(getTestImageFile(), null);
+		getService().uploadImage(getTestImageFile(), null);
 		assertTrue(executed[0]);
 	}
 
@@ -45,7 +42,7 @@ public class MediaTest extends SDKTest {
 			}
 		});
 
-		service.uploadImage(getTestImageFile(), name);
+		getService().uploadImage(getTestImageFile(), name);
 		assertTrue(executed[0]);
 	}
 

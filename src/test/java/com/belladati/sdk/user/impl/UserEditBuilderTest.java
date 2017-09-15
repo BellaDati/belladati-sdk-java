@@ -31,8 +31,6 @@ public class UserEditBuilderTest extends SDKTest {
 
 	@BeforeMethod(alwaysRun = true)
 	protected void setupSource() throws Exception {
-		builder = service.setupUserEditBuilder(userId);
-
 		server.register(requestUri, new TestRequestHandler() {
 			@Override
 			protected void handle(HttpHolder holder) throws IOException {
@@ -40,6 +38,7 @@ public class UserEditBuilderTest extends SDKTest {
 				holder.response.setEntity(new StringEntity(""));
 			}
 		});
+		builder = getService().setupUserEditBuilder(userId);
 	}
 
 	public void postToServer_empty() {

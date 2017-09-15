@@ -27,8 +27,6 @@ public class UserGroupCreateBuilderTest extends SDKTest {
 
 	@BeforeMethod(alwaysRun = true)
 	protected void setupSource() throws Exception {
-		builder = service.setupUserGroupCreateBuilder(domainId);
-
 		server.register(requestUri, new TestRequestHandler() {
 			@Override
 			protected void handle(HttpHolder holder) throws IOException {
@@ -36,6 +34,7 @@ public class UserGroupCreateBuilderTest extends SDKTest {
 				holder.response.setEntity(new StringEntity(id));
 			}
 		});
+		builder = getService().setupUserGroupCreateBuilder(domainId);
 	}
 
 	public void postToServer_empty() {

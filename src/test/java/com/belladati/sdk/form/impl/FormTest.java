@@ -31,10 +31,9 @@ public class FormTest extends SDKTest {
 	private final String elemType = "textfield";
 
 	public void loadForms_withoutElements() {
-		CachedList<Form> list = service.getImportForms();
-
 		server.registerPaginatedItem(baseUri, "importForms", builder.buildFormNode(id, name, recordTimestamp));
 
+		CachedList<Form> list = getService().getImportForms();
 		list.load();
 		server.assertRequestUris(baseUri);
 		assertEquals(list.get().size(), 1);
@@ -50,7 +49,7 @@ public class FormTest extends SDKTest {
 	public void loadForm_withoutElements() {
 		server.register(formUri, builder.buildFormNode(id, name, recordTimestamp).toString());
 
-		Form form = service.loadImportForm(id);
+		Form form = getService().loadImportForm(id);
 		server.assertRequestUris(formUri);
 
 		assertEquals(form.getId(), id);
@@ -61,10 +60,9 @@ public class FormTest extends SDKTest {
 	}
 
 	public void loadForms_withElements() {
-		CachedList<Form> list = service.getImportForms();
-
 		server.registerPaginatedItem(baseUri, "importForms", builder.buildFormNode(id, name, recordTimestamp, testElements()));
 
+		CachedList<Form> list = getService().getImportForms();
 		list.load();
 		server.assertRequestUris(baseUri);
 		assertEquals(list.get().size(), 1);
@@ -81,7 +79,7 @@ public class FormTest extends SDKTest {
 	public void loadForm_withElements() {
 		server.register(formUri, builder.buildFormNode(id, name, recordTimestamp, testElements()).toString());
 
-		Form form = service.loadImportForm(id);
+		Form form = getService().loadImportForm(id);
 		server.assertRequestUris(formUri);
 
 		assertEquals(form.getId(), id);

@@ -29,9 +29,6 @@ import com.belladati.sdk.user.UserGroup;
 import com.belladati.sdk.user.UserInfo;
 import com.belladati.sdk.user.UserRequestType;
 import com.belladati.sdk.user.UserRole;
-import com.belladati.sdk.user.impl.UserGroupImpl;
-import com.belladati.sdk.user.impl.UserImpl;
-import com.belladati.sdk.user.impl.UserInfoImpl;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
@@ -67,12 +64,12 @@ public class UserTest extends SDKTest {
 	private final String[] userRolesJson = { "ADMIN", "WORKSPACE_ADMIN", "DATASET_ADMIN", "REPORT_ADMIN" };
 	private final String[][] userGroupsJson = { { userGroups0_id, userGroups0_name }, { userGroups1_id, userGroups1_name } };
 
-	/** Individual user can be loaded by ID through service. */
+	/** Individual user can be loaded by ID through getService(). */
 	public void loadUser() {
 		server.register(usersUri + "/" + id, builder.buildUserNode(id, username, givenName, familyName, email, firstLogin,
 			lastLogin, locale, timeZone, active, domainId, userRolesJson, userGroupsJson).toString());
 
-		User user = service.loadUser(id);
+		User user = getService().loadUser(id);
 		assertFullUserDetail(user);
 
 		server.assertRequestUris(usersUri + "/" + id);
@@ -84,7 +81,7 @@ public class UserTest extends SDKTest {
 		server.register(usersUri + "/username/" + username, builder.buildUserNode(id, username, givenName, familyName, email,
 			firstLogin, lastLogin, locale, timeZone, active, domainId, userRolesJson, userGroupsJson).toString());
 
-		User user = service.loadUserByUsername(username);
+		User user = getService().loadUserByUsername(username);
 		assertFullUserDetail(user);
 
 		server.assertRequestUris(usersUri + "/username/" + username);
@@ -126,12 +123,11 @@ public class UserTest extends SDKTest {
 
 	/** User can be loaded from a user info object. */
 	public void loadUserFromInfo() {
-		UserInfo userInfo = new UserInfoImpl(service, id, "some other name");
-
-		assertEquals(userInfo.toString(), userInfo.getName());
-
 		server.register(usersUri + "/" + id,
 			builder.buildUserNode(id, username, givenName, familyName, email, firstLogin, lastLogin, locale).toString());
+
+		UserInfo userInfo = new UserInfoImpl(getService(), id, "some other name");
+		assertEquals(userInfo.toString(), userInfo.getName());
 
 		User user = userInfo.loadDetails();
 
@@ -160,7 +156,7 @@ public class UserTest extends SDKTest {
 		userNode.put(field, (String) null);
 		server.register(usersUri + "/" + id, userNode.toString());
 
-		User user = service.loadUser(id);
+		User user = getService().loadUser(id);
 
 		assertEquals(User.class.getMethod(method).invoke(user), "");
 	}
@@ -172,7 +168,7 @@ public class UserTest extends SDKTest {
 		userNode.remove(field);
 		server.register(usersUri + "/" + id, userNode.toString());
 
-		User user = service.loadUser(id);
+		User user = getService().loadUser(id);
 
 		assertEquals(User.class.getMethod(method).invoke(user), "");
 	}
@@ -182,8 +178,8 @@ public class UserTest extends SDKTest {
 		server.register(usersUri + "/" + id,
 			builder.buildUserNode(id, username, givenName, null, email, firstLogin, lastLogin, locale).toString());
 
-		assertEquals(service.loadUser(id).getName(), givenName);
-		assertEquals(service.loadUser(id).toString(), givenName);
+		assertEquals(getService().loadUser(id).getName(), givenName);
+		assertEquals(getService().loadUser(id).toString(), givenName);
 	}
 
 	/** Full name is correct when only family name exists. */
@@ -191,8 +187,8 @@ public class UserTest extends SDKTest {
 		server.register(usersUri + "/" + id,
 			builder.buildUserNode(id, username, null, familyName, email, firstLogin, lastLogin, locale).toString());
 
-		assertEquals(service.loadUser(id).getName(), familyName);
-		assertEquals(service.loadUser(id).toString(), familyName);
+		assertEquals(getService().loadUser(id).getName(), familyName);
+		assertEquals(getService().loadUser(id).toString(), familyName);
 	}
 
 	/** Full name is correct when no name exists. */
@@ -200,8 +196,8 @@ public class UserTest extends SDKTest {
 		server.register(usersUri + "/" + id,
 			builder.buildUserNode(id, username, null, null, email, firstLogin, lastLogin, locale).toString());
 
-		assertEquals(service.loadUser(id).getName(), "");
-		assertEquals(service.loadUser(id).toString(), username);
+		assertEquals(getService().loadUser(id).getName(), "");
+		assertEquals(getService().loadUser(id).toString(), username);
 	}
 
 	/** Date fields not containing dates are treated as null. */
@@ -211,7 +207,7 @@ public class UserTest extends SDKTest {
 		userNode.put(field, "not a date");
 		server.register(usersUri + "/" + id, userNode.toString());
 
-		User user = service.loadUser(id);
+		User user = getService().loadUser(id);
 
 		assertNull(User.class.getMethod(method).invoke(user));
 	}
@@ -223,7 +219,7 @@ public class UserTest extends SDKTest {
 		userNode.put(field, (String) null);
 		server.register(usersUri + "/" + id, userNode.toString());
 
-		User user = service.loadUser(id);
+		User user = getService().loadUser(id);
 
 		assertNull(User.class.getMethod(method).invoke(user));
 	}
@@ -235,12 +231,12 @@ public class UserTest extends SDKTest {
 		userNode.remove(field);
 		server.register(usersUri + "/" + id, userNode.toString());
 
-		User user = service.loadUser(id);
+		User user = getService().loadUser(id);
 
 		assertNull(User.class.getMethod(method).invoke(user));
 	}
 
-	/** Can load a user's image from service. */
+	/** Can load a user's image from getService(). */
 	public void loadImageFromService() {
 		server.register(usersUri + "/" + id + "/image", new TestRequestHandler() {
 			@Override
@@ -249,7 +245,7 @@ public class UserTest extends SDKTest {
 			}
 		});
 
-		BufferedImage image = (BufferedImage) service.loadUserImage(id);
+		BufferedImage image = (BufferedImage) getService().loadUserImage(id);
 
 		server.assertRequestUris(usersUri + "/" + id + "/image");
 
@@ -259,8 +255,6 @@ public class UserTest extends SDKTest {
 
 	/** Can load a user's image from info. */
 	public void loadImageFromReportInfo() {
-		UserInfo userInfo = new UserInfoImpl(service, id, "");
-
 		server.register(usersUri + "/" + id + "/image", new TestRequestHandler() {
 			@Override
 			protected void handle(HttpHolder holder) throws IOException {
@@ -268,6 +262,7 @@ public class UserTest extends SDKTest {
 			}
 		});
 
+		UserInfo userInfo = new UserInfoImpl(getService(), id, "");
 		BufferedImage image = (BufferedImage) userInfo.loadImage();
 
 		server.assertRequestUris(usersUri + "/" + id + "/image");
@@ -279,28 +274,24 @@ public class UserTest extends SDKTest {
 	/** Invalid image results in exception. */
 	@Test(expectedExceptions = InvalidStreamException.class)
 	public void loadInvalidImage() throws InvalidStreamException {
-		UserInfo userInfo = new UserInfoImpl(service, id, "");
-
 		server.register(usersUri + "/" + id + "/image", "not an image");
 
+		UserInfo userInfo = new UserInfoImpl(getService(), id, "");
 		userInfo.loadImage();
 	}
 
 	/** Missing image results in exception. */
 	@Test(expectedExceptions = InvalidStreamException.class)
 	public void loadMissingImage() throws InvalidStreamException {
-		UserInfo userInfo = new UserInfoImpl(service, id, "");
-
 		server.register(usersUri + "/" + id + "/image", "");
 
+		UserInfo userInfo = new UserInfoImpl(getService(), id, "");
 		userInfo.loadImage();
 	}
 
 	/** Empty content for image results in exception. */
 	@Test(expectedExceptions = InvalidStreamException.class)
 	public void loadEmptyContentImage() throws InvalidStreamException {
-		UserInfo userInfo = new UserInfoImpl(service, id, "");
-
 		server.register(usersUri + "/" + id + "/image", new TestRequestHandler() {
 			@Override
 			protected void handle(HttpHolder holder) throws IOException {
@@ -308,15 +299,15 @@ public class UserTest extends SDKTest {
 				holder.response.setEntity(null);
 			}
 		});
-
+		UserInfo userInfo = new UserInfoImpl(getService(), id, "");
 		userInfo.loadImage();
 	}
 
 	/** equals/hashcode for UserInfo */
 	public void userInfoEquality() {
-		UserInfo u1 = new UserInfoImpl(service, id, givenName);
-		UserInfo u2 = new UserInfoImpl(service, id, "");
-		UserInfo u3 = new UserInfoImpl(service, "otherId", "");
+		UserInfo u1 = new UserInfoImpl(getService(), id, givenName);
+		UserInfo u2 = new UserInfoImpl(getService(), id, "");
+		UserInfo u3 = new UserInfoImpl(getService(), "otherId", "");
 
 		assertEquals(u1, u2);
 		assertEquals(u1.hashCode(), u2.hashCode());
@@ -327,10 +318,10 @@ public class UserTest extends SDKTest {
 
 	/** equals/hashcode for User */
 	public void userEquality() {
-		User u1 = new UserImpl(service,
+		User u1 = new UserImpl(getService(),
 			builder.buildUserNode(id, username, givenName, familyName, email, firstLogin, lastLogin, locale));
-		User u2 = new UserImpl(service, builder.buildUserNode(id, "", "", "", "", "", "", ""));
-		User u3 = new UserImpl(service,
+		User u2 = new UserImpl(getService(), builder.buildUserNode(id, "", "", "", "", "", "", ""));
+		User u3 = new UserImpl(getService(),
 			builder.buildUserNode("otherId", username, givenName, familyName, email, firstLogin, lastLogin, locale));
 
 		assertEquals(u1, u2);
@@ -365,23 +356,22 @@ public class UserTest extends SDKTest {
 	}
 
 	public void loadUserStatus() {
-		User user = new UserImpl(service, builder.buildUserNode(id, "", "", "", "", "", "", ""));
 		server.register(String.format(statusUri, id), "ACTIVE");
+		User user = new UserImpl(getService(), builder.buildUserNode(id, "", "", "", "", "", "", ""));
 		String status = user.loadStatus();
 		assertEquals(status, "ACTIVE");
 		server.assertRequestUris(String.format(statusUri, id));
 	}
 
 	public void loadUserStatusFromInfo() {
-		UserInfo userInfo = new UserInfoImpl(service, id, "some name");
 		server.register(String.format(statusUri, id), "INACTIVE");
+		UserInfo userInfo = new UserInfoImpl(getService(), id, "some name");
 		String status = userInfo.loadStatus();
 		assertEquals(status, "INACTIVE");
 		server.assertRequestUris(String.format(statusUri, id));
 	}
 
 	public void postUserStatus() {
-		User user = new UserImpl(service, builder.buildUserNode(id, "", "", "", "", "", "", ""));
 		final String status = "INACTIVE";
 		server.register(String.format(statusUri, id), new TestRequestHandler() {
 			@Override
@@ -390,12 +380,12 @@ public class UserTest extends SDKTest {
 				holder.response.setEntity(new StringEntity(""));
 			}
 		});
+		User user = new UserImpl(getService(), builder.buildUserNode(id, "", "", "", "", "", "", ""));
 		user.postStatus(status);
 		server.assertRequestUris(String.format(statusUri, id));
 	}
 
 	public void postUserStatusFromInfo() {
-		UserInfo userInfo = new UserInfoImpl(service, id, "some name");
 		final String status = "ACTIVE";
 		server.register(String.format(statusUri, id), new TestRequestHandler() {
 			@Override
@@ -404,6 +394,7 @@ public class UserTest extends SDKTest {
 				holder.response.setEntity(new StringEntity(""));
 			}
 		});
+		UserInfo userInfo = new UserInfoImpl(getService(), id, "some name");
 		userInfo.postStatus(status);
 		server.assertRequestUris(String.format(statusUri, id));
 	}
@@ -416,13 +407,12 @@ public class UserTest extends SDKTest {
 				holder.response.setEntity(new StringEntity("12345;AbCdEfGh"));
 			}
 		});
-		String response = service.createUserRequest(username, UserRequestType.PASSWORD_RESET);
+		String response = getService().createUserRequest(username, UserRequestType.PASSWORD_RESET);
 		assertEquals(response, "12345;AbCdEfGh");
 		server.assertRequestUris(String.format(userRequestUri, username));
 	}
 
 	public void createUserRequest_fromUser() {
-		User user = new UserImpl(service, builder.buildUserNode(id, username, "", "", "", "", "", ""));
 		server.register(String.format(userRequestUri, username), new TestRequestHandler() {
 			@Override
 			protected void handle(HttpHolder holder) throws IOException {
@@ -430,12 +420,13 @@ public class UserTest extends SDKTest {
 				holder.response.setEntity(new StringEntity("98765;RDQX1Qx"));
 			}
 		});
+		User user = new UserImpl(getService(), builder.buildUserNode(id, username, "", "", "", "", "", ""));
 		String response = user.createUserRequest(UserRequestType.LOGIN_UNATTENDED);
 		assertEquals(response, "98765;RDQX1Qx");
 		server.assertRequestUris(String.format(userRequestUri, username));
 	}
 
-	public void createAccessToken_fromService() {
+	public void createAccessToken_fromService() throws Exception {
 		server.register(String.format(accessTokenUri, username), new TestRequestHandler() {
 			@Override
 			protected void handle(HttpHolder holder) throws IOException {
@@ -443,13 +434,12 @@ public class UserTest extends SDKTest {
 				holder.response.setEntity(new StringEntity("myToken1;myTokenSecret1"));
 			}
 		});
-		String response = service.createAccessToken(username, null, null);
+		String response = getService().createAccessToken(username, null, null);
 		assertEquals(response, "myToken1;myTokenSecret1");
 		server.assertRequestUris(String.format(accessTokenUri, username));
 	}
 
 	public void createAccessToken_fromUser() {
-		User user = new UserImpl(service, builder.buildUserNode(id, username, "", "", "", "", "", ""));
 		server.register(String.format(accessTokenUri, username), new TestRequestHandler() {
 			@Override
 			protected void handle(HttpHolder holder) throws IOException {
@@ -461,6 +451,7 @@ public class UserTest extends SDKTest {
 				holder.response.setEntity(new StringEntity("myToken2;myTokenSecret2"));
 			}
 		});
+		User user = new UserImpl(getService(), builder.buildUserNode(id, username, "", "", "", "", "", ""));
 		String response = user.createAccessToken(66, domainId);
 		assertEquals(response, "myToken2;myTokenSecret2");
 		server.assertRequestUris(String.format(accessTokenUri, username));

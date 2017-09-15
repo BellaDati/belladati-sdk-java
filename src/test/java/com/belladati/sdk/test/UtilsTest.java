@@ -14,9 +14,6 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.yaml.snakeyaml.util.UriEncoder;
 
-import com.belladati.sdk.test.SDKTest;
-import com.belladati.sdk.test.TestRequestHandler;
-
 @Test
 public class UtilsTest extends SDKTest {
 
@@ -45,7 +42,7 @@ public class UtilsTest extends SDKTest {
 			}
 		});
 
-		ByteArrayInputStream stream = (ByteArrayInputStream) service.loadFile(filepath);
+		ByteArrayInputStream stream = (ByteArrayInputStream) getService().loadFile(filepath);
 
 		assertNotNull(stream);
 		assertEquals(stream.available(), getTestImageStream().available());
@@ -75,7 +72,7 @@ public class UtilsTest extends SDKTest {
 			}
 		});
 
-		ByteArrayInputStream stream = (ByteArrayInputStream) service.mergePdfFiles(paths);
+		ByteArrayInputStream stream = (ByteArrayInputStream) getService().mergePdfFiles(paths);
 
 		assertNotNull(stream);
 		assertEquals(stream.available(), getTestImageStream().available());

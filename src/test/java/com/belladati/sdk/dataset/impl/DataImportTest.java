@@ -12,7 +12,6 @@ import org.testng.annotations.Test;
 
 import com.belladati.sdk.dataset.DataSet;
 import com.belladati.sdk.dataset.data.DataTable;
-import com.belladati.sdk.dataset.impl.DataSetImpl;
 import com.belladati.sdk.exception.dataset.data.UnknownServerColumnException;
 import com.belladati.sdk.exception.server.UnexpectedResponseException;
 import com.belladati.sdk.test.SDKTest;
@@ -44,7 +43,7 @@ public class DataImportTest extends SDKTest {
 			}
 		});
 
-		service.uploadData(id, table);
+		getService().uploadData(id, table);
 
 		server.assertRequestUris(url);
 	}
@@ -52,7 +51,6 @@ public class DataImportTest extends SDKTest {
 	/** can import data from a data set */
 	public void uploadFromDataSet() {
 		final DataTable table = DataTable.createBasicInstance(column).createRow("content");
-		DataSet dataSet = new DataSetImpl(service, builder.buildDataSetNode(id, "", "", "", ""));
 
 		server.register(url, new TestRequestHandler() {
 			@Override
@@ -67,6 +65,7 @@ public class DataImportTest extends SDKTest {
 			}
 		});
 
+		DataSet dataSet = new DataSetImpl(getService(), builder.buildDataSetNode(id, "", "", "", ""));
 		dataSet.uploadData(table);
 
 		server.assertRequestUris(url);
@@ -74,7 +73,7 @@ public class DataImportTest extends SDKTest {
 
 	/** nothing happens when uploading empty data */
 	public void uploadNoData() {
-		service.uploadData(id, DataTable.createBasicInstance(column));
+		getService().uploadData(id, DataTable.createBasicInstance(column));
 
 		server.assertRequestUris();
 	}
@@ -84,7 +83,7 @@ public class DataImportTest extends SDKTest {
 		server.registerError(url, 400, "Indicator/attribute '" + column + "' doesn't exist");
 
 		try {
-			service.uploadData(id, DataTable.createBasicInstance(column).createRow("content"));
+			getService().uploadData(id, DataTable.createBasicInstance(column).createRow("content"));
 			fail("No exception thrown");
 		} catch (UnknownServerColumnException e) {
 			assertEquals(e.getId(), id);
@@ -97,6 +96,6 @@ public class DataImportTest extends SDKTest {
 	public void otherError() {
 		server.registerError(url, 400, "something else");
 
-		service.uploadData(id, DataTable.createBasicInstance(column).createRow("content"));
+		getService().uploadData(id, DataTable.createBasicInstance(column).createRow("content"));
 	}
 }

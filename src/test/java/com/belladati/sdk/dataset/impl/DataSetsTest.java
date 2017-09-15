@@ -22,8 +22,6 @@ import com.belladati.sdk.dataset.DataSet;
 import com.belladati.sdk.dataset.DataSetInfo;
 import com.belladati.sdk.dataset.data.DataColumn;
 import com.belladati.sdk.dataset.data.DataRow;
-import com.belladati.sdk.dataset.impl.DataSetImpl;
-import com.belladati.sdk.dataset.impl.DataSetInfoImpl;
 import com.belladati.sdk.report.ReportInfo;
 import com.belladati.sdk.test.SDKTest;
 import com.belladati.sdk.test.TestRequestHandler;
@@ -52,10 +50,9 @@ public class DataSetsTest extends SDKTest {
 
 	/** Regular data set info data is loaded correctly. */
 	public void loadDataSetInfo() {
-		PaginatedList<DataSetInfo> dataSetInfos = service.getDataSetInfo();
-
 		registerSingleDataSet(builder.buildDataSetNode(id, name, description, owner, lastChange));
 
+		PaginatedList<DataSetInfo> dataSetInfos = getService().getDataSetInfo();
 		dataSetInfos.load();
 		server.assertRequestUris(dataSetsUri);
 		assertEquals(dataSetInfos.size(), 1);
@@ -77,7 +74,7 @@ public class DataSetsTest extends SDKTest {
 	public void infoNullDescription() {
 		registerSingleDataSet(builder.buildDataSetNode(id, name, null, owner, lastChange));
 
-		assertEquals(service.getDataSetInfo().load().get(0).getDescription(), "");
+		assertEquals(getService().getDataSetInfo().load().get(0).getDescription(), "");
 	}
 
 	/** Data set description may be missing. */
@@ -86,14 +83,14 @@ public class DataSetsTest extends SDKTest {
 		node.remove("description");
 		registerSingleDataSet(node);
 
-		assertEquals(service.getDataSetInfo().load().get(0).getDescription(), "");
+		assertEquals(getService().getDataSetInfo().load().get(0).getDescription(), "");
 	}
 
 	/** Data set last change may be null. */
 	public void infoNullLastChange() {
 		registerSingleDataSet(builder.buildDataSetNode(id, name, description, owner, null));
 
-		assertNull(service.getDataSetInfo().load().get(0).getLastChange());
+		assertNull(getService().getDataSetInfo().load().get(0).getLastChange());
 	}
 
 	/** Data set last change may be missing. */
@@ -102,26 +99,26 @@ public class DataSetsTest extends SDKTest {
 		node.remove("lastChange");
 		registerSingleDataSet(node);
 
-		assertNull(service.getDataSetInfo().load().get(0).getLastChange());
+		assertNull(getService().getDataSetInfo().load().get(0).getLastChange());
 	}
 
 	/** Data set last change may be invalid format. */
 	public void infoInvalidLastChange() {
 		registerSingleDataSet(builder.buildDataSetNode(id, name, description, owner, "something invalid"));
 
-		assertNull(service.getDataSetInfo().load().get(0).getLastChange());
+		assertNull(getService().getDataSetInfo().load().get(0).getLastChange());
 	}
 
 	/** Getting a data set info list multiple times returns the same list. */
 	public void dataSetInfoListSame() {
-		assertSame(service.getDataSetInfo(), service.getDataSetInfo());
+		assertSame(getService().getDataSetInfo(), getService().getDataSetInfo());
 	}
 
-	/** Individual data set can be loaded by ID through service. */
+	/** Individual data set can be loaded by ID through getService(). */
 	public void loadDataSet() {
 		server.register(dataSetsUri + "/" + id, builder.buildDataSetNode(id, name, description, owner, lastChange).toString());
 
-		DataSet dataSet = service.loadDataSet(id);
+		DataSet dataSet = getService().loadDataSet(id);
 		server.assertRequestUris(dataSetsUri + "/" + id);
 
 		assertEquals(dataSet.getId(), id);
@@ -143,7 +140,7 @@ public class DataSetsTest extends SDKTest {
 	/** Data set description may be null. */
 	public void dataSetNullDescription() {
 		server.register(dataSetsUri + "/" + id, builder.buildDataSetNode(id, name, null, owner, lastChange).toString());
-		DataSet dataSet = service.loadDataSet(id);
+		DataSet dataSet = getService().loadDataSet(id);
 
 		assertEquals(dataSet.getDescription(), "");
 	}
@@ -153,7 +150,7 @@ public class DataSetsTest extends SDKTest {
 		ObjectNode node = builder.buildDataSetNode(id, name, description, owner, lastChange);
 		node.remove("description");
 		server.register(dataSetsUri + "/" + id, node.toString());
-		DataSet dataSet = service.loadDataSet(id);
+		DataSet dataSet = getService().loadDataSet(id);
 
 		assertEquals(dataSet.getDescription(), "");
 	}
@@ -161,7 +158,7 @@ public class DataSetsTest extends SDKTest {
 	/** Data set last change may be null. */
 	public void dataSetNullLastChange() {
 		server.register(dataSetsUri + "/" + id, builder.buildDataSetNode(id, name, description, owner, null).toString());
-		DataSet dataSet = service.loadDataSet(id);
+		DataSet dataSet = getService().loadDataSet(id);
 
 		assertNull(dataSet.getLastChange());
 	}
@@ -171,7 +168,7 @@ public class DataSetsTest extends SDKTest {
 		ObjectNode node = builder.buildDataSetNode(id, name, description, owner, lastChange);
 		node.remove("lastChange");
 		server.register(dataSetsUri + "/" + id, node.toString());
-		DataSet dataSet = service.loadDataSet(id);
+		DataSet dataSet = getService().loadDataSet(id);
 
 		assertNull(dataSet.getLastChange());
 	}
@@ -180,7 +177,7 @@ public class DataSetsTest extends SDKTest {
 	public void dataSetInvalidLastChange() {
 		server.register(dataSetsUri + "/" + id,
 			builder.buildDataSetNode(id, name, description, owner, "something invalid").toString());
-		DataSet dataSet = service.loadDataSet(id);
+		DataSet dataSet = getService().loadDataSet(id);
 
 		assertNull(dataSet.getLastChange());
 	}
@@ -196,7 +193,7 @@ public class DataSetsTest extends SDKTest {
 		registerSingleDataSet(builder.buildDataSetNode(id, name, description, owner, lastChange));
 		server.register(dataSetsUri + "/" + id, builder.buildDataSetNode(idDS, nameDS, descDS, ownerDS, lastChangeDS).toString());
 
-		DataSet dataSet = service.getDataSetInfo().load().get(0).loadDetails();
+		DataSet dataSet = getService().getDataSetInfo().load().get(0).loadDetails();
 
 		assertEquals(dataSet.getId(), idDS);
 		assertEquals(dataSet.getName(), nameDS);
@@ -214,9 +211,10 @@ public class DataSetsTest extends SDKTest {
 
 	/** equals/hashcode for data set info */
 	public void dataSetInfoEquality() {
-		DataSetInfo d1 = new DataSetInfoImpl(service, builder.buildDataSetNode(id, name, description, owner, lastChange));
-		DataSetInfo d2 = new DataSetInfoImpl(service, builder.buildDataSetNode(id, "", "", "", null));
-		DataSetInfo d3 = new DataSetInfoImpl(service, builder.buildDataSetNode("otherId", name, description, owner, lastChange));
+		DataSetInfo d1 = new DataSetInfoImpl(getService(), builder.buildDataSetNode(id, name, description, owner, lastChange));
+		DataSetInfo d2 = new DataSetInfoImpl(getService(), builder.buildDataSetNode(id, "", "", "", null));
+		DataSetInfo d3 = new DataSetInfoImpl(getService(),
+			builder.buildDataSetNode("otherId", name, description, owner, lastChange));
 
 		assertEquals(d1, d2);
 		assertEquals(d1.hashCode(), d2.hashCode());
@@ -227,9 +225,9 @@ public class DataSetsTest extends SDKTest {
 
 	/** equals/hashcode for data set */
 	public void dataSetEquality() {
-		DataSet d1 = new DataSetImpl(service, builder.buildDataSetNode(id, name, description, owner, lastChange));
-		DataSet d2 = new DataSetImpl(service, builder.buildDataSetNode(id, "", "", "", null));
-		DataSet d3 = new DataSetImpl(service, builder.buildDataSetNode("otherId", name, description, owner, lastChange));
+		DataSet d1 = new DataSetImpl(getService(), builder.buildDataSetNode(id, name, description, owner, lastChange));
+		DataSet d2 = new DataSetImpl(getService(), builder.buildDataSetNode(id, "", "", "", null));
+		DataSet d3 = new DataSetImpl(getService(), builder.buildDataSetNode("otherId", name, description, owner, lastChange));
 
 		assertEquals(d1, d2);
 		assertEquals(d1.hashCode(), d2.hashCode());
@@ -241,7 +239,7 @@ public class DataSetsTest extends SDKTest {
 	/** No reports field means no reports. */
 	public void reportsMissing() {
 		server.register(dataSetsUri + "/" + id, builder.buildDataSetNode(id, name, description, owner, lastChange).toString());
-		DataSet dataSet = service.loadDataSet(id);
+		DataSet dataSet = getService().loadDataSet(id);
 
 		assertEquals(dataSet.getReports(), Collections.emptyList());
 	}
@@ -251,7 +249,7 @@ public class DataSetsTest extends SDKTest {
 		ObjectNode node = builder.buildDataSetNode(id, name, description, owner, lastChange);
 		node.put("reports", new ObjectMapper().createArrayNode());
 		server.register(dataSetsUri + "/" + id, node.toString());
-		DataSet dataSet = service.loadDataSet(id);
+		DataSet dataSet = getService().loadDataSet(id);
 
 		assertEquals(dataSet.getReports(), Collections.emptyList());
 	}
@@ -262,7 +260,7 @@ public class DataSetsTest extends SDKTest {
 		node.put("reports",
 			new ObjectMapper().createArrayNode().add(builder.buildReportNode(null, name, description, owner, lastChange)));
 		server.register(dataSetsUri + "/" + id, node.toString());
-		DataSet dataSet = service.loadDataSet(id);
+		DataSet dataSet = getService().loadDataSet(id);
 
 		assertEquals(dataSet.getReports(), Collections.emptyList());
 	}
@@ -274,18 +272,16 @@ public class DataSetsTest extends SDKTest {
 		node.put("reports",
 			new ObjectMapper().createArrayNode().add(builder.buildReportNode(reportId, name, description, owner, lastChange)));
 		server.register(dataSetsUri + "/" + id, node.toString());
-		DataSet dataSet = service.loadDataSet(id);
+		server.register("/api/reports/" + reportId,
+			builder.buildReportNode(reportId, name, description, owner, lastChange).toString());
 
+		DataSet dataSet = getService().loadDataSet(id);
 		assertEquals(dataSet.getReports().size(), 1);
 		ReportInfo reportInfo = dataSet.getReports().get(0);
 		assertEquals(reportInfo.getId(), reportId);
 		assertEquals(reportInfo.getName(), name);
 		assertEquals(reportInfo.getDescription(), description);
 		assertEquals(reportInfo.getOwnerName(), owner);
-
-		server.register("/api/reports/" + reportId,
-			builder.buildReportNode(reportId, name, description, owner, lastChange).toString());
-
 		reportInfo.loadDetails();
 		server.assertRequestUris(dataSetsUri + "/" + id, "/api/reports/" + reportId);
 	}
@@ -304,12 +300,11 @@ public class DataSetsTest extends SDKTest {
 	public void loadDataSetData() {
 		server.register(dataSetsUri + "/" + id, builder.buildDataSetNode(id, name, description, owner, lastChange).toString());
 
-		DataSet dataSet = service.loadDataSet(id);
-		server.assertRequestUris(dataSetsUri + "/" + id);
-
 		server.register(String.format(dataUri, id), builder.buildDataSetDataNode(id, name, description, owner, lastChange, "456",
 			"L_ATTRIBUTE", "My Value", "M_INDICATOR", "11.99").toString());
 
+		DataSet dataSet = getService().loadDataSet(id);
+		server.assertRequestUris(dataSetsUri + "/" + id);
 		PaginatedIdList<DataRow> dataList = dataSet.getData();
 		dataList.load();
 		server.assertRequestUris(dataSetsUri + "/" + id, String.format(dataUri, id));
@@ -332,13 +327,11 @@ public class DataSetsTest extends SDKTest {
 
 		registerSingleDataSet(builder.buildDataSetNode(id, name, description, owner, lastChange));
 		server.register(dataSetsUri + "/" + id, builder.buildDataSetNode(idDS, nameDS, descDS, ownerDS, lastChangeDS).toString());
-
-		DataSetInfo dataSetInfo = service.getDataSetInfo().load().get(0);
-		server.assertRequestUris(dataSetsUri);
-
 		server.register(String.format(dataUri, id), builder.buildDataSetDataNode(id, name, description, owner, lastChange, "456",
 			"L_ATTRIBUTE", "My Value", "M_INDICATOR", "11.99").toString());
 
+		DataSetInfo dataSetInfo = getService().getDataSetInfo().load().get(0);
+		server.assertRequestUris(dataSetsUri);
 		PaginatedIdList<DataRow> dataList = dataSetInfo.getData();
 		dataList.load();
 		server.assertRequestUris(dataSetsUri, String.format(dataUri, id));
@@ -353,8 +346,6 @@ public class DataSetsTest extends SDKTest {
 
 	/** Posts data set data row. */
 	public void postDataSetData() {
-		DataSet dataSet = new DataSetImpl(service, builder.buildDataSetNode(id, name, description, owner, lastChange));
-
 		ObjectNode expectedNode = builder.buildDataSetDataRowNode("456", "L_ATTRIBUTE", "My Value", "M_INDICATOR", "11.99");
 
 		server.register(String.format(dataUri, id), new TestRequestHandler() {
@@ -368,6 +359,7 @@ public class DataSetsTest extends SDKTest {
 			}
 		});
 
+		DataSet dataSet = new DataSetImpl(getService(), builder.buildDataSetNode(id, name, description, owner, lastChange));
 		List<DataColumn> columns = new ArrayList<>();
 		columns.add(new DataColumn("L_ATTRIBUTE"));
 		columns.add(new DataColumn("M_INDICATOR"));
@@ -380,9 +372,6 @@ public class DataSetsTest extends SDKTest {
 
 	/** Posts data set info data row. */
 	public void postDataSetDataFromInfo() {
-		DataSetInfo dataSetInfo = new DataSetInfoImpl(service,
-			builder.buildDataSetNode(id, name, description, owner, lastChange));
-
 		ObjectNode expectedNode = builder.buildDataSetDataRowNode("456", "L_ATTRIBUTE", "My Value", "M_INDICATOR", "11.99");
 
 		server.register(String.format(dataUri, id), new TestRequestHandler() {
@@ -395,6 +384,9 @@ public class DataSetsTest extends SDKTest {
 				holder.response.setEntity(new StringEntity(""));
 			}
 		});
+
+		DataSetInfo dataSetInfo = new DataSetInfoImpl(getService(),
+			builder.buildDataSetNode(id, name, description, owner, lastChange));
 
 		List<DataColumn> columns = new ArrayList<>();
 		columns.add(new DataColumn("L_ATTRIBUTE"));

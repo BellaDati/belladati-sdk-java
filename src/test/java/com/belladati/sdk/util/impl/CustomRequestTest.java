@@ -35,7 +35,7 @@ public class CustomRequestTest extends SDKTest {
 			}
 		});
 
-		assertEquals(service.post(uri), returnValue);
+		assertEquals(getService().post(uri), returnValue);
 
 		server.assertRequestUris(serverUri);
 	}
@@ -51,7 +51,7 @@ public class CustomRequestTest extends SDKTest {
 			}
 		});
 
-		assertEquals(service.post(uri, params), returnValue);
+		assertEquals(getService().post(uri, params), returnValue);
 
 		server.assertRequestUris(serverUri);
 	}
@@ -68,7 +68,7 @@ public class CustomRequestTest extends SDKTest {
 			}
 		});
 
-		assertEquals(service.post(uri, body), returnValue);
+		assertEquals(getService().post(uri, body), returnValue);
 
 		server.assertRequestUris(serverUri);
 	}
@@ -85,7 +85,7 @@ public class CustomRequestTest extends SDKTest {
 			}
 		});
 
-		assertEquals(service.post(uri, params, body), returnValue);
+		assertEquals(getService().post(uri, params, body), returnValue);
 
 		server.assertRequestUris(serverUri);
 	}
@@ -101,7 +101,7 @@ public class CustomRequestTest extends SDKTest {
 			}
 		});
 
-		assertEquals(service.postForm(uri, params), returnValue);
+		assertEquals(getService().postForm(uri, params), returnValue);
 
 		server.assertRequestUris(serverUri);
 	}
@@ -117,7 +117,7 @@ public class CustomRequestTest extends SDKTest {
 			}
 		});
 
-		assertEquals(service.postForm(uri, params, params), returnValue);
+		assertEquals(getService().postForm(uri, params, params), returnValue);
 
 		server.assertRequestUris(serverUri);
 	}
@@ -132,7 +132,7 @@ public class CustomRequestTest extends SDKTest {
 			}
 		});
 
-		assertEquals(service.get(uri), returnValue);
+		assertEquals(getService().get(uri), returnValue);
 
 		server.assertRequestUris(serverUri);
 	}
@@ -148,49 +148,49 @@ public class CustomRequestTest extends SDKTest {
 			}
 		});
 
-		assertEquals(service.get(uri, params), returnValue);
+		assertEquals(getService().get(uri, params), returnValue);
 
 		server.assertRequestUris(serverUri);
 	}
 
 	@Test(expectedExceptions = URISyntaxException.class)
 	public void brokenPost() throws URISyntaxException {
-		service.post(brokenUri);
+		getService().post(brokenUri);
 	}
 
 	@Test(expectedExceptions = URISyntaxException.class)
 	public void brokenPostUriParams() throws URISyntaxException {
-		service.post(brokenUri, params);
+		getService().post(brokenUri, params);
 	}
 
 	@Test(expectedExceptions = URISyntaxException.class)
 	public void brokenPostBody() throws URISyntaxException {
-		service.post(brokenUri, body);
+		getService().post(brokenUri, body);
 	}
 
 	@Test(expectedExceptions = URISyntaxException.class)
 	public void brokenPostUriParamsBody() throws URISyntaxException {
-		service.post(brokenUri, params, body);
+		getService().post(brokenUri, params, body);
 	}
 
 	@Test(expectedExceptions = URISyntaxException.class)
 	public void brokenPostFormParams() throws URISyntaxException {
-		service.postForm(brokenUri, params);
+		getService().postForm(brokenUri, params);
 	}
 
 	@Test(expectedExceptions = URISyntaxException.class)
 	public void brokenPostUriFormParams() throws URISyntaxException {
-		service.postForm(brokenUri, params, params);
+		getService().postForm(brokenUri, params, params);
 	}
 
 	@Test(expectedExceptions = URISyntaxException.class)
 	public void brokenGet() throws URISyntaxException {
-		service.get(brokenUri);
+		getService().get(brokenUri);
 	}
 
 	@Test(expectedExceptions = URISyntaxException.class)
 	public void brokenGetUriParams() throws URISyntaxException {
-		service.get(brokenUri, params);
+		getService().get(brokenUri, params);
 	}
 
 	@DataProvider(name = "uris")

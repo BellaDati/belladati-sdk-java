@@ -47,7 +47,7 @@ public class DashletsTest extends SDKTest {
 
 		registerDashboardWith(dashletNode);
 
-		Dashboard dashboard = service.loadDashboard(dashboardId);
+		Dashboard dashboard = getService().loadDashboard(dashboardId);
 
 		assertEquals(dashboard.getDashlets().size(), 1);
 		Dashlet dashlet = dashboard.getDashlets().get(0);
@@ -79,7 +79,7 @@ public class DashletsTest extends SDKTest {
 
 		registerDashboardWith(dashletNode);
 
-		Dashboard dashboard = service.loadDashboard(dashboardId);
+		Dashboard dashboard = getService().loadDashboard(dashboardId);
 
 		assertEquals(dashboard.getDashlets(), Collections.emptyList());
 	}
@@ -91,7 +91,7 @@ public class DashletsTest extends SDKTest {
 
 		registerDashboardWith(dashletNode);
 
-		Dashboard dashboard = service.loadDashboard(dashboardId);
+		Dashboard dashboard = getService().loadDashboard(dashboardId);
 
 		assertEquals(dashboard.getDashlets(), Collections.emptyList());
 	}
@@ -104,7 +104,7 @@ public class DashletsTest extends SDKTest {
 
 		registerDashboardWith(dashletNode);
 
-		Dashboard dashboard = service.loadDashboard(dashboardId);
+		Dashboard dashboard = getService().loadDashboard(dashboardId);
 
 		assertEquals(dashboard.getDashlets(), Collections.emptyList());
 	}
@@ -118,7 +118,7 @@ public class DashletsTest extends SDKTest {
 
 		registerDashboardWith(dashletNode);
 
-		Dashboard dashboard = service.loadDashboard(dashboardId);
+		Dashboard dashboard = getService().loadDashboard(dashboardId);
 
 		assertEquals(dashboard.getDashlets(), Collections.emptyList());
 	}
@@ -132,7 +132,7 @@ public class DashletsTest extends SDKTest {
 
 		registerDashboardWith(dashletNode);
 
-		Dashboard dashboard = service.loadDashboard(dashboardId);
+		Dashboard dashboard = getService().loadDashboard(dashboardId);
 
 		assertEquals(dashboard.getDashlets(), Collections.emptyList());
 	}
@@ -141,7 +141,7 @@ public class DashletsTest extends SDKTest {
 	public void noViewElement() {
 		registerDashboardWith(new ObjectMapper().createObjectNode().put("canAccessViewReport", true).put("type", "viewReport"));
 
-		Dashboard dashboard = service.loadDashboard(dashboardId);
+		Dashboard dashboard = getService().loadDashboard(dashboardId);
 		assertEquals(dashboard.getDashlets(), Collections.emptyList());
 	}
 
@@ -153,7 +153,7 @@ public class DashletsTest extends SDKTest {
 
 		registerDashboardWith(dashletNode);
 
-		Dashboard dashboard = service.loadDashboard(dashboardId);
+		Dashboard dashboard = getService().loadDashboard(dashboardId);
 
 		assertEquals(dashboard.getDashlets().size(), 1);
 		Dashlet dashlet = dashboard.getDashlets().get(0);
@@ -169,7 +169,7 @@ public class DashletsTest extends SDKTest {
 
 		registerDashboardWith(dashletNode);
 
-		Dashboard dashboard = service.loadDashboard(dashboardId);
+		Dashboard dashboard = getService().loadDashboard(dashboardId);
 
 		assertEquals(dashboard.getDashlets().size(), 1);
 		Dashlet dashlet = dashboard.getDashlets().get(0);
@@ -185,7 +185,7 @@ public class DashletsTest extends SDKTest {
 
 		registerDashboardWith(dashletNode);
 
-		Dashboard dashboard = service.loadDashboard(dashboardId);
+		Dashboard dashboard = getService().loadDashboard(dashboardId);
 
 		assertEquals(dashboard.getDashlets(), Collections.emptyList());
 	}
@@ -196,7 +196,7 @@ public class DashletsTest extends SDKTest {
 
 		registerDashboardWith(dashletNode);
 
-		Dashboard dashboard = service.loadDashboard(dashboardId);
+		Dashboard dashboard = getService().loadDashboard(dashboardId);
 
 		assertEquals(dashboard.getDashlets(), Collections.emptyList());
 	}
@@ -205,7 +205,7 @@ public class DashletsTest extends SDKTest {
 	public void dashletsNull() {
 		ObjectNode node = builder.buildDashboardNode(dashboardId, dashboardName, null).put("dashlets", (String) null);
 		server.register(dashboardsUri + "/" + dashboardId, node.toString());
-		Dashboard dashboard = service.loadDashboard(dashboardId);
+		Dashboard dashboard = getService().loadDashboard(dashboardId);
 
 		assertEquals(dashboard.getDashlets(), Collections.emptyList());
 	}
@@ -214,7 +214,7 @@ public class DashletsTest extends SDKTest {
 	public void dashletsNotArray() {
 		ObjectNode node = builder.buildDashboardNode(dashboardId, dashboardName, null).put("dashlets", "not an array");
 		server.register(dashboardsUri + "/" + dashboardId, node.toString());
-		Dashboard dashboard = service.loadDashboard(dashboardId);
+		Dashboard dashboard = getService().loadDashboard(dashboardId);
 
 		assertEquals(dashboard.getDashlets(), Collections.emptyList());
 	}
@@ -227,18 +227,18 @@ public class DashletsTest extends SDKTest {
 
 		registerDashboardWith(dashletNode);
 
-		Dashboard dashboard = service.loadDashboard(dashboardId);
+		Dashboard dashboard = getService().loadDashboard(dashboardId);
 
 		assertEquals(dashboard.getDashlets(), Collections.emptyList());
 	}
 
 	/** equals/hashcode for text dashlets */
 	public void textEquality() throws DashletException {
-		Dashlet d1 = new DashletImpl(service,
+		Dashlet d1 = new DashletImpl(getService(),
 			new ObjectMapper().createObjectNode().put("type", "textContent").put("textContent", "text"));
-		Dashlet d2 = new DashletImpl(service,
+		Dashlet d2 = new DashletImpl(getService(),
 			new ObjectMapper().createObjectNode().put("type", "textContent").put("textContent", "text"));
-		Dashlet d3 = new DashletImpl(service,
+		Dashlet d3 = new DashletImpl(getService(),
 			new ObjectMapper().createObjectNode().put("type", "textContent").put("textContent", "other text"));
 
 		assertEquals(d1, d2);
@@ -252,15 +252,15 @@ public class DashletsTest extends SDKTest {
 	public void viewEquality() throws DashletException {
 		ObjectNode n1 = new ObjectMapper().createObjectNode().put("type", "viewReport").put("canAccessViewReport", true);
 		n1.put("viewReport", builder.buildViewNode(viewId, viewName, "chart"));
-		Dashlet d1 = new DashletImpl(service, n1);
+		Dashlet d1 = new DashletImpl(getService(), n1);
 
 		ObjectNode n2 = new ObjectMapper().createObjectNode().put("type", "viewReport").put("canAccessViewReport", true);
 		n2.put("viewReport", builder.buildViewNode(viewId, "other name", "kpi"));
-		Dashlet d2 = new DashletImpl(service, n2);
+		Dashlet d2 = new DashletImpl(getService(), n2);
 
 		ObjectNode n3 = new ObjectMapper().createObjectNode().put("type", "viewReport").put("canAccessViewReport", true);
 		n3.put("viewReport", builder.buildViewNode("otherId", viewName, "chart"));
-		Dashlet d3 = new DashletImpl(service, n3);
+		Dashlet d3 = new DashletImpl(getService(), n3);
 
 		assertEquals(d1, d2);
 		assertEquals(d1.hashCode(), d2.hashCode());

@@ -9,7 +9,6 @@ import java.util.Arrays;
 import java.util.Collections;
 
 import org.apache.http.entity.StringEntity;
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.belladati.sdk.impl.BellaDatiClient;
@@ -18,7 +17,6 @@ import com.belladati.sdk.impl.TokenHolder;
 import com.belladati.sdk.test.SDKTest;
 import com.belladati.sdk.test.TestRequestHandler;
 import com.belladati.sdk.util.CachedList;
-import com.belladati.sdk.util.impl.CachedListImpl;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -33,9 +31,7 @@ public class CachedListTest extends SDKTest {
 	private final String field = "field";
 
 	/** Loading a cached list calls the right URL. */
-	public void load() {
-		assertEquals(list.get(), Collections.emptyList());
-
+	public void load() throws Exception {
 		server.register(uri, new TestRequestHandler() {
 			@Override
 			protected void handle(HttpHolder holder) throws IOException {
@@ -43,6 +39,10 @@ public class CachedListTest extends SDKTest {
 				holder.response.setEntity(new StringEntity(buildResponse().toString()));
 			}
 		});
+		server.start();
+
+		setupList();
+		assertEquals(list.get(), Collections.emptyList());
 		list.load();
 
 		server.assertRequestUris(uri);
@@ -52,9 +52,10 @@ public class CachedListTest extends SDKTest {
 	}
 
 	/** first time load is called just once */
-	public void loadFirstTime() {
+	public void loadFirstTime() throws Exception {
 		server.register(uri, buildResponse().toString());
-
+		server.start();
+		setupList();
 		list.loadFirstTime();
 		assertTrue(list.isLoaded());
 
@@ -64,12 +65,14 @@ public class CachedListTest extends SDKTest {
 	}
 
 	/** Items are parsed correctly. */
-	public void loadItems() {
+	public void loadItems() throws Exception {
 
 		final String id1 = "id1";
 		final String id2 = "id2";
 
 		server.register(uri, buildResponse(id1, id2).toString());
+		server.start();
+		setupList();
 		list.load();
 
 		Item item1 = new Item(id1);
@@ -81,12 +84,14 @@ public class CachedListTest extends SDKTest {
 	}
 
 	/** Items are parsed correctly during loadFirstTime. */
-	public void loadFirstTimeItems() {
+	public void loadFirstTimeItems() throws Exception {
 
 		final String id1 = "id1";
 		final String id2 = "id2";
 
 		server.register(uri, buildResponse(id1, id2).toString());
+		server.start();
+		setupList();
 		list.loadFirstTime();
 
 		Item item1 = new Item(id1);
@@ -98,39 +103,44 @@ public class CachedListTest extends SDKTest {
 	}
 
 	/** Previously loaded items are discarded when load is called again. */
-	public void discardOnLoad() {
+	public void discardOnLoad() throws Exception {
 		final String id1 = "id1";
 		final String id2 = "id2";
 
 		server.register(uri, buildResponse(id1).toString());
-		list.load();
-
 		server.register(uri, buildResponse(id2).toString());
+		server.start();
+
+		setupList();
+		list.load();
 		list.load();
 
 		assertEquals(list.get(), Arrays.asList(new Item(id2)));
 	}
 
 	/** Previously loaded items are not discarded when loadFirstTime is called. */
-	public void noDiscardOnLoadFirstTime() {
+	public void noDiscardOnLoadFirstTime() throws Exception {
 		final String id1 = "id1";
 		final String id2 = "id2";
 
-		server.register(uri, buildResponse(id1).toString());
-		list.load();
-
 		server.register(uri, buildResponse(id2).toString());
-		list.loadFirstTime();
+		server.register(uri, buildResponse(id1).toString());
+		server.start();
 
+		setupList();
+		list.load();
+		list.loadFirstTime();
 		server.assertRequestUris(uri);
 		assertEquals(list.get(), Arrays.asList(new Item(id1)));
 	}
 
 	/** isLoaded is set correctly */
-	public void isLoaded() {
-		assertFalse(list.isLoaded());
-
+	public void isLoaded() throws Exception {
 		server.register(uri, buildResponse().toString());
+		server.start();
+
+		setupList();
+		assertFalse(list.isLoaded());
 		list.load();
 
 		assertTrue(list.isLoaded());
@@ -147,7 +157,6 @@ public class CachedListTest extends SDKTest {
 		return node;
 	}
 
-	@BeforeMethod
 	protected void setupList() {
 		BellaDatiClient client = new BellaDatiClient(server.getHttpURL(), false);
 		BellaDatiServiceImpl service = new BellaDatiServiceImpl(client, new TokenHolder("key", "secret"));

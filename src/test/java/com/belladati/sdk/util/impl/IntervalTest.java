@@ -330,7 +330,7 @@ public class IntervalTest extends SDKTest {
 			}
 		});
 
-		service.setupViewLoader(viewId, ViewType.CHART).setTimeInterval(new AbsoluteInterval<TimeUnit>(TimeUnit.HOUR, start, end))
+		getService().setupViewLoader(viewId, ViewType.CHART).setTimeInterval(new AbsoluteInterval<TimeUnit>(TimeUnit.HOUR, start, end))
 			.loadContent();
 
 		server.assertRequestUris(viewsUri);
@@ -352,7 +352,7 @@ public class IntervalTest extends SDKTest {
 			}
 		});
 
-		service.setupViewLoader(viewId, ViewType.CHART).setDateInterval(new AbsoluteInterval<DateUnit>(DateUnit.YEAR, start, end))
+		getService().setupViewLoader(viewId, ViewType.CHART).setDateInterval(new AbsoluteInterval<DateUnit>(DateUnit.YEAR, start, end))
 			.loadContent();
 
 		server.assertRequestUris(viewsUri);
@@ -375,7 +375,7 @@ public class IntervalTest extends SDKTest {
 			}
 		});
 
-		service.setupViewLoader(viewId, ViewType.CHART).setDateInterval(new AbsoluteInterval<DateUnit>(DateUnit.YEAR, start, end))
+		getService().setupViewLoader(viewId, ViewType.CHART).setDateInterval(new AbsoluteInterval<DateUnit>(DateUnit.YEAR, start, end))
 			.setTimeInterval(new RelativeInterval<TimeUnit>(TimeUnit.MINUTE, -10, 10)).loadContent();
 
 		server.assertRequestUris(viewsUri);
@@ -390,7 +390,7 @@ public class IntervalTest extends SDKTest {
 
 		ObjectNode viewNode = builder.buildViewNode(viewId, viewName, "chart");
 		viewNode.put("dateTimeDefinition", buildIntervalNode(TimeUnit.SECOND, from, to, "absolute"));
-		View view = ViewImpl.buildView(service, viewNode);
+		View view = ViewImpl.buildView(getService(), viewNode);
 
 		Calendar expectedStart = new GregorianCalendar(0, 0, 0, start.get(Calendar.HOUR), start.get(Calendar.MINUTE),
 			start.get(Calendar.SECOND));
@@ -414,7 +414,7 @@ public class IntervalTest extends SDKTest {
 
 		ObjectNode viewNode = builder.buildViewNode(viewId, viewName, "chart");
 		viewNode.put("dateTimeDefinition", buildIntervalNode(TimeUnit.MINUTE, from, to, "absolute"));
-		View view = ViewImpl.buildView(service, viewNode);
+		View view = ViewImpl.buildView(getService(), viewNode);
 
 		Calendar expectedStart = new GregorianCalendar(0, 0, 0, start.get(Calendar.HOUR), start.get(Calendar.MINUTE), 0);
 		Calendar expectedEnd = new GregorianCalendar(0, 0, 0, end.get(Calendar.HOUR), end.get(Calendar.MINUTE), 0);
@@ -435,7 +435,7 @@ public class IntervalTest extends SDKTest {
 
 		ObjectNode viewNode = builder.buildViewNode(viewId, viewName, "chart");
 		viewNode.put("dateTimeDefinition", buildIntervalNode(TimeUnit.HOUR, from, to, "absolute"));
-		View view = ViewImpl.buildView(service, viewNode);
+		View view = ViewImpl.buildView(getService(), viewNode);
 
 		Calendar expectedStart = new GregorianCalendar(0, 0, 0, start.get(Calendar.HOUR), 0, 0);
 		Calendar expectedEnd = new GregorianCalendar(0, 0, 0, end.get(Calendar.HOUR), 0, 0);
@@ -458,7 +458,7 @@ public class IntervalTest extends SDKTest {
 
 		ObjectNode viewNode = builder.buildViewNode(viewId, viewName, "chart");
 		viewNode.put("dateTimeDefinition", buildIntervalNode(DateUnit.DAY, from, to, "absolute"));
-		View view = ViewImpl.buildView(service, viewNode);
+		View view = ViewImpl.buildView(getService(), viewNode);
 
 		Calendar expectedStart = new GregorianCalendar(start.get(Calendar.YEAR), start.get(Calendar.MONTH),
 			start.get(Calendar.DAY_OF_MONTH));
@@ -482,7 +482,7 @@ public class IntervalTest extends SDKTest {
 
 		ObjectNode viewNode = builder.buildViewNode(viewId, viewName, "chart");
 		viewNode.put("dateTimeDefinition", buildIntervalNode(DateUnit.WEEK, from, to, "absolute"));
-		View view = ViewImpl.buildView(service, viewNode);
+		View view = ViewImpl.buildView(getService(), viewNode);
 
 		Calendar expectedStart = new GregorianCalendar(start.get(Calendar.YEAR), 0, 1);
 		expectedStart.set(Calendar.WEEK_OF_YEAR, start.get(Calendar.WEEK_OF_YEAR));
@@ -506,7 +506,7 @@ public class IntervalTest extends SDKTest {
 
 		ObjectNode viewNode = builder.buildViewNode(viewId, viewName, "chart");
 		viewNode.put("dateTimeDefinition", buildIntervalNode(DateUnit.MONTH, from, to, "absolute"));
-		View view = ViewImpl.buildView(service, viewNode);
+		View view = ViewImpl.buildView(getService(), viewNode);
 
 		Calendar expectedStart = new GregorianCalendar(start.get(Calendar.YEAR), start.get(Calendar.MONTH), 1);
 		Calendar expectedEnd = new GregorianCalendar(end.get(Calendar.YEAR), end.get(Calendar.MONTH), 1);
@@ -529,7 +529,7 @@ public class IntervalTest extends SDKTest {
 
 		ObjectNode viewNode = builder.buildViewNode(viewId, viewName, "chart");
 		viewNode.put("dateTimeDefinition", buildIntervalNode(DateUnit.QUARTER, from, to, "absolute"));
-		View view = ViewImpl.buildView(service, viewNode);
+		View view = ViewImpl.buildView(getService(), viewNode);
 
 		Calendar expectedStart = new GregorianCalendar(start.get(Calendar.YEAR), (start.get(Calendar.MONTH) / 3) * 3, 1);
 		Calendar expectedEnd = new GregorianCalendar(end.get(Calendar.YEAR), (end.get(Calendar.MONTH) / 3) * 3, 1);
@@ -550,7 +550,7 @@ public class IntervalTest extends SDKTest {
 
 		ObjectNode viewNode = builder.buildViewNode(viewId, viewName, "chart");
 		viewNode.put("dateTimeDefinition", buildIntervalNode(DateUnit.YEAR, from, to, "absolute"));
-		View view = ViewImpl.buildView(service, viewNode);
+		View view = ViewImpl.buildView(getService(), viewNode);
 
 		Calendar expectedStart = new GregorianCalendar(start.get(Calendar.YEAR), 0, 1);
 		Calendar expectedEnd = new GregorianCalendar(end.get(Calendar.YEAR), 0, 1);
@@ -569,7 +569,7 @@ public class IntervalTest extends SDKTest {
 	public void predefinedRelativeInterval(IntervalUnit unit) throws UnknownViewTypeException {
 		ObjectNode viewNode = builder.buildViewNode(viewId, viewName, "chart");
 		viewNode.put("dateTimeDefinition", buildIntervalNode(unit, new IntNode(-3), new IntNode(3), "rElAtIvE"));
-		View view = ViewImpl.buildView(service, viewNode);
+		View view = ViewImpl.buildView(getService(), viewNode);
 
 		if (unit instanceof DateUnit) {
 			assertTrue(view.hasPredefinedDateInterval());
@@ -595,7 +595,7 @@ public class IntervalTest extends SDKTest {
 	public void predefinedCustomInterval(IntervalUnit unit) throws UnknownViewTypeException {
 		ObjectNode viewNode = builder.buildViewNode(viewId, viewName, "chart");
 		viewNode.put("dateTimeDefinition", buildIntervalNode(unit, new TextNode(startVal), new TextNode(endVal), "cUsToM"));
-		View view = ViewImpl.buildView(service, viewNode);
+		View view = ViewImpl.buildView(getService(), viewNode);
 
 		if (unit instanceof DateUnit) {
 			assertTrue(view.hasPredefinedDateInterval());
@@ -621,7 +621,7 @@ public class IntervalTest extends SDKTest {
 	public void predefinedUnknownInterval(IntervalUnit unit) throws UnknownViewTypeException {
 		ObjectNode viewNode = builder.buildViewNode(viewId, viewName, "chart");
 		viewNode.put("dateTimeDefinition", buildIntervalNode(unit, new IntNode(-3), new IntNode(3), "something else"));
-		View view = ViewImpl.buildView(service, viewNode);
+		View view = ViewImpl.buildView(getService(), viewNode);
 
 		assertFalse(view.hasPredefinedDateInterval());
 		assertFalse(view.hasPredefinedTimeInterval());
@@ -634,7 +634,7 @@ public class IntervalTest extends SDKTest {
 	public void invalidRelativeInterval(IntervalUnit unit) throws UnknownViewTypeException {
 		ObjectNode viewNode = builder.buildViewNode(viewId, viewName, "chart");
 		viewNode.put("dateTimeDefinition", buildIntervalNode(unit, new TextNode("abc"), new IntNode(3), "relative"));
-		View view = ViewImpl.buildView(service, viewNode);
+		View view = ViewImpl.buildView(getService(), viewNode);
 
 		assertFalse(view.hasPredefinedDateInterval());
 		assertFalse(view.hasPredefinedTimeInterval());
@@ -649,7 +649,7 @@ public class IntervalTest extends SDKTest {
 
 		ObjectNode viewNode = builder.buildViewNode(viewId, viewName, "chart");
 		viewNode.put("dateTimeDefinition", buildIntervalNode(DateUnit.YEAR, from, to, "absolute"));
-		View view = ViewImpl.buildView(service, viewNode);
+		View view = ViewImpl.buildView(getService(), viewNode);
 
 		assertFalse(view.hasPredefinedDateInterval());
 		assertFalse(view.hasPredefinedTimeInterval());
@@ -662,7 +662,7 @@ public class IntervalTest extends SDKTest {
 	public void invalidCustomInterval(IntervalUnit unit) throws UnknownViewTypeException {
 		ObjectNode viewNode = builder.buildViewNode(viewId, viewName, "chart");
 		viewNode.put("dateTimeDefinition", buildIntervalNode(unit, new TextNode(""), new TextNode(endVal), "custom"));
-		View view = ViewImpl.buildView(service, viewNode);
+		View view = ViewImpl.buildView(getService(), viewNode);
 
 		assertFalse(view.hasPredefinedDateInterval());
 		assertFalse(view.hasPredefinedTimeInterval());
@@ -675,7 +675,7 @@ public class IntervalTest extends SDKTest {
 	public void stringRelativeInterval(IntervalUnit unit) throws UnknownViewTypeException {
 		ObjectNode viewNode = builder.buildViewNode(viewId, viewName, "chart");
 		viewNode.put("dateTimeDefinition", buildIntervalNode(unit, new TextNode("-3"), new IntNode(3), "relative"));
-		View view = ViewImpl.buildView(service, viewNode);
+		View view = ViewImpl.buildView(getService(), viewNode);
 
 		if (unit instanceof DateUnit) {
 			assertTrue(view.hasPredefinedDateInterval());
@@ -703,7 +703,7 @@ public class IntervalTest extends SDKTest {
 
 		ObjectNode viewNode = builder.buildViewNode(viewId, viewName, "chart");
 		viewNode.put("dateTimeDefinition", buildIntervalNode(DateUnit.YEAR, from, to, "absolute"));
-		View view = ViewImpl.buildView(service, viewNode);
+		View view = ViewImpl.buildView(getService(), viewNode);
 
 		assertTrue(view.hasPredefinedDateInterval());
 		assertFalse(view.hasPredefinedTimeInterval());
@@ -719,7 +719,7 @@ public class IntervalTest extends SDKTest {
 	public void numberCustomInterval(IntervalUnit unit) throws UnknownViewTypeException {
 		ObjectNode viewNode = builder.buildViewNode(viewId, viewName, "chart");
 		viewNode.put("dateTimeDefinition", buildIntervalNode(unit, new IntNode(1), new IntNode(2), "custom"));
-		View view = ViewImpl.buildView(service, viewNode);
+		View view = ViewImpl.buildView(getService(), viewNode);
 
 		if (unit instanceof DateUnit) {
 			assertTrue(view.hasPredefinedDateInterval());
@@ -745,7 +745,7 @@ public class IntervalTest extends SDKTest {
 	public void fractionRelativeInterval(IntervalUnit unit) throws UnknownViewTypeException {
 		ObjectNode viewNode = builder.buildViewNode(viewId, viewName, "chart");
 		viewNode.put("dateTimeDefinition", buildIntervalNode(unit, new TextNode("-3.0"), new IntNode(3), "relative"));
-		View view = ViewImpl.buildView(service, viewNode);
+		View view = ViewImpl.buildView(getService(), viewNode);
 
 		if (unit instanceof DateUnit) {
 			assertTrue(view.hasPredefinedDateInterval());
@@ -773,7 +773,7 @@ public class IntervalTest extends SDKTest {
 
 		ObjectNode viewNode = builder.buildViewNode(viewId, viewName, "chart");
 		viewNode.put("dateTimeDefinition", buildIntervalNode(DateUnit.YEAR, from, to, "absolute"));
-		View view = ViewImpl.buildView(service, viewNode);
+		View view = ViewImpl.buildView(getService(), viewNode);
 
 		assertTrue(view.hasPredefinedDateInterval());
 		assertFalse(view.hasPredefinedTimeInterval());
@@ -792,7 +792,7 @@ public class IntervalTest extends SDKTest {
 		((ObjectNode) definitionNode.get("dateInterval")).put("aggregationType", "not a date unit");
 		((ObjectNode) definitionNode.get("timeInterval")).put("aggregationType", "not a time unit");
 		viewNode.put("dateTimeDefinition", definitionNode);
-		View view = ViewImpl.buildView(service, viewNode);
+		View view = ViewImpl.buildView(getService(), viewNode);
 
 		assertFalse(view.hasPredefinedDateInterval());
 		assertFalse(view.hasPredefinedTimeInterval());
@@ -808,7 +808,7 @@ public class IntervalTest extends SDKTest {
 		((ObjectNode) definitionNode.get("dateInterval")).remove("aggregationType");
 		((ObjectNode) definitionNode.get("timeInterval")).remove("aggregationType");
 		viewNode.put("dateTimeDefinition", definitionNode);
-		View view = ViewImpl.buildView(service, viewNode);
+		View view = ViewImpl.buildView(getService(), viewNode);
 
 		assertFalse(view.hasPredefinedDateInterval());
 		assertFalse(view.hasPredefinedTimeInterval());
@@ -822,7 +822,7 @@ public class IntervalTest extends SDKTest {
 		ObjectNode definitionNode = buildIntervalNode(DateUnit.DAY, new IntNode(3), new IntNode(-3), "relative");
 		definitionNode.setAll(buildIntervalNode(TimeUnit.HOUR, new IntNode(3), new IntNode(-3), "relative"));
 		viewNode.put("dateTimeDefinition", definitionNode);
-		View view = ViewImpl.buildView(service, viewNode);
+		View view = ViewImpl.buildView(getService(), viewNode);
 
 		assertFalse(view.hasPredefinedDateInterval());
 		assertFalse(view.hasPredefinedTimeInterval());
@@ -838,7 +838,7 @@ public class IntervalTest extends SDKTest {
 		((ObjectNode) definitionNode.get("dateInterval")).put("aggregationType", "dAy");
 		((ObjectNode) definitionNode.get("timeInterval")).put("aggregationType", "hOuR");
 		viewNode.put("dateTimeDefinition", definitionNode);
-		View view = ViewImpl.buildView(service, viewNode);
+		View view = ViewImpl.buildView(getService(), viewNode);
 
 		assertTrue(view.hasPredefinedDateInterval());
 		assertTrue(view.hasPredefinedTimeInterval());
@@ -880,7 +880,7 @@ public class IntervalTest extends SDKTest {
 		typeNode.put("aggregationType", typeNode.get("aggregationType").asText().toLowerCase(Locale.ENGLISH));
 
 		viewNode.put("dateTimeDefinition", intervalNode);
-		View view = ViewImpl.buildView(service, viewNode);
+		View view = ViewImpl.buildView(getService(), viewNode);
 
 		if (unit instanceof DateUnit) {
 			assertTrue(view.hasPredefinedDateInterval());

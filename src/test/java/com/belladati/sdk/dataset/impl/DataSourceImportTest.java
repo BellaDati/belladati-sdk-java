@@ -38,13 +38,12 @@ public class DataSourceImportTest extends SDKTest {
 	private final String interval = "CUSTOM";
 	private final int customIntervalLength = 30;
 
-	/** Import is loaded correctly from service. */
+	/** Import is loaded correctly from getService(). */
 	public void loadDataSource() {
-		CachedList<DataSourceImport> imports = service.getDataSourceImports(dsId);
-
 		registerSingleImport(
 			builder.buildSourceImportNode(id, caller, lastImport, overwritePolicy, interval, customIntervalLength));
 
+		CachedList<DataSourceImport> imports = getService().getDataSourceImports(dsId);
 		imports.load();
 		server.assertRequestUris(importUri);
 		assertEquals(imports.toList().size(), 1);
@@ -63,12 +62,11 @@ public class DataSourceImportTest extends SDKTest {
 
 	/** Import is loaded correctly from data source. */
 	public void loadFromDataSet() {
-		DataSource source = new DataSourceImpl(service, builder.buildDataSourceNode(dsId, "", ""));
-		CachedList<DataSourceImport> imports = source.getImports();
-
 		registerSingleImport(
 			builder.buildSourceImportNode(id, caller, lastImport, overwritePolicy, interval, customIntervalLength));
 
+		DataSource source = new DataSourceImpl(getService(), builder.buildDataSourceNode(dsId, "", ""));
+		CachedList<DataSourceImport> imports = source.getImports();
 		imports.load();
 		server.assertRequestUris(importUri);
 		assertEquals(imports.toList().size(), 1);
@@ -87,9 +85,9 @@ public class DataSourceImportTest extends SDKTest {
 
 	/** given the same ID, the same collection is returned */
 	public void sameCollection() {
-		DataSource source = new DataSourceImpl(service, builder.buildDataSourceNode(dsId, "", ""));
+		DataSource source = new DataSourceImpl(getService(), builder.buildDataSourceNode(dsId, "", ""));
 
-		assertSame(source.getImports(), service.getDataSourceImports(dsId));
+		assertSame(source.getImports(), getService().getDataSourceImports(dsId));
 	}
 
 	/** equals/hashcode for imports */
@@ -113,14 +111,14 @@ public class DataSourceImportTest extends SDKTest {
 		node.remove("when");
 		registerSingleImport(node);
 
-		assertEquals(service.getDataSourceImports(dsId).load().toList(), Collections.emptyList());
+		assertEquals(getService().getDataSourceImports(dsId).load().toList(), Collections.emptyList());
 	}
 
 	/** null last import source is ignored */
 	public void nullLastImport() {
 		registerSingleImport(builder.buildSourceImportNode(id, caller, null, overwritePolicy, interval, customIntervalLength));
 
-		assertEquals(service.getDataSourceImports(dsId).load().toList(), Collections.emptyList());
+		assertEquals(getService().getDataSourceImports(dsId).load().toList(), Collections.emptyList());
 	}
 
 	/** invalid last import source is ignored */
@@ -128,7 +126,7 @@ public class DataSourceImportTest extends SDKTest {
 		registerSingleImport(
 			builder.buildSourceImportNode(id, caller, "not a date", overwritePolicy, interval, customIntervalLength));
 
-		assertEquals(service.getDataSourceImports(dsId).load().toList(), Collections.emptyList());
+		assertEquals(getService().getDataSourceImports(dsId).load().toList(), Collections.emptyList());
 	}
 
 	/** missing interval means no scheduling */
@@ -137,14 +135,14 @@ public class DataSourceImportTest extends SDKTest {
 		node.remove("repeateInterval");
 		registerSingleImport(node);
 
-		assertNull(service.getDataSourceImports(dsId).load().toList().get(0).getRepeatInterval());
+		assertNull(getService().getDataSourceImports(dsId).load().toList().get(0).getRepeatInterval());
 	}
 
 	/** null interval means no scheduling */
 	public void nullInterval() {
 		registerSingleImport(builder.buildSourceImportNode(id, caller, lastImport, overwritePolicy, null, customIntervalLength));
 
-		assertNull(service.getDataSourceImports(dsId).load().toList().get(0).getRepeatInterval());
+		assertNull(getService().getDataSourceImports(dsId).load().toList().get(0).getRepeatInterval());
 	}
 
 	/** sources with invalid intervals are ignored */
@@ -152,7 +150,7 @@ public class DataSourceImportTest extends SDKTest {
 		registerSingleImport(
 			builder.buildSourceImportNode(id, caller, lastImport, overwritePolicy, "not an interval type", customIntervalLength));
 
-		assertEquals(service.getDataSourceImports(dsId).load().toList(), Collections.emptyList());
+		assertEquals(getService().getDataSourceImports(dsId).load().toList(), Collections.emptyList());
 	}
 
 	/** custom interval with missing length is invalid */
@@ -161,14 +159,14 @@ public class DataSourceImportTest extends SDKTest {
 		node.remove("repeateIntervalCustom");
 		registerSingleImport(node);
 
-		assertEquals(service.getDataSourceImports(dsId).load().toList(), Collections.emptyList());
+		assertEquals(getService().getDataSourceImports(dsId).load().toList(), Collections.emptyList());
 	}
 
 	/** custom interval with null length is invalid */
 	public void customIntervalNullLength() {
 		registerSingleImport(builder.buildSourceImportNode(id, caller, lastImport, overwritePolicy, interval, null));
 
-		assertEquals(service.getDataSourceImports(dsId).load().toList(), Collections.emptyList());
+		assertEquals(getService().getDataSourceImports(dsId).load().toList(), Collections.emptyList());
 	}
 
 	/** custom interval with invalid length is invalid */
@@ -177,21 +175,21 @@ public class DataSourceImportTest extends SDKTest {
 		node.put("repeateIntervalCustom", "not a number");
 		registerSingleImport(node);
 
-		assertEquals(service.getDataSourceImports(dsId).load().toList(), Collections.emptyList());
+		assertEquals(getService().getDataSourceImports(dsId).load().toList(), Collections.emptyList());
 	}
 
 	/** custom interval with negative length is invalid */
 	public void customIntervalNegativeLength() {
 		registerSingleImport(builder.buildSourceImportNode(id, caller, lastImport, overwritePolicy, interval, -11));
 
-		assertEquals(service.getDataSourceImports(dsId).load().toList(), Collections.emptyList());
+		assertEquals(getService().getDataSourceImports(dsId).load().toList(), Collections.emptyList());
 	}
 
 	/** custom interval with zero length is invalid */
 	public void customIntervalZeroLength() {
 		registerSingleImport(builder.buildSourceImportNode(id, caller, lastImport, overwritePolicy, interval, 0));
 
-		assertEquals(service.getDataSourceImports(dsId).load().toList(), Collections.emptyList());
+		assertEquals(getService().getDataSourceImports(dsId).load().toList(), Collections.emptyList());
 	}
 
 	/** missing policy means no overwrite */
@@ -200,21 +198,21 @@ public class DataSourceImportTest extends SDKTest {
 		node.remove("overwritingPolicy");
 		registerSingleImport(node);
 
-		assertFalse(service.getDataSourceImports(dsId).load().toList().get(0).isOverwriting());
+		assertFalse(getService().getDataSourceImports(dsId).load().toList().get(0).isOverwriting());
 	}
 
 	/** null policy means no overwrite */
 	public void nullOverwritePolicy() {
 		registerSingleImport(builder.buildSourceImportNode(id, caller, lastImport, null, interval, customIntervalLength));
 
-		assertFalse(service.getDataSourceImports(dsId).load().toList().get(0).isOverwriting());
+		assertFalse(getService().getDataSourceImports(dsId).load().toList().get(0).isOverwriting());
 	}
 
 	/** empty string policy means no overwrite */
 	public void emptyOverwritePolicy() {
 		registerSingleImport(builder.buildSourceImportNode(id, caller, lastImport, "", interval, customIntervalLength));
 
-		assertFalse(service.getDataSourceImports(dsId).load().toList().get(0).isOverwriting());
+		assertFalse(getService().getDataSourceImports(dsId).load().toList().get(0).isOverwriting());
 	}
 
 	/** any other policy means overwrite */
@@ -222,7 +220,7 @@ public class DataSourceImportTest extends SDKTest {
 		registerSingleImport(
 			builder.buildSourceImportNode(id, caller, lastImport, "some policy", interval, customIntervalLength));
 
-		assertTrue(service.getDataSourceImports(dsId).load().toList().get(0).isOverwriting());
+		assertTrue(getService().getDataSourceImports(dsId).load().toList().get(0).isOverwriting());
 	}
 
 	/** interval units are parsed correctly */
@@ -230,7 +228,7 @@ public class DataSourceImportTest extends SDKTest {
 	public void predefinedInterval(String interval, ImportIntervalUnit unit, int factor, int minutes) {
 		registerSingleImport(builder.buildSourceImportNode(id, caller, lastImport, overwritePolicy, interval));
 
-		ImportInterval result = service.getDataSourceImports(dsId).load().toList().get(0).getRepeatInterval();
+		ImportInterval result = getService().getDataSourceImports(dsId).load().toList().get(0).getRepeatInterval();
 
 		assertEquals(result.getMinutes(), minutes);
 		assertEquals(result.getUnit(), unit);
@@ -241,7 +239,7 @@ public class DataSourceImportTest extends SDKTest {
 	public void predefinedWithNumber() {
 		registerSingleImport(builder.buildSourceImportNode(id, caller, lastImport, overwritePolicy, "HOUR", 123));
 
-		assertEquals(service.getDataSourceImports(dsId).load().toList().get(0).getRepeatInterval().getMinutes(), 60);
+		assertEquals(getService().getDataSourceImports(dsId).load().toList().get(0).getRepeatInterval().getMinutes(), 60);
 	}
 
 	private void registerSingleImport(JsonNode node) {

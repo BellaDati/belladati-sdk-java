@@ -31,9 +31,6 @@ public class SDKTest {
 	/** the server; a new instance is created for every test method */
 	protected RequestTrackingServer server;
 
-	/** service instance to invoke test methods on */
-	protected BellaDatiServiceImpl service;
-
 	/** builds JSON objects */
 	protected final JsonBuilder builder = new JsonBuilder();
 
@@ -43,15 +40,27 @@ public class SDKTest {
 	@BeforeMethod(alwaysRun = true)
 	protected void setupServer() throws Exception {
 		server = new RequestTrackingServer();
-		server.start();
+		service = null;
+	}
 
-		BellaDatiClient client = new BellaDatiClient(server.getHttpURL(), false);
-		service = new BellaDatiServiceImpl(client, new TokenHolder("key", "secret"));
+	private BellaDatiServiceImpl service;
+
+	protected BellaDatiServiceImpl getService() {
+		if (service == null) {
+			try {
+				server.start();
+			} catch (Exception e) {
+				throw new RuntimeException("Cannot start test server", e);
+			}
+			BellaDatiClient client = new BellaDatiClient(server.getHttpURL(), false);
+			service = new BellaDatiServiceImpl(client, new TokenHolder("key", "secret"));
+		}
+		return service;
 	}
 
 	@AfterMethod(alwaysRun = true)
 	protected void tearDownServer() throws Exception {
-		server.stop();
+		server.shutDown();
 	}
 
 	/** resets the locale back to what it was */

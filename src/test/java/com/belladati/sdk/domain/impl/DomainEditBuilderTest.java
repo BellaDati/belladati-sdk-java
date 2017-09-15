@@ -31,8 +31,6 @@ public class DomainEditBuilderTest extends SDKTest {
 
 	@BeforeMethod(alwaysRun = true)
 	protected void setupSource() throws Exception {
-		builder = service.setupDomainEditBuilder(id);
-
 		server.register(requestUri, new TestRequestHandler() {
 			@Override
 			protected void handle(HttpHolder holder) throws IOException {
@@ -40,6 +38,7 @@ public class DomainEditBuilderTest extends SDKTest {
 				holder.response.setEntity(new StringEntity(""));
 			}
 		});
+		builder = getService().setupDomainEditBuilder(id);
 	}
 
 	public void postToServer_empty() {

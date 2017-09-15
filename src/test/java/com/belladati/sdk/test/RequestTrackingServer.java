@@ -12,7 +12,7 @@ import org.apache.http.HttpException;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.localserver.LocalTestServer;
+import org.apache.http.localserver.LocalServerTestBase;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestHandler;
 
@@ -26,27 +26,33 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
  * 
  * @author Chris Hennigfeld
  */
-public class RequestTrackingServer extends LocalTestServer {
+public class RequestTrackingServer extends LocalServerTestBase {
 
 	/** contains all requests received, in order */
 	private List<String> requestUris = Collections.synchronizedList(new ArrayList<String>());
 
-	public RequestTrackingServer() {
-		super(null);
+	public RequestTrackingServer() throws Exception {
+		super();
+		setUp();
 		register("/*", new HttpRequestHandler() {
 			@Override
-			public void handle(HttpRequest request, HttpResponse response, HttpContext context) throws HttpException, IOException {
+			public void handle(HttpRequest request, HttpResponse response, HttpContext context)
+				throws HttpException, IOException {
+				System.err.println(request.getRequestLine());
 				// do nothing, this is just a dummy to track the URI
 			}
 		});
 	}
 
-	@Override
 	public void register(String pattern, final HttpRequestHandler handler) {
-		super.register(pattern, new HttpRequestHandler() {
+		if (server != null) {
+			throw new RuntimeException("Cannot register hander when server is running");
+		}
+		serverBootstrap.registerHandler(pattern, new HttpRequestHandler() {
 
 			@Override
-			public void handle(HttpRequest request, HttpResponse response, HttpContext context) throws HttpException, IOException {
+			public void handle(HttpRequest request, HttpResponse response, HttpContext context)
+				throws HttpException, IOException {
 				// wrap the original handler to track the request
 				String uri = request.getRequestLine().getUri();
 				requestUris.add(uri.contains("?") ? uri.substring(0, uri.indexOf("?")) : uri);
@@ -61,7 +67,8 @@ public class RequestTrackingServer extends LocalTestServer {
 		register(pattern, new HttpRequestHandler() {
 
 			@Override
-			public void handle(HttpRequest request, HttpResponse response, HttpContext context) throws HttpException, IOException {
+			public void handle(HttpRequest request, HttpResponse response, HttpContext context)
+				throws HttpException, IOException {
 				response.setEntity(new StringEntity(responseContent));
 			}
 		});
@@ -133,6 +140,6 @@ public class RequestTrackingServer extends LocalTestServer {
 	 * @return the server's HTTP URL
 	 */
 	public String getHttpURL() {
-		return "http:/" + getServiceAddress();
+		return "http://localhost:" + server.getLocalPort();
 	}
 }

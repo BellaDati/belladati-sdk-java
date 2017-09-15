@@ -9,8 +9,6 @@ import org.testng.annotations.Test;
 
 import com.belladati.sdk.domain.Domain;
 import com.belladati.sdk.domain.DomainInfo;
-import com.belladati.sdk.domain.impl.DomainImpl;
-import com.belladati.sdk.domain.impl.DomainInfoImpl;
 import com.belladati.sdk.test.SDKTest;
 import com.belladati.sdk.user.User;
 import com.belladati.sdk.user.UserGroup;
@@ -50,10 +48,9 @@ public class DomainTest extends SDKTest {
 
 	/** Regular domain info data is loaded correctly. */
 	public void loadDomainInfo() {
-		CachedList<DomainInfo> infos = service.getDomainInfo();
-
 		server.registerPaginatedItem(baseUri, "domains", builder.buildDomainInfoNode(id, name, description, active));
 
+		CachedList<DomainInfo> infos = getService().getDomainInfo();
 		infos.load();
 		server.assertRequestUris(baseUri);
 		assertEquals(infos.get().size(), 1);
@@ -66,12 +63,12 @@ public class DomainTest extends SDKTest {
 		assertEquals(info.toString(), name);
 	}
 
-	/** Individual Domain can be loaded by ID through service. */
+	/** Individual Domain can be loaded by ID through getService(). */
 	public void loadDomain() {
 		server.register(apiUri + id,
 			builder.buildDomainNode(id, name, description, dateFormat, timeFormat, timeZone, locale, active).toString());
 
-		Domain domain = service.loadDomain(id);
+		Domain domain = getService().loadDomain(id);
 
 		assertEquals(domain.getId(), id);
 		assertEquals(domain.getName(), name);
@@ -89,18 +86,17 @@ public class DomainTest extends SDKTest {
 
 	/** Domain can be loaded from a domain info object. */
 	public void loadDomainFromInfo() {
+		server.register(apiUri + id,
+			builder.buildDomainNode(id, name, description, dateFormat, timeFormat, timeZone, locale, active).toString());
+
 		ObjectNode infoJson = builder.buildDomainInfoNode(id, name, description, active);
-		DomainInfo domainInfo = new DomainInfoImpl(service, infoJson);
+		DomainInfo domainInfo = new DomainInfoImpl(getService(), infoJson);
 
 		assertEquals(domainInfo.getId(), id);
 		assertEquals(domainInfo.getName(), name);
 		assertEquals(domainInfo.getDescription(), description);
 		assertEquals(domainInfo.getActive() + "", active);
 		assertEquals(domainInfo.toString(), domainInfo.getName());
-
-		server.register(apiUri + id,
-			builder.buildDomainNode(id, name, description, dateFormat, timeFormat, timeZone, locale, active).toString());
-
 		Domain domain = domainInfo.loadDetails();
 
 		assertEquals(domain.getId(), id);
@@ -122,7 +118,7 @@ public class DomainTest extends SDKTest {
 		node.put(field, (String) null);
 		server.register(apiUri + id, node.toString());
 
-		Domain resource = service.loadDomain(id);
+		Domain resource = getService().loadDomain(id);
 
 		assertEquals(Domain.class.getMethod(method).invoke(resource), "");
 	}
@@ -134,16 +130,16 @@ public class DomainTest extends SDKTest {
 		node.remove(field);
 		server.register(apiUri + id, node.toString());
 
-		Domain resource = service.loadDomain(id);
+		Domain resource = getService().loadDomain(id);
 
 		assertEquals(Domain.class.getMethod(method).invoke(resource), "");
 	}
 
 	/** equals/hashcode for DomainInfo */
 	public void domainInfoEquality() {
-		DomainInfo u1 = new DomainInfoImpl(service, builder.buildDomainInfoNode(id, name, description, active));
-		DomainInfo u2 = new DomainInfoImpl(service, builder.buildDomainInfoNode(id, "", null, ""));
-		DomainInfo u3 = new DomainInfoImpl(service, builder.buildDomainInfoNode("otherId", name, description, active));
+		DomainInfo u1 = new DomainInfoImpl(getService(), builder.buildDomainInfoNode(id, name, description, active));
+		DomainInfo u2 = new DomainInfoImpl(getService(), builder.buildDomainInfoNode(id, "", null, ""));
+		DomainInfo u3 = new DomainInfoImpl(getService(), builder.buildDomainInfoNode("otherId", name, description, active));
 
 		assertEquals(u1, u2);
 		assertEquals(u1.hashCode(), u2.hashCode());
@@ -154,10 +150,10 @@ public class DomainTest extends SDKTest {
 
 	/** equals/hashcode for Domain */
 	public void domainEquality() {
-		Domain u1 = new DomainImpl(service,
+		Domain u1 = new DomainImpl(getService(),
 			builder.buildDomainNode(id, name, description, dateFormat, timeFormat, timeZone, locale, active));
-		Domain u2 = new DomainImpl(service, builder.buildDomainNode(id, "", "", "", "", "", "", ""));
-		Domain u3 = new DomainImpl(service,
+		Domain u2 = new DomainImpl(getService(), builder.buildDomainNode(id, "", "", "", "", "", "", ""));
+		Domain u3 = new DomainImpl(getService(),
 			builder.buildDomainNode("otherId", name, description, dateFormat, timeFormat, timeZone, locale, active));
 
 		assertEquals(u1, u2);
@@ -173,14 +169,13 @@ public class DomainTest extends SDKTest {
 			{ "timeFormat", "getTimeFormat" }, { "timeZone", "getTimeZone" }, { "locale", "getLocale" } };
 	}
 
-	/** Users (without group filter) are loaded correctly from service. */
+	/** Users (without group filter) are loaded correctly from getService(). */
 	public void loadUsers_withoutGroupFilter() {
-		ObjectNode node = builder.buildDomainNode(id, name, description, dateFormat, timeFormat, timeZone, locale, active);
-		Domain domain = new DomainImpl(service, node);
-		CachedList<User> list = domain.loadUsers(null);
-
 		registerSingleUser(builder.buildUserNode(user_id, user_name, "", "", "", "", "", "", null, null, id, null, null));
 
+		ObjectNode node = builder.buildDomainNode(id, name, description, dateFormat, timeFormat, timeZone, locale, active);
+		Domain domain = new DomainImpl(getService(), node);
+		CachedList<User> list = domain.loadUsers(null);
 		list.load();
 		server.assertRequestUris(usersUri);
 		assertEquals(list.toList().size(), 1);
@@ -195,15 +190,14 @@ public class DomainTest extends SDKTest {
 		assertEquals(item.toString(), user_name);
 	}
 
-	/** Users (with group filter) are loaded correctly from service. */
+	/** Users (with group filter) are loaded correctly from getService(). */
 	public void loadUsers_withGroupFilter() {
-		ObjectNode infoJson = builder.buildDomainInfoNode(id, name, description, active);
-		DomainInfo domainInfo = new DomainInfoImpl(service, infoJson);
-		CachedList<User> list = domainInfo.loadUsers(userGroup_id);
-
 		registerSingleUser(
 			builder.buildUserNode(user_id, user_name, "", "", "", "", "", "", null, null, id, null, userGroupsJson));
 
+		ObjectNode infoJson = builder.buildDomainInfoNode(id, name, description, active);
+		DomainInfo domainInfo = new DomainInfoImpl(getService(), infoJson);
+		CachedList<User> list = domainInfo.loadUsers(userGroup_id);
 		list.load();
 		server.assertRequestUris(usersUri);
 		assertEquals(list.toList().size(), 1);
@@ -229,13 +223,12 @@ public class DomainTest extends SDKTest {
 	/** Loads UserGroups from Domain. */
 	public void loadUserGroups_fromDomain() {
 		ObjectNode infoJson = builder.buildDomainInfoNode(id, name, description, active);
-		DomainInfo domainInfo = new DomainInfoImpl(service, infoJson);
-		assertEquals(domainInfo.getId(), id);
-
 		server.register(apiUri + id, infoJson.toString());
-		Domain domain = domainInfo.loadDetails();
-
 		registerSingleUserGroup(builder.buildUserGroupNode(userGroup_id, userGroup_name, description));
+
+		DomainInfo domainInfo = new DomainInfoImpl(getService(), infoJson);
+		assertEquals(domainInfo.getId(), id);
+		Domain domain = domainInfo.loadDetails();
 		CachedList<UserGroup> list = domain.loadUserGroups();
 
 		list.load();
@@ -250,11 +243,11 @@ public class DomainTest extends SDKTest {
 
 	/** Loads UserGroups from DomainInfo. */
 	public void loadUserGroups_fromDomainInfo() {
-		ObjectNode infoJson = builder.buildDomainInfoNode(id, name, description, active);
-		DomainInfo domainInfo = new DomainInfoImpl(service, infoJson);
-		assertEquals(domainInfo.getId(), id);
-
 		registerSingleUserGroup(builder.buildUserGroupNode(userGroup_id, userGroup_name, description));
+
+		ObjectNode infoJson = builder.buildDomainInfoNode(id, name, description, active);
+		DomainInfo domainInfo = new DomainInfoImpl(getService(), infoJson);
+		assertEquals(domainInfo.getId(), id);
 		CachedList<UserGroup> list = domainInfo.loadUserGroups();
 
 		list.load();

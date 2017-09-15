@@ -2,7 +2,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.belladati</groupId>
 	<artifactId>sdk-java</artifactId>
-	<version>0.9.11-SNAPSHOT</version>
+	<version>0.9.11</version>
 	<packaging>jar</packaging>
 	<name>BellaDati SDK for Standard Java</name>
 	<url>http://www.belladati.com</url>
@@ -17,12 +17,7 @@
 			<id>lmicko</id>
 			<name>Lubomir Micko</name>
 			<email>lubomir.micko@belladati.com</email>
-		</developer>
-		<developer>
-			<id>lelko</id>
-			<name>Lubomir Elko</name>
-			<email>lubomir.elko@belladati.com</email>
-		</developer>
+		</developer>		
 	</developers>
 	<licenses>
 		<license>
@@ -38,7 +33,7 @@
 
 	<properties>
 		<java.version>1.8</java.version>
-        <belladati.sdk.api.version>0.9.11-SNAPSHOT</belladati.sdk.api.version>
+        <belladati.sdk.api.version>0.9.10</belladati.sdk.api.version>
 	</properties>
 
 	<dependencies>
@@ -50,7 +45,7 @@
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
 			<artifactId>httpclient-cache</artifactId>
-			<version>4.3.1</version>
+			<version>4.5.3</version>
 		</dependency>
 		<dependency>
 			<groupId>com.belladati</groupId>
@@ -61,18 +56,17 @@
 			<groupId>org.apache.httpcomponents</groupId>
 			<artifactId>httpclient</artifactId>
 			<classifier>tests</classifier>
-			<version>4.3.1</version>
-			<scope>test</scope>
+			<version>4.5.3</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
 			<artifactId>httpclient</artifactId>
-			<version>4.3.1</version>
+			<version>4.5.3</version>
 		</dependency>
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpmime</artifactId>
-            <version>4.3.1</version>
+            <version>4.5.3</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
@@ -130,7 +124,7 @@
 			<dependency>
 				<groupId>org.apache.httpcomponents</groupId>
 				<artifactId>httpcore</artifactId>
-				<version>4.3</version>
+				<version>4.4.7</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>

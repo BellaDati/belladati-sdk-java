@@ -31,15 +31,16 @@ public class ExceptionTest extends SDKTest {
 	/** server is not available */
 	@Test(expectedExceptions = ConnectionException.class)
 	public void connectionFailed() throws Exception {
-		server.stop();
-		service.getClient().get(uri, service.getTokenHolder());
+		getService();
+		server.shutDown();
+		getService().getClient().get(uri, getService().getTokenHolder());
 	}
 
 	/** internal server error */
 	@Test(expectedExceptions = InternalErrorException.class)
 	public void internalError() {
 		registerError(500, "");
-		service.getClient().get(uri, service.getTokenHolder());
+		getService().getClient().get(uri, getService().getTokenHolder());
 	}
 
 	/** consumer key was empty or missing */
@@ -54,11 +55,13 @@ public class ExceptionTest extends SDKTest {
 		assertAuthException(Reason.CONSUMER_KEY_UNKNOWN);
 	}
 
-	/** secret didn't match key during OAuth request token request */
-	public void secretMismatchOAuth1() {
+	/** secret didn't match key during OAuth request token request 
+	 * @throws Exception */
+	public void secretMismatchOAuth1() throws Exception {
 		server.registerError("/oauth/requestToken", 400, "oauth_problem=invalid_signature");
 
 		try {
+			server.start();
 			BellaDati.connect(server.getHttpURL()).oAuth("key", "secret");
 			fail("Didn't throw authorization exception");
 		} catch (AuthorizationException e) {
@@ -69,20 +72,22 @@ public class ExceptionTest extends SDKTest {
 	/** secret didn't match key during OAuth access token request */
 	public void secretMismatchOAuth2() {
 		server.registerError("/oauth/accessToken", 400, "oauth_problem=invalid_signature");
-		service.getTokenHolder().setToken("token", "secret");
+		getService().getTokenHolder().setToken("token", "secret");
 		try {
-			new OAuthRequestImpl(service.getClient(), service.getTokenHolder()).requestAccess();
+			new OAuthRequestImpl(getService().getClient(), getService().getTokenHolder()).requestAccess();
 			fail("Didn't throw authorization exception");
 		} catch (AuthorizationException e) {
 			assertEquals(e.getReason(), Reason.TOKEN_INVALID);
 		}
 	}
 
-	/** secret didn't match key during xAuth token request */
-	public void secretMismatchxAuth() {
+	/** secret didn't match key during xAuth token request 
+	 * @throws Exception */
+	public void secretMismatchxAuth() throws Exception {
 		server.registerError("/oauth/accessToken", 400, "oauth_problem=invalid_signature");
 
 		try {
+			server.start();
 			BellaDati.connect(server.getHttpURL()).xAuth("key", "secret", "username", "password");
 			fail("Didn't throw authorization exception");
 		} catch (AuthorizationException e) {
@@ -93,14 +98,14 @@ public class ExceptionTest extends SDKTest {
 	/** secret didn't match key during regular API request */
 	public void secretMismatchOther() {
 		registerOAuthProblem(400, "invalid_signature");
-		service.getTokenHolder().setToken("token", "secret");
+		getService().getTokenHolder().setToken("token", "secret");
 		assertAuthException(Reason.TOKEN_INVALID);
 	}
 
 	/** current actual server response for secret mismatch */
 	public void secretMismatchReversed() {
 		registerOAuthProblem(403, "signature_invalid");
-		service.getTokenHolder().setToken("token", "secret");
+		getService().getTokenHolder().setToken("token", "secret");
 		assertAuthException(Reason.TOKEN_INVALID);
 	}
 
@@ -212,7 +217,7 @@ public class ExceptionTest extends SDKTest {
 	public void notFoundError() {
 		registerError(404, "not found");
 		try {
-			service.getClient().get(uri, service.getTokenHolder());
+			getService().getClient().get(uri, getService().getTokenHolder());
 			fail("Didn't throw not found exception");
 		} catch (NotFoundException e) {
 			assertEquals(e.getUri(), server.getHttpURL() + "/" + uri);
@@ -223,7 +228,7 @@ public class ExceptionTest extends SDKTest {
 	public void otherError() {
 		registerError(400, "not an OAuth problem");
 		try {
-			service.getClient().get(uri, service.getTokenHolder());
+			getService().getClient().get(uri, getService().getTokenHolder());
 			fail("Didn't throw response exception");
 		} catch (ServerResponseException e) {
 			assertEquals(e.getClass(), UnexpectedResponseException.class);
@@ -234,7 +239,7 @@ public class ExceptionTest extends SDKTest {
 	public void otherErrorCode() {
 		registerError(456, "some weird error code");
 		try {
-			service.getClient().get(uri, service.getTokenHolder());
+			getService().getClient().get(uri, getService().getTokenHolder());
 			fail("Didn't throw response exception");
 		} catch (ServerResponseException e) {
 			assertEquals(e.getClass(), UnexpectedResponseException.class);
@@ -251,7 +256,7 @@ public class ExceptionTest extends SDKTest {
 
 	private AuthorizationException assertAuthException(Reason reason) {
 		try {
-			service.getClient().get(uri, service.getTokenHolder());
+			getService().getClient().get(uri, getService().getTokenHolder());
 			fail("Didn't throw authorization exception");
 			return null; // never happens, fail() throws RuntimeException
 		} catch (AuthorizationException e) {

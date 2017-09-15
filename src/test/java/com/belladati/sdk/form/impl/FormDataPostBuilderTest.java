@@ -32,8 +32,6 @@ public class FormDataPostBuilderTest extends SDKTest {
 
 	@BeforeMethod(alwaysRun = true)
 	protected void setupSource() throws Exception {
-		builder = service.setupFormDataPostBuilder(formId);
-
 		server.register(requestUri, new TestRequestHandler() {
 			@Override
 			protected void handle(HttpHolder holder) throws IOException {
@@ -41,6 +39,7 @@ public class FormDataPostBuilderTest extends SDKTest {
 				holder.response.setEntity(new StringEntity(result));
 			}
 		});
+		builder = getService().setupFormDataPostBuilder(formId);
 	}
 
 	public void postToServer_empty() {

@@ -32,11 +32,11 @@ import com.belladati.sdk.filter.FilterValue;
 import com.belladati.sdk.test.SDKTest;
 import com.belladati.sdk.test.TestRequestHandler;
 import com.belladati.sdk.view.TableView.Table;
+import com.belladati.sdk.view.View;
+import com.belladati.sdk.view.ViewType;
 import com.belladati.sdk.view.impl.JsonViewImpl;
 import com.belladati.sdk.view.impl.TableViewImpl;
 import com.belladati.sdk.view.impl.ViewImpl;
-import com.belladati.sdk.view.View;
-import com.belladati.sdk.view.ViewType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -147,16 +147,15 @@ public class FilterTest extends SDKTest {
 	 * code for name.
 	 */
 	public void filterCodeOnly() {
-		MultiValueFilter filter = FilterOperation.IN.createFilter(service, reportId, code);
+		MultiValueFilter filter = FilterOperation.IN.createFilter(getService(), reportId, code);
 
 		assertEquals(filter.getAttribute().getCode(), code);
-		assertSame(filter.getAttribute().getValues(), service.getAttributeValues(reportId, code));
+		assertSame(filter.getAttribute().getValues(), getService().getAttributeValues(reportId, code));
 		assertEquals(filter.getAttribute().getName(), code);
 	}
 
 	/** Query parameters without filter are correct. */
 	public void queryStringNoFilter() throws UnknownViewTypeException {
-		View view = new JsonViewImpl(service, builder.buildViewNode(viewId, viewName, "chart"));
 
 		server.register(viewsUri, new TestRequestHandler() {
 			@Override
@@ -165,17 +164,15 @@ public class FilterTest extends SDKTest {
 				holder.response.setEntity(new StringEntity("{}"));
 			}
 		});
-
+		View view = new JsonViewImpl(getService(), builder.buildViewNode(viewId, viewName, "chart"));
 		view.loadContent();
-		service.setupViewLoader(viewId, ViewType.CHART).loadContent();
+		getService().setupViewLoader(viewId, ViewType.CHART).loadContent();
 
 		server.assertRequestUris(viewsUri, viewsUri);
 	}
 
 	/** Query parameters with a single filter are correct. */
 	public void queryStringSingleFilter() throws UnknownViewTypeException {
-		View view = new JsonViewImpl(service, builder.buildViewNode(viewId, viewName, "chart"));
-
 		server.register(viewsUri, new TestRequestHandler() {
 			@Override
 			protected void handle(HttpHolder holder) throws IOException {
@@ -188,9 +185,10 @@ public class FilterTest extends SDKTest {
 			}
 		});
 
+		View view = new JsonViewImpl(getService(), builder.buildViewNode(viewId, viewName, "chart"));
 		view.loadContent(FilterOperation.IN.createFilter(attribute).addValue(value));
-		service.setupViewLoader(viewId, ViewType.CHART).addFilters(FilterOperation.IN.createFilter(attribute).addValue(value))
-			.loadContent();
+		getService().setupViewLoader(viewId, ViewType.CHART)
+			.addFilters(FilterOperation.IN.createFilter(attribute).addValue(value)).loadContent();
 
 		server.assertRequestUris(viewsUri, viewsUri);
 	}
@@ -198,7 +196,6 @@ public class FilterTest extends SDKTest {
 	/** Query parameters with multiple filters are correct. */
 	public void queryStringMultipleFilters()
 		throws UnknownViewTypeException, InvalidAttributeException, InvalidAttributeValueException {
-		View view = new JsonViewImpl(service, builder.buildViewNode(viewId, viewName, "chart"));
 
 		final String code2 = "another code";
 		final String valueString2 = "another value";
@@ -218,13 +215,16 @@ public class FilterTest extends SDKTest {
 			}
 		});
 
-		Attribute attribute2 = new AttributeImpl(service, "",
+		View view = new JsonViewImpl(getService(), builder.buildViewNode(viewId, viewName, "chart"));
+		Attribute attribute2 = new AttributeImpl(getService(), "",
 			builder.buildAttributeNode("another ID", "another name", code2, "string"));
 		AttributeValue value2 = new AttributeValueImpl(builder.buildAttributeValueNode("another label", valueString2));
 		view.loadContent(FilterOperation.IN.createFilter(attribute).addValue(value),
 			FilterOperation.IN.createFilter(attribute2).addValue(value2));
-		service.setupViewLoader(viewId, ViewType.CHART).addFilters(FilterOperation.IN.createFilter(attribute).addValue(value),
-			FilterOperation.IN.createFilter(attribute2).addValue(value2)).loadContent();
+		getService().setupViewLoader(viewId, ViewType.CHART)
+			.addFilters(FilterOperation.IN.createFilter(attribute).addValue(value),
+				FilterOperation.IN.createFilter(attribute2).addValue(value2))
+			.loadContent();
 
 		server.assertRequestUris(viewsUri, viewsUri);
 	}
@@ -232,7 +232,6 @@ public class FilterTest extends SDKTest {
 	/** Query parameters with multiple filters are correct. */
 	public void queryStringMultipleConsecutiveFilters()
 		throws UnknownViewTypeException, InvalidAttributeException, InvalidAttributeValueException {
-		View view = new JsonViewImpl(service, builder.buildViewNode(viewId, viewName, "chart"));
 
 		final String code2 = "another code";
 		final String valueString2 = "another value";
@@ -252,12 +251,14 @@ public class FilterTest extends SDKTest {
 			}
 		});
 
-		Attribute attribute2 = new AttributeImpl(service, "",
+		View view = new JsonViewImpl(getService(), builder.buildViewNode(viewId, viewName, "chart"));
+		Attribute attribute2 = new AttributeImpl(getService(), "",
 			builder.buildAttributeNode("another id", "another name", code2, "string"));
 		AttributeValue value2 = new AttributeValueImpl(builder.buildAttributeValueNode("another label", valueString2));
 		view.loadContent(FilterOperation.IN.createFilter(attribute).addValue(value),
 			FilterOperation.IN.createFilter(attribute2).addValue(value2));
-		service.setupViewLoader(viewId, ViewType.CHART).addFilters(FilterOperation.IN.createFilter(attribute).addValue(value))
+		getService().setupViewLoader(viewId, ViewType.CHART)
+			.addFilters(FilterOperation.IN.createFilter(attribute).addValue(value))
 			.addFilters(FilterOperation.IN.createFilter(attribute2).addValue(value2)).loadContent();
 
 		server.assertRequestUris(viewsUri, viewsUri);
@@ -265,8 +266,6 @@ public class FilterTest extends SDKTest {
 
 	/** Table bounds and contents are loaded using a filter. */
 	public void tableWithFilter() throws UnknownViewTypeException {
-		View view = new TableViewImpl(service, builder.buildViewNode(viewId, viewName, "table"));
-
 		String boundsUri = "/api/reports/views/" + viewId + "/table/bounds";
 		String leftUri = "/api/reports/views/" + viewId + "/table/leftHeader";
 		String topUri = "/api/reports/views/" + viewId + "/table/topHeader";
@@ -316,9 +315,10 @@ public class FilterTest extends SDKTest {
 			}
 		});
 
+		View view = new TableViewImpl(getService(), builder.buildViewNode(viewId, viewName, "table"));
 		MultiValueFilter filter = FilterOperation.IN.createFilter(attribute).addValue(value);
 		Table viewTable = (Table) view.loadContent(filter);
-		Table serviceTable = (Table) service.loadViewContent(viewId, ViewType.TABLE, filter);
+		Table serviceTable = (Table) getService().loadViewContent(viewId, ViewType.TABLE, filter);
 
 		viewTable.loadLeftHeader(1, 1);
 		serviceTable.loadLeftHeader(1, 1);
@@ -338,9 +338,9 @@ public class FilterTest extends SDKTest {
 		Filter<?> f2 = FilterOperation.NULL.createFilter(attribute);
 		Filter<?> f3 = FilterOperation.NOT_NULL.createFilter(attribute);
 		Filter<?> f4 = FilterOperation.NULL
-			.createFilter(new AttributeImpl(service, reportId, builder.buildAttributeNode("otherId", name, code, "string")));
-		Filter<?> f5 = FilterOperation.NULL
-			.createFilter(new AttributeImpl(service, reportId, builder.buildAttributeNode("id", name, "other code", "string")));
+			.createFilter(new AttributeImpl(getService(), reportId, builder.buildAttributeNode("otherId", name, code, "string")));
+		Filter<?> f5 = FilterOperation.NULL.createFilter(
+			new AttributeImpl(getService(), reportId, builder.buildAttributeNode("id", name, "other code", "string")));
 
 		assertEquals(f1, f2);
 		assertEquals(f1.hashCode(), f2.hashCode());
@@ -359,10 +359,11 @@ public class FilterTest extends SDKTest {
 		Filter<?> f2 = FilterOperation.IN.createFilter(attribute).addValue(value);
 		Filter<?> f3 = FilterOperation.NOT_IN.createFilter(attribute).addValue(value);
 		Filter<?> f4 = FilterOperation.IN
-			.createFilter(new AttributeImpl(service, reportId, builder.buildAttributeNode("other id", name, code, "string")))
+			.createFilter(new AttributeImpl(getService(), reportId, builder.buildAttributeNode("other id", name, code, "string")))
 			.addValue(value);
 		Filter<?> f5 = FilterOperation.IN
-			.createFilter(new AttributeImpl(service, reportId, builder.buildAttributeNode("id", name, "other code", "string")))
+			.createFilter(
+				new AttributeImpl(getService(), reportId, builder.buildAttributeNode("id", name, "other code", "string")))
 			.addValue(value);
 		Filter<?> f6 = FilterOperation.IN.createFilter(attribute)
 			.addValue(new AttributeValueImpl(builder.buildAttributeValueNode(label, "other value")));
@@ -386,7 +387,7 @@ public class FilterTest extends SDKTest {
 		ObjectNode ddNode = mapper.createObjectNode();
 		ddNode.put("drilldown", filter.toJson());
 		viewNode.put("filter", ddNode);
-		View view = ViewImpl.buildView(service, viewNode);
+		View view = ViewImpl.buildView(getService(), viewNode);
 
 		assertTrue(view.hasPredefinedFilters());
 		assertEquals(view.getPredefinedFilters(), Collections.singleton(filter));
@@ -397,14 +398,14 @@ public class FilterTest extends SDKTest {
 	public void viewWithMultiFilter(Filter<?> filter) throws UnknownViewTypeException, InvalidAttributeException {
 		ObjectNode viewNode = builder.buildViewNode(viewId, viewName, "chart");
 		ObjectNode filterJson = filter.toJson();
-		Filter<?> otherFilter = FilterOperation.NULL
-			.createFilter(new AttributeImpl(service, reportId, builder.buildAttributeNode("id", name, "other code", "string")));
+		Filter<?> otherFilter = FilterOperation.NULL.createFilter(
+			new AttributeImpl(getService(), reportId, builder.buildAttributeNode("id", name, "other code", "string")));
 		filterJson.putAll(otherFilter.toJson());
 
 		ObjectNode ddNode = mapper.createObjectNode();
 		ddNode.put("drilldown", filterJson);
 		viewNode.put("filter", ddNode);
-		View view = ViewImpl.buildView(service, viewNode);
+		View view = ViewImpl.buildView(getService(), viewNode);
 
 		assertTrue(view.hasPredefinedFilters());
 		assertEquals(view.getPredefinedFilters(), new HashSet<Filter<?>>(Arrays.asList(filter, otherFilter)));
@@ -442,7 +443,7 @@ public class FilterTest extends SDKTest {
 
 	@BeforeMethod
 	protected void setupAttribute() throws InvalidAttributeException, InvalidAttributeValueException {
-		attribute = new AttributeImpl(service, reportId, builder.buildAttributeNode("id", name, code, "string"));
+		attribute = new AttributeImpl(null, reportId, builder.buildAttributeNode("id", name, code, "string"));
 		value = new AttributeValueImpl(builder.buildAttributeValueNode(label, valueString));
 	}
 

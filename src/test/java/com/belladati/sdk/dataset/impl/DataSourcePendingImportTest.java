@@ -10,7 +10,6 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.belladati.sdk.dataset.data.OverwritePolicy;
@@ -33,14 +32,14 @@ public class DataSourcePendingImportTest extends SDKTest {
 	private DataSource dataSource;
 	private DataSourcePendingImport pending;
 
-	@BeforeMethod(alwaysRun = true)
-	protected void setupSource() throws Exception {
-		dataSource = new DataSourceImpl(service, builder.buildDataSourceNode(id, "", ""));
+	protected void setupSource() {
+		dataSource = new DataSourceImpl(getService(), builder.buildDataSourceNode(id, "", ""));
 		pending = dataSource.setupImport(date);
 	}
 
 	/** setting only a date from a source */
 	public void dateOnlyFromSource() {
+		setupSource();
 		JsonNode expected = new ObjectMapper().createObjectNode().put("when",
 			new SimpleDateFormat(BellaDatiServiceImpl.DATE_TIME_FORMAT).format(date));
 		assertEquals(dataSource.setupImport(date).toJson(), expected);
@@ -48,11 +47,12 @@ public class DataSourcePendingImportTest extends SDKTest {
 
 	/** setting only a date from service */
 	public void dateOnlyFromService() {
+		setupSource();
 		Date date = new Date(123);
 
 		JsonNode expected = new ObjectMapper().createObjectNode().put("when",
 			new SimpleDateFormat(BellaDatiServiceImpl.DATE_TIME_FORMAT).format(date));
-		assertEquals(service.setupDataSourceImport(id, date).toJson(), expected);
+		assertEquals(getService().setupDataSourceImport(id, date).toJson(), expected);
 	}
 
 	/** posting to server sends JSON */
@@ -63,6 +63,8 @@ public class DataSourcePendingImportTest extends SDKTest {
 				assertEquals(holder.getFormParameters().get("params"), pending.toJson().toString());
 			}
 		});
+
+		setupSource();
 		pending.post();
 
 		server.assertRequestUris(requestUri);
@@ -70,6 +72,7 @@ public class DataSourcePendingImportTest extends SDKTest {
 
 	/** check initial field values */
 	public void initialValues() {
+		setupSource();
 		assertNull(pending.getRepeatInterval());
 		assertSame(pending.getOverwritePolicy(), OverwritePolicy.deleteNone());
 		assertFalse(pending.isOverwriting());
@@ -77,6 +80,7 @@ public class DataSourcePendingImportTest extends SDKTest {
 
 	/** overwrite policy can be set */
 	public void setPolicy() {
+		setupSource();
 		pending.setOverwritePolicy(OverwritePolicy.byAllAttributes());
 
 		assertSame(pending.getOverwritePolicy(), OverwritePolicy.byAllAttributes());
@@ -86,6 +90,7 @@ public class DataSourcePendingImportTest extends SDKTest {
 
 	/** policy can be unset after setting */
 	public void setUnsetPolicy() {
+		setupSource();
 		pending.setOverwritePolicy(OverwritePolicy.byAllAttributes());
 		pending.setOverwritePolicy(OverwritePolicy.deleteNone());
 
@@ -97,6 +102,7 @@ public class DataSourcePendingImportTest extends SDKTest {
 
 	/** null policy means delete none */
 	public void nullPolicy() {
+		setupSource();
 		pending.setOverwritePolicy(OverwritePolicy.byAllAttributes());
 		pending.setOverwritePolicy(null);
 
@@ -109,6 +115,7 @@ public class DataSourcePendingImportTest extends SDKTest {
 	/** can set an interval */
 	@Test(dataProvider = "intervalUnits")
 	public void setInterval(String interval, ImportIntervalUnit unit, int factor, int minutes) {
+		setupSource();
 		pending.setRepeatInterval(unit, factor);
 
 		assertEquals(pending.getRepeatInterval().getMinutes(), minutes);
@@ -119,6 +126,7 @@ public class DataSourcePendingImportTest extends SDKTest {
 
 	/** can set a custom interval */
 	public void setMinuteInterval() {
+		setupSource();
 		pending.setRepeatInterval(ImportIntervalUnit.MINUTE, 30);
 
 		assertEquals(pending.getRepeatInterval().getMinutes(), 30);
@@ -129,6 +137,7 @@ public class DataSourcePendingImportTest extends SDKTest {
 
 	/** can set a new interval as custom */
 	public void setNewInterval() {
+		setupSource();
 		pending.setRepeatInterval(ImportIntervalUnit.HOUR, 3);
 
 		assertEquals(pending.getRepeatInterval().getMinutes(), 180);
@@ -139,6 +148,7 @@ public class DataSourcePendingImportTest extends SDKTest {
 
 	/** unset interval by setting negative */
 	public void negativeInterval() {
+		setupSource();
 		pending.setRepeatInterval(ImportIntervalUnit.MINUTE, 10).setRepeatInterval(ImportIntervalUnit.MINUTE, -10);
 
 		assertNull(pending.getRepeatInterval());
@@ -149,6 +159,7 @@ public class DataSourcePendingImportTest extends SDKTest {
 
 	/** unset interval by setting zero */
 	public void zeroInterval() {
+		setupSource();
 		pending.setRepeatInterval(ImportIntervalUnit.MINUTE, 10).setRepeatInterval(ImportIntervalUnit.MINUTE, 0);
 
 		assertNull(pending.getRepeatInterval());
@@ -159,6 +170,7 @@ public class DataSourcePendingImportTest extends SDKTest {
 
 	/** unset interval by setting zero */
 	public void nullUnitInterval() {
+		setupSource();
 		pending.setRepeatInterval(ImportIntervalUnit.MINUTE, 10).setRepeatInterval(null, 10);
 
 		assertNull(pending.getRepeatInterval());
@@ -171,6 +183,7 @@ public class DataSourcePendingImportTest extends SDKTest {
 	@Test(expectedExceptions = IllegalStateException.class)
 	public void setPolicyAfterPost() {
 		server.register(requestUri, "");
+		setupSource();
 		pending.post();
 		pending.setOverwritePolicy(OverwritePolicy.deleteNone());
 	}
@@ -179,6 +192,7 @@ public class DataSourcePendingImportTest extends SDKTest {
 	@Test(expectedExceptions = IllegalStateException.class)
 	public void setIntervalAfterPost() {
 		server.register(requestUri, "");
+		setupSource();
 		pending.post();
 		pending.setRepeatInterval(ImportIntervalUnit.MINUTE, 10);
 	}
@@ -187,6 +201,7 @@ public class DataSourcePendingImportTest extends SDKTest {
 	@Test(expectedExceptions = IllegalStateException.class)
 	public void postAfterPost() {
 		server.register(requestUri, "");
+		setupSource();
 		pending.post();
 		pending.post();
 	}

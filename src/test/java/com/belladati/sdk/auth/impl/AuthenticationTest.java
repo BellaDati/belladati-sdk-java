@@ -5,7 +5,6 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.Map;
 
@@ -31,7 +30,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 public class AuthenticationTest extends SDKTest {
 
 	/** Tests OAuth authentication. */
-	public void oAuth() {
+	public void oAuth() throws Exception {
 		final String key = "key";
 		final String secret = "secret";
 
@@ -47,6 +46,20 @@ public class AuthenticationTest extends SDKTest {
 					.setEntity(new StringEntity("oauth_token=" + requestToken + "&oauth_token_secret=" + requestSecret));
 			}
 		});
+		final String accessToken = "accessToken";
+		final String accessSecret = "accessSecret";
+
+		String accessTokenURI = "/oauth/accessToken";
+
+		server.register(accessTokenURI, new TestRequestHandler() {
+			@Override
+			protected void handle(HttpHolder holder) throws IOException {
+				holder.assertAuth(key, requestToken);
+				holder.response.setEntity(new StringEntity("oauth_token=" + accessToken + "&oauth_token_secret=" + accessSecret));
+			}
+		});
+		String reportsURI = registerQueryReports(key, accessToken);
+		server.start();
 
 		BellaDatiConnection connection = BellaDati.connect(server.getHttpURL());
 		OAuthRequest oAuth = connection.oAuth(key, secret);
@@ -56,21 +69,9 @@ public class AuthenticationTest extends SDKTest {
 		assertTrue(oAuth.toString().contains(key));
 		assertFalse(oAuth.toString().contains(secret));
 
-		final String accessToken = "accessToken";
-		final String accessSecret = "accessSecret";
-
-		String accessTokenURI = "/oauth/accessToken";
-		server.register(accessTokenURI, new TestRequestHandler() {
-			@Override
-			protected void handle(HttpHolder holder) throws IOException {
-				holder.assertAuth(key, requestToken);
-				holder.response.setEntity(new StringEntity("oauth_token=" + accessToken + "&oauth_token_secret=" + accessSecret));
-			}
-		});
-
 		BellaDatiService service = oAuth.requestAccess();
-		String reportsURI = queryReports(service, key, accessToken);
 
+		service.getReportInfo().load();
 		server.assertRequestUris(requestTokenURI, accessTokenURI, reportsURI);
 
 		assertTrue(service.toString().contains(server.getHttpURL()));
@@ -82,24 +83,25 @@ public class AuthenticationTest extends SDKTest {
 	/**
 	 * Auth URL is correct when there's no redirect.
 	 */
-	public void authUrlNoRedirect() {
+	public void authUrlNoRedirect() throws Exception {
 		// set up connnection and server
-		BellaDatiConnection connection = BellaDati.connect(server.getHttpURL());
 		final String key = "key";
 		final String requestToken = "abc123";
 		server.register("/oauth/requestToken", "oauth_token=" + requestToken + "&oauth_token_secret=123abc");
+		server.start();
+
+		BellaDatiConnection connection = BellaDati.connect(server.getHttpURL());
 		OAuthRequest request = connection.oAuth(key, "secret");
 
-		assertEquals(request.getAuthorizationUrl().toString(), server.getHttpURL() + "/authorizeRequestToken/" + requestToken
-			+ "/" + key, "Unexpected authorization URL");
+		assertEquals(request.getAuthorizationUrl().toString(),
+			server.getHttpURL() + "/authorizeRequestToken/" + requestToken + "/" + key, "Unexpected authorization URL");
 	}
 
 	/**
 	 * Valid redirect URL is appended.
 	 */
-	public void authUrlValidRedirect() throws UnsupportedEncodingException {
+	public void authUrlValidRedirect() throws Exception {
 		// set up connnection and server
-		BellaDatiConnection connection = BellaDati.connect(server.getHttpURL());
 		final String key = "key";
 		final String requestToken = "abc123";
 		final String redirectUrl = "http://www.example.com";
@@ -113,29 +115,32 @@ public class AuthenticationTest extends SDKTest {
 				holder.response.setEntity(new StringEntity("oauth_token=" + requestToken + "&oauth_token_secret=123abc"));
 			}
 		});
+		server.start();
+		BellaDatiConnection connection = BellaDati.connect(server.getHttpURL());
 		OAuthRequest request = connection.oAuth(key, "secret", redirectUrl);
 
-		assertEquals(request.getAuthorizationUrl().toString(), server.getHttpURL() + "/authorizeRequestToken/" + requestToken
-			+ "/" + key, "Unexpected authorization URL");
+		assertEquals(request.getAuthorizationUrl().toString(),
+			server.getHttpURL() + "/authorizeRequestToken/" + requestToken + "/" + key, "Unexpected authorization URL");
 	}
 
 	/**
 	 * Invalid redirect URL leads to exception.
+	 * @throws Exception 
 	 */
 	@Test(expectedExceptions = IllegalArgumentException.class)
-	public void authUrlInvalidRedirect() {
+	public void authUrlInvalidRedirect() throws Exception {
 		// set up connnection and server
+		final String requestToken = "abc123";
+		server.register("/oauth/requestToken", "oauth_token=" + requestToken + "&oauth_token_secret=123abc");
+		server.start();
 		BellaDatiConnection connection = BellaDati.connect(server.getHttpURL());
 		final String key = "key";
-		final String requestToken = "abc123";
 		String redirectUrl = "not a URL";
-
-		server.register("/oauth/requestToken", "oauth_token=" + requestToken + "&oauth_token_secret=123abc");
 		connection.oAuth(key, "secret", redirectUrl);
 	}
 
 	/** Tests xAuth authentication. */
-	public void xAuth() {
+	public void xAuth() throws Exception {
 		final String key = "key";
 		final String secret = "secret";
 		final String username = "username";
@@ -155,12 +160,12 @@ public class AuthenticationTest extends SDKTest {
 				holder.response.setEntity(new StringEntity("oauth_token=" + accessToken + "&oauth_token_secret=" + accessSecret));
 			}
 		});
+		String reportsURI = registerQueryReports(key, accessToken);
+		server.start();
 
-		BellaDatiService service = BellaDati.connect(server.getHttpURL()).xAuth(key, secret, username, password);
-		String reportsURI = queryReports(service, key, accessToken);
-
+		BellaDatiService service = BellaDati.connectInsecure(server.getHttpURL()).xAuth(key, secret, username, password);
+		service.getReportInfo().load();
 		server.assertRequestUris(accessTokenURI, reportsURI);
-
 		assertTrue(service.toString().contains(server.getHttpURL()));
 		assertTrue(service.toString().contains(key));
 		assertTrue(service.toString().contains(accessToken));
@@ -176,7 +181,7 @@ public class AuthenticationTest extends SDKTest {
 	 * @param token access token
 	 * @return the server URI queried
 	 */
-	private String queryReports(BellaDatiService service, final String key, final String token) {
+	private String registerQueryReports(final String key, final String token) throws Exception {
 		String reportsURI = "/api/reports";
 		server.register(reportsURI, new TestRequestHandler() {
 			@Override
@@ -187,7 +192,6 @@ public class AuthenticationTest extends SDKTest {
 				holder.response.setEntity(new StringEntity(node.toString()));
 			}
 		});
-		service.getReportInfo().load();
 		return reportsURI;
 	}
 }

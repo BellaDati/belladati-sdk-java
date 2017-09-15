@@ -202,13 +202,9 @@ public class BellaDatiClient implements Serializable {
 
 	public byte[] postUpload(String relativeUrl, TokenHolder tokenHolder, String content) {
 		HttpPost post = new HttpPost(baseUrl + relativeUrl);
-		try {
-			StringEntity entity = new StringEntity(content, "UTF-8");
-			entity.setContentType("application/octet-stream");
-			post.setEntity(entity);
-		} catch (UnsupportedEncodingException e) {
-			throw new IllegalArgumentException("Invalid URL encoding", e);
-		}
+		StringEntity entity = new StringEntity(content, "UTF-8");
+		entity.setContentType("application/octet-stream");
+		post.setEntity(entity);
 		return doRequest(post, tokenHolder);
 	}
 
