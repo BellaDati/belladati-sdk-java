@@ -861,6 +861,11 @@ public class BellaDatiServiceImpl implements BellaDatiService {
 		client.post("api/dataSets/" + dataSetId + "/data", tokenHolder,
 			Collections.singletonList(new BasicNameValuePair("dataRow", row.toJsonObject().toString())));
 	}
+	
+	@Override
+	public JsonNode loadJson(String uri) {
+		return getAsJson(uri);
+	}
 
 	/** Paginated list class for data rows. */
 	private class DataRowList extends PaginatedIdListImpl<DataRow> {

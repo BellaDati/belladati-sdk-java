@@ -33,7 +33,7 @@
 
 	<properties>
 		<java.version>1.8</java.version>
-        <belladati.sdk.api.version>0.9.10</belladati.sdk.api.version>
+        <belladati.sdk.api.version>0.9.12</belladati.sdk.api.version>
 	</properties>
 
 	<dependencies>
