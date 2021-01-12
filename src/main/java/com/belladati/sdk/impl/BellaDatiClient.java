@@ -10,12 +10,14 @@ import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
+import java.nio.charset.Charset;
 import java.security.GeneralSecurityException;
 import java.util.List;
 
 import javax.imageio.ImageIO;
 import javax.net.ssl.SSLContext;
 
+import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.config.RequestConfig;
@@ -23,6 +25,7 @@ import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPatch;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.config.RegistryBuilder;
@@ -166,6 +169,16 @@ public class BellaDatiClient implements Serializable {
 			}
 		}
 		return doRequest(post, tokenHolder, oauthParams);
+	}
+
+	public byte[] patch(String relativeUrl, TokenHolder tokenHolder, JsonNode json) {
+		return patch(relativeUrl, tokenHolder, null, json);
+	}
+
+	public byte[] patch(String relativeUrl, TokenHolder tokenHolder, HttpParameters oauthParams, JsonNode json) {
+		HttpPatch patch = new HttpPatch(baseUrl + relativeUrl);
+		patch.setEntity(new StringEntity(json.toString(), ContentType.APPLICATION_JSON));
+		return doRequest(patch, tokenHolder, oauthParams);
 	}
 
 	public byte[] postMultipart(String relativeUrl, TokenHolder tokenHolder, List<? extends MultipartPiece<?>> multipart) {

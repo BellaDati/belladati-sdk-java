@@ -21,6 +21,7 @@ import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URIBuilder;
@@ -381,7 +382,7 @@ public class BellaDatiServiceImpl implements BellaDatiService {
 	 * @param filters filters to append
 	 * @return the same builder, for chaining
 	 */
-	public URIBuilder appendFilter(URIBuilder builder, Collection<Filter<?>> filters) {
+	public static URIBuilder appendFilter(URIBuilder builder, Collection<Filter<?>> filters) {
 		if (filters.size() > 0) {
 			ObjectNode filterNode = new ObjectMapper().createObjectNode();
 			for (Filter<?> filter : filters) {
@@ -403,7 +404,7 @@ public class BellaDatiServiceImpl implements BellaDatiService {
 	 * @param timeInterval time interval to append, or <tt>null</tt>
 	 * @return the same builder, for chaining
 	 */
-	public URIBuilder appendDateTime(URIBuilder builder, Interval<DateUnit> dateInterval, Interval<TimeUnit> timeInterval) {
+	public static URIBuilder appendDateTime(URIBuilder builder, Interval<DateUnit> dateInterval, Interval<TimeUnit> timeInterval) {
 		if (dateInterval != null || timeInterval != null) {
 			ObjectNode dateTimeNode = new ObjectMapper().createObjectNode();
 			if (dateInterval != null) {
@@ -425,7 +426,7 @@ public class BellaDatiServiceImpl implements BellaDatiService {
 	 * @param locale the locale to append
 	 * @return the same builder, for chaining
 	 */
-	public URIBuilder appendLocale(URIBuilder builder, Locale locale) {
+	public static URIBuilder appendLocale(URIBuilder builder, Locale locale) {
 		if (locale != null) {
 			builder.addParameter("lang", locale.getLanguage());
 		}
@@ -857,6 +858,52 @@ public class BellaDatiServiceImpl implements BellaDatiService {
 	}
 
 	@Override
+	public PaginatedIdList<DataRow> getDataSetDataFiltered(String dataSetId, Filter<?>... filters) throws NotFoundException {
+		String id = dataSetId + Arrays.stream(filters).map(Filter::hashCode);
+		PaginatedIdList<DataRow> existing = dataSetData.get(id);
+		if (existing != null) {
+			return existing;
+		} else {
+			synchronized (dataSetData) {
+				existing = dataSetData.get(id);
+				if (existing != null) {
+					return existing;
+				} else {
+					DataRowList newList = new DataRowList(dataSetId, buildUri(dataSetId, filters));
+					dataSetData.put(id, newList);
+					return newList;
+				}
+			}
+		}
+	}
+
+	private String buildUri(String dataSetId, Filter<?>... filters) {
+		try {
+			URIBuilder builder = new URIBuilder("api/dataSets/" + dataSetId + "/data");
+			appendFilter(builder, Arrays.asList(filters));
+			return builder.build().toString();
+		} catch (URISyntaxException e) {
+			throw new IllegalArgumentException("Invalid URL", e);
+		}
+	}
+
+	@Override
+	public void patchDataSetData(String dataSetId, Collection<DataRow> rows, Collection<String> matchAttributes) throws NotFoundException {
+		ObjectMapper objectMapper = new ObjectMapper();
+		ObjectNode json = objectMapper.createObjectNode();
+
+		ArrayNode rowsArray = objectMapper.createArrayNode();
+		rows.forEach(row -> rowsArray.add(row.toJsonObject()));
+
+		ArrayNode attrArray = objectMapper.createArrayNode();
+		matchAttributes.forEach(a -> attrArray.add(a));
+
+		json.set("dataRows", rowsArray);
+		json.set("matchAttributes", attrArray);
+		client.patch("api/dataSets/" + dataSetId + "/data", tokenHolder, json);
+	}
+
+	@Override
 	public void postDataSetData(String dataSetId, DataRow row) throws NotFoundException {
 		client.post("api/dataSets/" + dataSetId + "/data", tokenHolder,
 			Collections.singletonList(new BasicNameValuePair("dataRow", row.toJsonObject().toString())));
@@ -871,7 +918,11 @@ public class BellaDatiServiceImpl implements BellaDatiService {
 	private class DataRowList extends PaginatedIdListImpl<DataRow> {
 
 		public DataRowList(String dataSetId) {
-			super(BellaDatiServiceImpl.this, "api/dataSets/" + dataSetId + "/data", "data");
+			this(dataSetId, "api/dataSets/" + dataSetId + "/data");
+		}
+
+		public DataRowList(String dataSetId, String relativeUrl) {
+			super(BellaDatiServiceImpl.this, relativeUrl, "data");
 		}
 
 		@Override
