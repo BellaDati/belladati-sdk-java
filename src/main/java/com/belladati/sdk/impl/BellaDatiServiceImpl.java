@@ -908,10 +908,53 @@ public class BellaDatiServiceImpl implements BellaDatiService {
 		client.post("api/dataSets/" + dataSetId + "/data", tokenHolder,
 			Collections.singletonList(new BasicNameValuePair("dataRow", row.toJsonObject().toString())));
 	}
-	
+
+	@Override
+	public void postDataSetData(String dataSetId, Collection<DataRow> rows) throws NotFoundException {
+		ObjectMapper objectMapper = new ObjectMapper();
+		ArrayNode arrayNode = objectMapper.createArrayNode();
+		rows.forEach(row -> arrayNode.add(row.toJsonObject()));
+
+		client.post("api/dataSets/" + dataSetId + "/data", tokenHolder,
+				Collections.singletonList(new BasicNameValuePair("dataRow", arrayNode.toString())));
+	}
+
 	@Override
 	public JsonNode loadJson(String uri) {
 		return getAsJson(uri);
+	}
+
+	@Override
+	public void replaceDataSetData(String dataSetId, Collection<DataRow> rows, Filter<?>... filters) throws NotFoundException {
+		ObjectMapper objectMapper = new ObjectMapper();
+		ObjectNode json = objectMapper.createObjectNode();
+
+		ArrayNode rowsArray = objectMapper.createArrayNode();
+		rows.forEach(row -> rowsArray.add(row.toJsonObject()));
+
+		ObjectNode filterNode = new ObjectMapper().createObjectNode();
+		for (Filter<?> filter : filters) {
+			filterNode.setAll(filter.toJson());
+		}
+		ObjectNode drilldownNode = new ObjectMapper().createObjectNode();
+		drilldownNode.set("drilldown", filterNode);
+
+		json.set("dataRows", rowsArray);
+		json.set("filter", drilldownNode);
+
+		client.post("api/dataSets/" + dataSetId + "/replace", tokenHolder, json);
+	}
+
+	@Override
+	public void deleteDataSetData(String dataSetId, Filter<?>... filters) throws NotFoundException {
+		ObjectNode filterNode = new ObjectMapper().createObjectNode();
+		for (Filter<?> filter : filters) {
+			filterNode.setAll(filter.toJson());
+		}
+		ObjectNode drilldownNode = new ObjectMapper().createObjectNode();
+		drilldownNode.set("drilldown", filterNode);
+
+		client.delete("api/dataSets/" + dataSetId + "/data/", tokenHolder, null, drilldownNode);
 	}
 
 	/** Paginated list class for data rows. */

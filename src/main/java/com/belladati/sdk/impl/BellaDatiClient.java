@@ -1,29 +1,34 @@
 package com.belladati.sdk.impl;
 
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.Closeable;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.ObjectInputStream;
-import java.io.Serializable;
-import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Field;
-import java.nio.charset.Charset;
-import java.security.GeneralSecurityException;
-import java.util.List;
-
-import javax.imageio.ImageIO;
-import javax.net.ssl.SSLContext;
-
-import org.apache.http.Header;
+import com.belladati.sdk.exception.BellaDatiRuntimeException;
+import com.belladati.sdk.exception.ConnectionException;
+import com.belladati.sdk.exception.InternalConfigurationException;
+import com.belladati.sdk.exception.InvalidImplementationException;
+import com.belladati.sdk.exception.auth.AuthorizationException;
+import com.belladati.sdk.exception.auth.AuthorizationException.Reason;
+import com.belladati.sdk.exception.auth.InvalidTimestampException;
+import com.belladati.sdk.exception.server.InternalErrorException;
+import com.belladati.sdk.exception.server.InvalidJsonException;
+import com.belladati.sdk.exception.server.InvalidStreamException;
+import com.belladati.sdk.exception.server.MethodNotAllowedException;
+import com.belladati.sdk.exception.server.NotFoundException;
+import com.belladati.sdk.exception.server.UnexpectedResponseException;
+import com.belladati.sdk.util.MultipartPiece;
+import com.belladati.sdk.util.impl.MultipartFileImpl;
+import com.belladati.sdk.util.impl.MultipartTextImpl;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import oauth.signpost.OAuth;
+import oauth.signpost.OAuthConsumer;
+import oauth.signpost.exception.OAuthException;
+import oauth.signpost.http.HttpParameters;
 import org.apache.http.HttpEntity;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpDelete;
+import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPatch;
 import org.apache.http.client.methods.HttpPost;
@@ -47,29 +52,21 @@ import org.apache.http.impl.client.cache.CacheConfig;
 import org.apache.http.impl.client.cache.CachingHttpClientBuilder;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 
-import com.belladati.sdk.exception.BellaDatiRuntimeException;
-import com.belladati.sdk.exception.ConnectionException;
-import com.belladati.sdk.exception.InternalConfigurationException;
-import com.belladati.sdk.exception.InvalidImplementationException;
-import com.belladati.sdk.exception.auth.AuthorizationException;
-import com.belladati.sdk.exception.auth.AuthorizationException.Reason;
-import com.belladati.sdk.exception.auth.InvalidTimestampException;
-import com.belladati.sdk.exception.server.InternalErrorException;
-import com.belladati.sdk.exception.server.InvalidJsonException;
-import com.belladati.sdk.exception.server.InvalidStreamException;
-import com.belladati.sdk.exception.server.MethodNotAllowedException;
-import com.belladati.sdk.exception.server.NotFoundException;
-import com.belladati.sdk.exception.server.UnexpectedResponseException;
-import com.belladati.sdk.util.MultipartPiece;
-import com.belladati.sdk.util.impl.MultipartFileImpl;
-import com.belladati.sdk.util.impl.MultipartTextImpl;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import oauth.signpost.OAuth;
-import oauth.signpost.OAuthConsumer;
-import oauth.signpost.exception.OAuthException;
-import oauth.signpost.http.HttpParameters;
+import javax.imageio.ImageIO;
+import javax.net.ssl.SSLContext;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.Closeable;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.ObjectInputStream;
+import java.io.Serializable;
+import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Field;
+import java.net.URI;
+import java.security.GeneralSecurityException;
+import java.util.List;
 
 public class BellaDatiClient implements Serializable {
 
@@ -146,6 +143,12 @@ public class BellaDatiClient implements Serializable {
 		return doRequest(delete, tokenHolder, oauthParams);
 	}
 
+	public byte[] delete(String relativeUrl, TokenHolder tokenHolder, HttpParameters oauthParams, JsonNode json) {
+		HttpDeleteWithData delete = new HttpDeleteWithData(baseUrl + relativeUrl);
+		delete.setEntity(new StringEntity(json.toString(), ContentType.APPLICATION_JSON));
+		return doRequest(delete, tokenHolder, oauthParams);
+	}
+
 	public byte[] post(String relativeUrl, TokenHolder tokenHolder) {
 		return post(relativeUrl, tokenHolder, null, null);
 	}
@@ -158,6 +161,10 @@ public class BellaDatiClient implements Serializable {
 		return post(relativeUrl, tokenHolder, null, parameters);
 	}
 
+	public byte[] post(String relativeUrl, TokenHolder tokenHolder, JsonNode json) {
+		return postJson(relativeUrl, tokenHolder, null, json);
+	}
+
 	public byte[] post(String relativeUrl, TokenHolder tokenHolder, HttpParameters oauthParams,
 		List<? extends NameValuePair> parameters) {
 		HttpPost post = new HttpPost(baseUrl + relativeUrl);
@@ -168,6 +175,12 @@ public class BellaDatiClient implements Serializable {
 				throw new IllegalArgumentException("Invalid URL encoding", e);
 			}
 		}
+		return doRequest(post, tokenHolder, oauthParams);
+	}
+
+	public byte[] postJson(String relativeUrl, TokenHolder tokenHolder, HttpParameters oauthParams, JsonNode json) {
+		HttpPost post = new HttpPost(baseUrl + relativeUrl);
+		post.setEntity(new StringEntity(json.toString(), ContentType.APPLICATION_JSON));
 		return doRequest(post, tokenHolder, oauthParams);
 	}
 
@@ -437,6 +450,25 @@ public class BellaDatiClient implements Serializable {
 			throw new InternalConfigurationException("Failed to set client fields", e);
 		} catch (IllegalArgumentException e) {
 			throw new InternalConfigurationException("Failed to set client fields", e);
+		}
+	}
+
+	private static class HttpDeleteWithData extends HttpEntityEnclosingRequestBase {
+		public static final String METHOD_NAME = "DELETE";
+
+		public HttpDeleteWithData() {
+		}
+
+		public HttpDeleteWithData(URI uri) {
+			this.setURI(uri);
+		}
+
+		public HttpDeleteWithData(String uri) {
+			this.setURI(URI.create(uri));
+		}
+
+		public String getMethod() {
+			return "DELETE";
 		}
 	}
 }
