@@ -83,7 +83,7 @@ public abstract class PaginatedListImpl<T> implements PaginatedList<T> {
 		JsonNode json = service.getAsJson(parameterizedUri);
 
 		size = json.get("size").asInt();
-		page = json.get("offset").asInt() / size;
+		page = size == 0 ? 0 : json.get("offset").asInt() / size;
 
 		ArrayNode nodes = (ArrayNode) json.get(field);
 		for (JsonNode node : nodes) {
