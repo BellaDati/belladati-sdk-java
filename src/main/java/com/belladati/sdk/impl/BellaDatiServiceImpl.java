@@ -20,6 +20,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.apache.commons.lang3.StringUtils;
@@ -859,7 +860,7 @@ public class BellaDatiServiceImpl implements BellaDatiService {
 
 	@Override
 	public PaginatedIdList<DataRow> getDataSetDataFiltered(String dataSetId, Filter<?>... filters) throws NotFoundException {
-		String id = dataSetId + Arrays.stream(filters).map(Filter::hashCode).reduce(0, Integer::sum).toString();
+		String id = dataSetId + Arrays.stream(filters).map(Filter::hashCode).map(i -> i.toString()).collect(Collectors.joining("-","-",""));
 		PaginatedIdList<DataRow> existing = dataSetData.get(id);
 		if (existing != null) {
 			return existing;
