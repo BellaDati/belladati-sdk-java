@@ -859,7 +859,7 @@ public class BellaDatiServiceImpl implements BellaDatiService {
 
 	@Override
 	public PaginatedIdList<DataRow> getDataSetDataFiltered(String dataSetId, Filter<?>... filters) throws NotFoundException {
-		String id = dataSetId + Arrays.stream(filters).map(Filter::hashCode);
+		String id = dataSetId + Arrays.stream(filters).map(Filter::hashCode).reduce(0, Integer::sum).toString();
 		PaginatedIdList<DataRow> existing = dataSetData.get(id);
 		if (existing != null) {
 			return existing;
