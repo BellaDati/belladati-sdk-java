@@ -139,12 +139,12 @@ public class BellaDatiClient implements Serializable {
 	}
 
 	public byte[] delete(String relativeUrl, TokenHolder tokenHolder, HttpParameters oauthParams) {
-		HttpDelete delete = new HttpDelete(baseUrl + relativeUrl);
+		HttpDelete delete = new HttpDelete(baseUrl + removeLeadingSlash(relativeUrl));
 		return doRequest(delete, tokenHolder, oauthParams);
 	}
 
 	public byte[] delete(String relativeUrl, TokenHolder tokenHolder, HttpParameters oauthParams, JsonNode json) {
-		HttpDeleteWithData delete = new HttpDeleteWithData(baseUrl + relativeUrl);
+		HttpDeleteWithData delete = new HttpDeleteWithData(baseUrl + removeLeadingSlash(relativeUrl));
 		delete.setEntity(new StringEntity(json.toString(), ContentType.APPLICATION_JSON));
 		return doRequest(delete, tokenHolder, oauthParams);
 	}
@@ -167,7 +167,7 @@ public class BellaDatiClient implements Serializable {
 
 	public byte[] post(String relativeUrl, TokenHolder tokenHolder, HttpParameters oauthParams,
 		List<? extends NameValuePair> parameters) {
-		HttpPost post = new HttpPost(baseUrl + relativeUrl);
+		HttpPost post = new HttpPost(baseUrl + removeLeadingSlash(relativeUrl));
 		if (parameters != null) {
 			try {
 				post.setEntity(new UrlEncodedFormEntity(parameters, "UTF-8"));
@@ -179,7 +179,7 @@ public class BellaDatiClient implements Serializable {
 	}
 
 	public byte[] postJson(String relativeUrl, TokenHolder tokenHolder, HttpParameters oauthParams, JsonNode json) {
-		HttpPost post = new HttpPost(baseUrl + relativeUrl);
+		HttpPost post = new HttpPost(baseUrl + removeLeadingSlash(relativeUrl));
 		post.setEntity(new StringEntity(json.toString(), ContentType.APPLICATION_JSON));
 		return doRequest(post, tokenHolder, oauthParams);
 	}
@@ -189,7 +189,7 @@ public class BellaDatiClient implements Serializable {
 	}
 
 	public byte[] patch(String relativeUrl, TokenHolder tokenHolder, HttpParameters oauthParams, JsonNode json) {
-		HttpPatch patch = new HttpPatch(baseUrl + relativeUrl);
+		HttpPatch patch = new HttpPatch(baseUrl + removeLeadingSlash(relativeUrl));
 		patch.setEntity(new StringEntity(json.toString(), ContentType.APPLICATION_JSON));
 		return doRequest(patch, tokenHolder, oauthParams);
 	}
@@ -200,7 +200,7 @@ public class BellaDatiClient implements Serializable {
 
 	public byte[] postMultipart(String relativeUrl, TokenHolder tokenHolder, HttpParameters oauthParams,
 		List<? extends MultipartPiece<?>> multipart) {
-		HttpPost post = new HttpPost(baseUrl + relativeUrl);
+		HttpPost post = new HttpPost(baseUrl + removeLeadingSlash(relativeUrl));
 
 		MultipartEntityBuilder builder = MultipartEntityBuilder.create();
 		builder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
@@ -227,7 +227,7 @@ public class BellaDatiClient implements Serializable {
 	}
 
 	public byte[] postUpload(String relativeUrl, TokenHolder tokenHolder, String content) {
-		HttpPost post = new HttpPost(baseUrl + relativeUrl);
+		HttpPost post = new HttpPost(baseUrl + removeLeadingSlash(relativeUrl));
 		StringEntity entity = new StringEntity(content, "UTF-8");
 		entity.setContentType("application/octet-stream");
 		post.setEntity(entity);
@@ -235,7 +235,7 @@ public class BellaDatiClient implements Serializable {
 	}
 
 	public byte[] postData(String relativeUrl, TokenHolder tokenHolder, byte[] content) {
-		HttpPost post = new HttpPost(baseUrl + relativeUrl);
+		HttpPost post = new HttpPost(baseUrl + removeLeadingSlash(relativeUrl));
 		ByteArrayEntity entity = new ByteArrayEntity(content);
 		entity.setContentType("application/octet-stream");
 		post.setEntity(entity);
@@ -269,7 +269,7 @@ public class BellaDatiClient implements Serializable {
 	}
 
 	public byte[] get(String relativeUrl, TokenHolder tokenHolder) {
-		return doRequest(new HttpGet(baseUrl + relativeUrl), tokenHolder);
+		return doRequest(new HttpGet(baseUrl + removeLeadingSlash(relativeUrl)), tokenHolder);
 	}
 
 	public JsonNode getAsJson(String relativeUrl, TokenHolder tokenHolder) throws InvalidJsonException {
@@ -417,6 +417,13 @@ public class BellaDatiClient implements Serializable {
 			throw new UnexpectedResponseException(code, new String(content), e);
 		}
 
+	}
+	
+	private String removeLeadingSlash(String relativeUrl) {
+		if (relativeUrl.startsWith("/")) {
+			return relativeUrl.substring(1);
+		}
+		return relativeUrl;
 	}
 
 	private static byte[] readBytes(InputStream in) throws IOException {
