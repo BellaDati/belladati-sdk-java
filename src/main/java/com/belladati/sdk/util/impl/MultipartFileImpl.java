@@ -1,10 +1,9 @@
 package com.belladati.sdk.util.impl;
 
-import java.io.File;
-
-import org.apache.http.entity.ContentType;
-
 import com.belladati.sdk.util.MultipartPiece;
+import org.apache.hc.core5.http.ContentType;
+
+import java.io.File;
 
 public class MultipartFileImpl implements MultipartPiece<File> {
 

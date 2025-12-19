@@ -1,48 +1,5 @@
 package com.belladati.sdk.impl;
 
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.Closeable;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.ObjectInputStream;
-import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Field;
-import java.security.GeneralSecurityException;
-import java.util.List;
-
-import javax.imageio.ImageIO;
-import javax.net.ssl.SSLContext;
-
-import org.apache.http.HttpEntity;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpDelete;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.config.RegistryBuilder;
-import org.apache.http.conn.socket.ConnectionSocketFactory;
-import org.apache.http.conn.socket.PlainConnectionSocketFactory;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.conn.ssl.SSLContexts;
-import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
-import org.apache.http.entity.ByteArrayEntity;
-import org.apache.http.entity.ContentType;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.entity.mime.HttpMultipartMode;
-import org.apache.http.entity.mime.MultipartEntityBuilder;
-import org.apache.http.entity.mime.content.ContentBody;
-import org.apache.http.entity.mime.content.FileBody;
-import org.apache.http.entity.mime.content.StringBody;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.cache.CacheConfig;
-import org.apache.http.impl.client.cache.CachingHttpClientBuilder;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-
 import com.belladati.sdk.exception.BellaDatiRuntimeException;
 import com.belladati.sdk.exception.ConnectionException;
 import com.belladati.sdk.exception.InternalConfigurationException;
@@ -61,14 +18,57 @@ import com.belladati.sdk.util.impl.MultipartFileImpl;
 import com.belladati.sdk.util.impl.MultipartTextImpl;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import oauth.signpost.OAuth;
 import oauth.signpost.OAuthConsumer;
 import oauth.signpost.exception.OAuthException;
 import oauth.signpost.http.HttpParameters;
+import org.apache.hc.client5.http.classic.methods.HttpDelete;
+import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
+import org.apache.hc.client5.http.config.ConnectionConfig;
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.entity.UrlEncodedFormEntity;
+import org.apache.hc.client5.http.entity.mime.ContentBody;
+import org.apache.hc.client5.http.entity.mime.FileBody;
+import org.apache.hc.client5.http.entity.mime.HttpMultipartMode;
+import org.apache.hc.client5.http.entity.mime.MultipartEntityBuilder;
+import org.apache.hc.client5.http.entity.mime.StringBody;
+import org.apache.hc.client5.http.impl.DefaultHttpRequestRetryStrategy;
+import org.apache.hc.client5.http.impl.cache.CacheConfig;
+import org.apache.hc.client5.http.impl.cache.CachingHttpClients;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
+import org.apache.hc.client5.http.ssl.TrustSelfSignedStrategy;
+import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.NameValuePair;
+import org.apache.hc.core5.http.io.SocketConfig;
+import org.apache.hc.core5.http.io.entity.ByteArrayEntity;
+import org.apache.hc.core5.http.io.entity.StringEntity;
+import org.apache.hc.core5.ssl.SSLContexts;
+import org.apache.hc.core5.util.TimeValue;
+import org.apache.hc.core5.util.Timeout;
+
+import javax.imageio.ImageIO;
+import javax.net.ssl.SSLContext;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.Closeable;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.ObjectInputStream;
+import java.lang.reflect.Field;
+import java.nio.charset.StandardCharsets;
+import java.security.GeneralSecurityException;
+import java.util.List;
 
 /**
- * @author Lubomir Micko
+ * 
  */
 public class VolatileBellaDatiClient extends BellaDatiClient {
 	private static final long serialVersionUID = 1483144025894079717L;
@@ -103,25 +103,49 @@ public class VolatileBellaDatiClient extends BellaDatiClient {
 			int connectTimeout = readFromProperty("bdConnectTimeout", globalTimeout);
 			int connectionRequestTimeout = readFromProperty("bdConnectionRequestTimeout", globalTimeout);
 			int socketTimeout = readFromProperty("bdSocketTimeout", globalTimeout);
-			RequestConfig requestConfig = RequestConfig.copy(RequestConfig.DEFAULT).setConnectTimeout(connectTimeout)
-				.setSocketTimeout(socketTimeout).setConnectionRequestTimeout(connectionRequestTimeout).build();
+
+			RequestConfig requestConfig = RequestConfig.copy(RequestConfig.DEFAULT)
+					.setResponseTimeout(Timeout.ofMilliseconds(socketTimeout))
+					.setConnectionRequestTimeout(Timeout.ofMilliseconds(connectionRequestTimeout)).build();
+
 
 			// configure caching
-			CacheConfig cacheConfig = CacheConfig.copy(CacheConfig.DEFAULT).setSharedCache(false).setMaxCacheEntries(1000)
-				.setMaxObjectSize(2 * 1024 * 1024).build();
+			CacheConfig cacheConfig = CacheConfig.custom()
+					.setSharedCache(false)
+					.setMaxCacheEntries(1000)
+					.setMaxObjectSize(2 * 1024 * 1024L) // note: long in Client5
+					.build();
 
-			// configure connection pooling
-			PoolingHttpClientConnectionManager connManager = new PoolingHttpClientConnectionManager(RegistryBuilder
-				.<ConnectionSocketFactory> create().register("http", PlainConnectionSocketFactory.getSocketFactory())
-				.register("https", new SSLConnectionSocketFactory(sslContext)).build());
+
+			ConnectionConfig connectionCofig = ConnectionConfig.custom()
+					.setSocketTimeout(Timeout.ofMilliseconds(socketTimeout)) // read timeout
+					.setConnectTimeout(Timeout.ofMilliseconds(connectTimeout)) // connection establishment timeout
+					.build();
+
+			// configure connection pooling with modern builder
+			PoolingHttpClientConnectionManager connManager =
+					PoolingHttpClientConnectionManagerBuilder.create()
+							.setDefaultConnectionConfig(connectionCofig)
+							.setTlsSocketStrategy(new DefaultClientTlsStrategy(sslContext))
+							.build();
+
 			int connectionLimit = readFromProperty("bdMaxConnections", 40);
-			// there's only one server to connect to, so max per route matters
 			connManager.setMaxTotal(connectionLimit);
 			connManager.setDefaultMaxPerRoute(connectionLimit);
 
-			// create the HTTP client
-			return CachingHttpClientBuilder.create().setCacheConfig(cacheConfig).setDefaultRequestConfig(requestConfig)
-				.setConnectionManager(connManager).build();
+// optional: socket config
+			SocketConfig socketConfig = SocketConfig.custom()
+					.setSoTimeout(Timeout.ofSeconds(30))
+					.build();
+			connManager.setDefaultSocketConfig(socketConfig);
+
+// create the HTTP client
+			return CachingHttpClients.custom()
+					.setCacheConfig(cacheConfig)
+					.setDefaultRequestConfig(requestConfig)
+					.setConnectionManager(connManager)
+					.setRetryStrategy(new DefaultHttpRequestRetryStrategy(3, TimeValue.ofSeconds(2)))
+					.build();
 		} catch (GeneralSecurityException e) {
 			throw new InternalConfigurationException("Failed to set up SSL context", e);
 		}
@@ -160,11 +184,7 @@ public class VolatileBellaDatiClient extends BellaDatiClient {
 		List<? extends NameValuePair> parameters) {
 		HttpPost post = new HttpPost(baseUrl + relativeUrl);
 		if (parameters != null) {
-			try {
-				post.setEntity(new UrlEncodedFormEntity(parameters, "UTF-8"));
-			} catch (UnsupportedEncodingException e) {
-				throw new IllegalArgumentException("Invalid URL encoding", e);
-			}
+			post.setEntity(new UrlEncodedFormEntity(parameters, StandardCharsets.UTF_8));
 		}
 		return doRequest(post, tokenHolder, oauthParams);
 	}
@@ -178,7 +198,7 @@ public class VolatileBellaDatiClient extends BellaDatiClient {
 		HttpPost post = new HttpPost(baseUrl + relativeUrl);
 
 		MultipartEntityBuilder builder = MultipartEntityBuilder.create();
-		builder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
+		builder.setMode(HttpMultipartMode.LEGACY);
 
 		for (MultipartPiece<?> part : multipart) {
 			ContentType contentType = ContentType.create(part.getContentType());
@@ -203,16 +223,14 @@ public class VolatileBellaDatiClient extends BellaDatiClient {
 
 	public byte[] postUpload(String relativeUrl, TokenHolder tokenHolder, String content) {
 		HttpPost post = new HttpPost(baseUrl + relativeUrl);
-		StringEntity entity = new StringEntity(content, "UTF-8");
-		entity.setContentType("application/octet-stream");
+		StringEntity entity = new StringEntity(content, ContentType.APPLICATION_OCTET_STREAM);
 		post.setEntity(entity);
 		return doRequest(post, tokenHolder);
 	}
 
 	public byte[] postData(String relativeUrl, TokenHolder tokenHolder, byte[] content) {
 		HttpPost post = new HttpPost(baseUrl + relativeUrl);
-		ByteArrayEntity entity = new ByteArrayEntity(content);
-		entity.setContentType("application/octet-stream");
+		ByteArrayEntity entity = new ByteArrayEntity(content, ContentType.APPLICATION_OCTET_STREAM);
 		post.setEntity(entity);
 		return doRequest(post, tokenHolder);
 	}
@@ -295,11 +313,11 @@ public class VolatileBellaDatiClient extends BellaDatiClient {
 		return baseUrl;
 	}
 
-	private byte[] doRequest(HttpRequestBase request, TokenHolder tokenHolder) {
+	private byte[] doRequest(HttpUriRequestBase request, TokenHolder tokenHolder) {
 		return doRequest(request, tokenHolder, null);
 	}
 
-	private byte[] doRequest(HttpRequestBase request, TokenHolder tokenHolder, HttpParameters oauthParams) {
+	private byte[] doRequest(HttpUriRequestBase request, TokenHolder tokenHolder, HttpParameters oauthParams) {
 		CloseableHttpResponse response = null;
 		try {
 			request.setHeader("Connection", "close");
@@ -307,7 +325,7 @@ public class VolatileBellaDatiClient extends BellaDatiClient {
 			consumer.setAdditionalParameters(oauthParams);
 			consumer.sign(request);
 			response = client.execute(request);
-			int statusCode = response.getStatusLine().getStatusCode();
+			int statusCode = response.getCode();
 			HttpEntity entity = response.getEntity();
 			byte[] content = entity != null ? readBytes(entity.getContent()) : new byte[0];
 			switch (statusCode) {
@@ -321,9 +339,9 @@ public class VolatileBellaDatiClient extends BellaDatiClient {
 			case 403:
 				throw buildException(statusCode, content, tokenHolder.hasToken());
 			case 404:
-				throw new NotFoundException(request.getRequestLine().getUri());
+				throw new NotFoundException(request.getRequestUri());
 			case 405:
-				throw new MethodNotAllowedException(request.getRequestLine().getUri());
+				throw new MethodNotAllowedException(request.getRequestUri());
 			case 500:
 				throw new InternalErrorException();
 			default:
@@ -341,7 +359,6 @@ public class VolatileBellaDatiClient extends BellaDatiClient {
 			} catch (IOException e) {
 				throw new ConnectionException("Failed to connect to BellaDati", e);
 			}
-			request.releaseConnection();
 		}
 	}
 

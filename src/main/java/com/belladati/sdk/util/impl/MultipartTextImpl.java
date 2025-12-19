@@ -1,8 +1,7 @@
 package com.belladati.sdk.util.impl;
 
-import org.apache.http.entity.ContentType;
-
 import com.belladati.sdk.util.MultipartPiece;
+import org.apache.hc.core5.http.ContentType;
 
 public class MultipartTextImpl implements MultipartPiece<String> {
 

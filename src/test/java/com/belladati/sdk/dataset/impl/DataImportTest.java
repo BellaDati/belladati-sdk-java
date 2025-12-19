@@ -1,15 +1,5 @@
 package com.belladati.sdk.dataset.impl;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.fail;
-
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-
-import org.apache.http.HttpEntity;
-import org.apache.http.message.BasicHttpEntityEnclosingRequest;
-import org.testng.annotations.Test;
-
 import com.belladati.sdk.dataset.DataSet;
 import com.belladati.sdk.dataset.data.DataTable;
 import com.belladati.sdk.exception.dataset.data.UnknownServerColumnException;
@@ -18,6 +8,15 @@ import com.belladati.sdk.test.SDKTest;
 import com.belladati.sdk.test.TestRequestHandler;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.ParseException;
+import org.testng.annotations.Test;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.fail;
 
 @Test
 public class DataImportTest extends SDKTest {
@@ -32,8 +31,8 @@ public class DataImportTest extends SDKTest {
 
 		server.register(url, new TestRequestHandler() {
 			@Override
-			protected void handle(HttpHolder holder) throws IOException {
-				HttpEntity entity = ((BasicHttpEntityEnclosingRequest) holder.request).getEntity();
+			protected void handle(HttpHolder holder) throws IOException, ParseException {
+				HttpEntity entity = holder.request.getEntity();
 				ByteArrayOutputStream baos = new ByteArrayOutputStream();
 				entity.writeTo(baos);
 				JsonNode json = new ObjectMapper().readTree(baos.toByteArray());
@@ -54,8 +53,8 @@ public class DataImportTest extends SDKTest {
 
 		server.register(url, new TestRequestHandler() {
 			@Override
-			protected void handle(HttpHolder holder) throws IOException {
-				HttpEntity entity = ((BasicHttpEntityEnclosingRequest) holder.request).getEntity();
+			protected void handle(HttpHolder holder) throws IOException, ParseException {
+				HttpEntity entity = holder.request.getEntity();
 				ByteArrayOutputStream baos = new ByteArrayOutputStream();
 				entity.writeTo(baos);
 				JsonNode json = new ObjectMapper().readTree(baos.toByteArray());

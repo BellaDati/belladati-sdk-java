@@ -1,12 +1,13 @@
 package com.belladati.sdk.test;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertTrue;
+import org.apache.hc.core5.http.ParseException;
+import org.apache.hc.core5.http.io.entity.StringEntity;
+import org.testng.annotations.Test;
 
 import java.io.IOException;
 
-import org.apache.http.entity.StringEntity;
-import org.testng.annotations.Test;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
 
 @Test
 public class MediaTest extends SDKTest {
@@ -20,7 +21,7 @@ public class MediaTest extends SDKTest {
 		final boolean[] executed = new boolean[1];
 		server.register(imageUrl, new TestRequestHandler() {
 			@Override
-			protected void handle(HttpHolder holder) throws IOException {
+			protected void handle(HttpHolder holder) throws IOException, ParseException {
 				assertEquals(holder.getUrlParameters().size(), 0);
 				holder.response.setEntity(new StringEntity(""));
 				executed[0] = true;
@@ -35,7 +36,7 @@ public class MediaTest extends SDKTest {
 		final boolean[] executed = new boolean[1];
 		server.register(imageUrl, new TestRequestHandler() {
 			@Override
-			protected void handle(HttpHolder holder) throws IOException {
+			protected void handle(HttpHolder holder) throws IOException, ParseException {
 				assertEquals(holder.getUrlParameters().size(), 0);
 				holder.response.setEntity(new StringEntity(""));
 				executed[0] = true;

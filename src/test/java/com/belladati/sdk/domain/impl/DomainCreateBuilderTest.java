@@ -1,17 +1,17 @@
 package com.belladati.sdk.domain.impl;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.fail;
-
-import java.io.IOException;
-
-import org.apache.http.entity.StringEntity;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
-
 import com.belladati.sdk.domain.DomainCreateBuilder;
 import com.belladati.sdk.test.SDKTest;
 import com.belladati.sdk.test.TestRequestHandler;
+import org.apache.hc.core5.http.ParseException;
+import org.apache.hc.core5.http.io.entity.StringEntity;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
+
+import java.io.IOException;
+
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.fail;
 
 @Test
 public class DomainCreateBuilderTest extends SDKTest {
@@ -36,7 +36,7 @@ public class DomainCreateBuilderTest extends SDKTest {
 	protected void setupSource() throws Exception {
 		server.register(requestUri, new TestRequestHandler() {
 			@Override
-			protected void handle(HttpHolder holder) throws IOException {
+			protected void handle(HttpHolder holder) throws IOException, ParseException {
 				assertEquals(holder.getFormParameters().get("data"), builder.toJson().toString());
 				holder.response.setEntity(new StringEntity(id));
 			}

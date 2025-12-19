@@ -1,7 +1,14 @@
 package com.belladati.sdk.util.impl;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNotNull;
+import com.belladati.sdk.BellaDati;
+import com.belladati.sdk.BellaDatiConnection;
+import com.belladati.sdk.BellaDatiService;
+import com.belladati.sdk.auth.OAuthRequest;
+import com.belladati.sdk.test.SDKTest;
+import com.belladati.sdk.test.TestRequestHandler;
+import org.apache.hc.core5.http.ParseException;
+import org.apache.hc.core5.http.io.entity.StringEntity;
+import org.testng.annotations.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -9,15 +16,8 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
-import org.apache.http.entity.StringEntity;
-import org.testng.annotations.Test;
-
-import com.belladati.sdk.BellaDati;
-import com.belladati.sdk.BellaDatiConnection;
-import com.belladati.sdk.BellaDatiService;
-import com.belladati.sdk.auth.OAuthRequest;
-import com.belladati.sdk.test.SDKTest;
-import com.belladati.sdk.test.TestRequestHandler;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
 
 @Test
 public class SerializationTest extends SDKTest {
@@ -55,7 +55,7 @@ public class SerializationTest extends SDKTest {
 		final String id = "123";
 		server.register(reportsUri + "/" + id, new TestRequestHandler() {
 			@Override
-			protected void handle(HttpHolder holder) throws IOException {
+			protected void handle(HttpHolder holder) throws IOException, ParseException {
 				holder.assertAuth(getService().getTokenHolder().getConsumerKey(), getService().getTokenHolder().getToken());
 				holder.response.setEntity(new StringEntity(builder.buildReportNode(id, "", "", "", null).toString()));
 			}
@@ -100,7 +100,7 @@ public class SerializationTest extends SDKTest {
 
 		server.register("/oauth/accessToken", new TestRequestHandler() {
 			@Override
-			protected void handle(HttpHolder holder) throws IOException {
+			protected void handle(HttpHolder holder) throws IOException, ParseException {
 				holder.assertAuth(key, requestToken);
 				holder.response.setEntity(new StringEntity("oauth_token=access&oauth_token_secret=accessSecret"));
 			}

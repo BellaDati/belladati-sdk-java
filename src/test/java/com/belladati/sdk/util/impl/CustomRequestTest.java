@@ -1,20 +1,21 @@
 package com.belladati.sdk.util.impl;
 
-import static org.testng.Assert.assertEquals;
+import com.belladati.sdk.test.SDKTest;
+import com.belladati.sdk.test.TestRequestHandler;
+import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.http.ParseException;
+import org.apache.hc.core5.http.io.entity.ByteArrayEntity;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.Map;
 
-import org.apache.http.entity.ByteArrayEntity;
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
+import static org.testng.Assert.assertEquals;
 
-import com.belladati.sdk.test.SDKTest;
-import com.belladati.sdk.test.TestRequestHandler;
-
-@Test(dataProvider = "uris")
+@Test
 public class CustomRequestTest extends SDKTest {
 
 	private final String serverUri = "/some/uri";
@@ -24,14 +25,15 @@ public class CustomRequestTest extends SDKTest {
 
 	private final String brokenUri = "not a uri";
 
+	@Test(dataProvider = "uris")
 	public void post(String uri) throws URISyntaxException {
 		server.register(serverUri, new TestRequestHandler() {
 			@Override
-			protected void handle(HttpHolder holder) throws IOException {
+			protected void handle(HttpHolder holder) throws IOException, ParseException {
 				assertEquals(holder.getUrlParameters(), Collections.emptyMap());
 				assertEquals(holder.getFormParameters(), Collections.emptyMap());
 				holder.assertPost();
-				holder.response.setEntity(new ByteArrayEntity(returnValue));
+				holder.response.setEntity(new ByteArrayEntity(returnValue, ContentType.TEXT_PLAIN));
 			}
 		});
 
@@ -40,14 +42,15 @@ public class CustomRequestTest extends SDKTest {
 		server.assertRequestUris(serverUri);
 	}
 
+	@Test(dataProvider = "uris")
 	public void postUriParams(String uri) throws URISyntaxException {
 		server.register(serverUri, new TestRequestHandler() {
 			@Override
-			protected void handle(HttpHolder holder) throws IOException {
+			protected void handle(HttpHolder holder) throws IOException, ParseException {
 				assertEquals(holder.getUrlParameters(), params);
 				assertEquals(holder.getFormParameters(), Collections.emptyMap());
 				holder.assertPost();
-				holder.response.setEntity(new ByteArrayEntity(returnValue));
+				holder.response.setEntity(new ByteArrayEntity(returnValue, ContentType.TEXT_PLAIN));
 			}
 		});
 
@@ -56,15 +59,16 @@ public class CustomRequestTest extends SDKTest {
 		server.assertRequestUris(serverUri);
 	}
 
+	@Test(dataProvider = "uris")
 	public void postBody(String uri) throws URISyntaxException {
 		server.register(serverUri, new TestRequestHandler() {
 			@Override
-			protected void handle(HttpHolder holder) throws IOException {
+			protected void handle(HttpHolder holder) throws IOException, ParseException {
 				assertEquals(holder.getUrlParameters(), Collections.emptyMap());
 				assertEquals(holder.getRequestBodyBytes(), body);
 				assertEquals(holder.getFormParameters(), Collections.emptyMap());
 				holder.assertPost();
-				holder.response.setEntity(new ByteArrayEntity(returnValue));
+				holder.response.setEntity(new ByteArrayEntity(returnValue, ContentType.TEXT_PLAIN));
 			}
 		});
 
@@ -73,15 +77,16 @@ public class CustomRequestTest extends SDKTest {
 		server.assertRequestUris(serverUri);
 	}
 
+	@Test(dataProvider = "uris")
 	public void postUriParamsBody(String uri) throws URISyntaxException {
 		server.register(serverUri, new TestRequestHandler() {
 			@Override
-			protected void handle(HttpHolder holder) throws IOException {
+			protected void handle(HttpHolder holder) throws IOException, ParseException {
 				assertEquals(holder.getUrlParameters(), params);
 				assertEquals(holder.getRequestBodyBytes(), body);
 				assertEquals(holder.getFormParameters(), Collections.emptyMap());
 				holder.assertPost();
-				holder.response.setEntity(new ByteArrayEntity(returnValue));
+				holder.response.setEntity(new ByteArrayEntity(returnValue, ContentType.TEXT_PLAIN));
 			}
 		});
 
@@ -90,14 +95,15 @@ public class CustomRequestTest extends SDKTest {
 		server.assertRequestUris(serverUri);
 	}
 
+	@Test(dataProvider = "uris")
 	public void postFormParams(String uri) throws URISyntaxException {
 		server.register(serverUri, new TestRequestHandler() {
 			@Override
-			protected void handle(HttpHolder holder) throws IOException {
+			protected void handle(HttpHolder holder) throws IOException, ParseException {
 				assertEquals(holder.getUrlParameters(), Collections.emptyMap());
 				assertEquals(holder.getFormParameters(), params);
 				holder.assertPost();
-				holder.response.setEntity(new ByteArrayEntity(returnValue));
+				holder.response.setEntity(new ByteArrayEntity(returnValue, ContentType.TEXT_PLAIN));
 			}
 		});
 
@@ -106,14 +112,15 @@ public class CustomRequestTest extends SDKTest {
 		server.assertRequestUris(serverUri);
 	}
 
+	@Test(dataProvider = "uris")
 	public void postUriFormParams(String uri) throws URISyntaxException {
 		server.register(serverUri, new TestRequestHandler() {
 			@Override
-			protected void handle(HttpHolder holder) throws IOException {
+			protected void handle(HttpHolder holder) throws IOException, ParseException {
 				assertEquals(holder.getUrlParameters(), params);
 				assertEquals(holder.getFormParameters(), params);
 				holder.assertPost();
-				holder.response.setEntity(new ByteArrayEntity(returnValue));
+				holder.response.setEntity(new ByteArrayEntity(returnValue, ContentType.TEXT_PLAIN));
 			}
 		});
 
@@ -122,13 +129,14 @@ public class CustomRequestTest extends SDKTest {
 		server.assertRequestUris(serverUri);
 	}
 
+	@Test(dataProvider = "uris")
 	public void get(String uri) throws URISyntaxException {
 		server.register(serverUri, new TestRequestHandler() {
 			@Override
-			protected void handle(HttpHolder holder) throws IOException {
+			protected void handle(HttpHolder holder) throws IOException, ParseException {
 				assertEquals(holder.getUrlParameters(), Collections.emptyMap());
 				holder.assertGet();
-				holder.response.setEntity(new ByteArrayEntity(returnValue));
+				holder.response.setEntity(new ByteArrayEntity(returnValue, ContentType.TEXT_PLAIN));
 			}
 		});
 
@@ -137,14 +145,15 @@ public class CustomRequestTest extends SDKTest {
 		server.assertRequestUris(serverUri);
 	}
 
+	@Test(dataProvider = "uris")
 	public void getUriParams(String uri) throws URISyntaxException {
 		server.register(serverUri, new TestRequestHandler() {
 			@Override
-			protected void handle(HttpHolder holder) throws IOException {
+			protected void handle(HttpHolder holder) throws IOException, ParseException {
 				assertEquals(holder.getUrlParameters(), params);
 				assertEquals(holder.getFormParameters(), Collections.emptyMap());
 				holder.assertGet();
-				holder.response.setEntity(new ByteArrayEntity(returnValue));
+				holder.response.setEntity(new ByteArrayEntity(returnValue, ContentType.TEXT_PLAIN));
 			}
 		});
 

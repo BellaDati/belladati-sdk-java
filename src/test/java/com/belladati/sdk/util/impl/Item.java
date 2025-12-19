@@ -5,7 +5,7 @@ import com.belladati.sdk.util.IdElement;
 /**
  * Simple implementation of an {@link IdElement} for testing.
  * 
- * @author Chris Hennigfeld
+ * 
  */
 public class Item implements IdElement {
 	private final String id;

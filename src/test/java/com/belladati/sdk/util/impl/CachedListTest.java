@@ -1,16 +1,5 @@
 package com.belladati.sdk.util.impl;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertTrue;
-
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collections;
-
-import org.apache.http.entity.StringEntity;
-import org.testng.annotations.Test;
-
 import com.belladati.sdk.impl.BellaDatiClient;
 import com.belladati.sdk.impl.BellaDatiServiceImpl;
 import com.belladati.sdk.impl.TokenHolder;
@@ -21,6 +10,17 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.hc.core5.http.ParseException;
+import org.apache.hc.core5.http.io.entity.StringEntity;
+import org.testng.annotations.Test;
+
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collections;
+
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertTrue;
 
 @Test
 public class CachedListTest extends SDKTest {
@@ -34,7 +34,7 @@ public class CachedListTest extends SDKTest {
 	public void load() throws Exception {
 		server.register(uri, new TestRequestHandler() {
 			@Override
-			protected void handle(HttpHolder holder) throws IOException {
+			protected void handle(HttpHolder holder) throws IOException, ParseException {
 				assertEquals(holder.getUrlParameters(), Collections.emptyMap());
 				holder.response.setEntity(new StringEntity(buildResponse().toString()));
 			}

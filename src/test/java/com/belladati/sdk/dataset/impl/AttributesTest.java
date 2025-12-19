@@ -1,21 +1,5 @@
 package com.belladati.sdk.dataset.impl;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertNotEquals;
-import static org.testng.Assert.assertSame;
-import static org.testng.Assert.assertTrue;
-
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.util.Collections;
-import java.util.List;
-
-import org.apache.http.entity.StringEntity;
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
-import org.yaml.snakeyaml.util.UriEncoder;
-
 import com.belladati.sdk.dataset.Attribute;
 import com.belladati.sdk.dataset.AttributeValue;
 import com.belladati.sdk.exception.impl.InvalidAttributeException;
@@ -28,6 +12,23 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.hc.core5.http.ParseException;
+import org.apache.hc.core5.http.io.entity.StringEntity;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
+
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URISyntaxException;
+import java.net.URLEncoder;
+import java.util.Collections;
+import java.util.List;
+
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNotEquals;
+import static org.testng.Assert.assertSame;
+import static org.testng.Assert.assertTrue;
 
 @Test
 public class AttributesTest extends SDKTest {
@@ -256,7 +257,7 @@ public class AttributesTest extends SDKTest {
 	private void registerValues(final JsonNode node) {
 		server.register(String.format(valuesUri, dataSetId, code), new TestRequestHandler() {
 			@Override
-			protected void handle(HttpHolder holder) throws IOException {
+			protected void handle(HttpHolder holder) throws IOException, ParseException {
 				holder.response.setEntity(new StringEntity(node.toString()));
 			}
 		});
@@ -268,13 +269,13 @@ public class AttributesTest extends SDKTest {
 	}
 
 	@Test(dataProvider = "postAttributeValueImage_provider")
-	public void postAttributeValueImage(String value) throws URISyntaxException {
-		String url = String.format(imageUri, dataSetId, code, UriEncoder.encode(value));
+	public void postAttributeValueImage(String value) throws URISyntaxException, UnsupportedEncodingException {
+		String url = String.format(imageUri, dataSetId, code, URLEncoder.encode(value,"UTF-8"));
 
 		final boolean[] executed = new boolean[1];
 		server.register(url, new TestRequestHandler() {
 			@Override
-			protected void handle(HttpHolder holder) throws IOException {
+			protected void handle(HttpHolder holder) throws IOException, ParseException {
 				assertEquals(holder.getUrlParameters().size(), 0);
 				holder.response.setEntity(new StringEntity(""));
 				executed[0] = true;

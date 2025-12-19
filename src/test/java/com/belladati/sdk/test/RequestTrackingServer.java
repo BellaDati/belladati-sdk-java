@@ -1,6 +1,19 @@
 package com.belladati.sdk.test;
 
-import static org.testng.Assert.assertEquals;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.hc.core5.http.ClassicHttpRequest;
+import org.apache.hc.core5.http.ClassicHttpResponse;
+import org.apache.hc.core5.http.ParseException;
+import org.apache.hc.core5.http.impl.bootstrap.HttpServer;
+import org.apache.hc.core5.http.impl.bootstrap.ServerBootstrap;
+import org.apache.hc.core5.http.io.HttpRequestHandler;
+import org.apache.hc.core5.http.io.entity.StringEntity;
+import org.apache.hc.core5.http.protocol.HttpContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -8,69 +21,68 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import org.apache.http.HttpException;
-import org.apache.http.HttpRequest;
-import org.apache.http.HttpResponse;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.localserver.LocalServerTestBase;
-import org.apache.http.protocol.HttpContext;
-import org.apache.http.protocol.HttpRequestHandler;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import static org.testng.Assert.assertEquals;
 
 /**
  * A test server that keeps track of any requests received.
  * 
- * @author Chris Hennigfeld
+ *
  */
-public class RequestTrackingServer extends LocalServerTestBase {
+public class RequestTrackingServer {
 
+	private static final Logger log = LoggerFactory.getLogger(RequestTrackingServer.class);
 	/** contains all requests received, in order */
-	private List<String> requestUris = Collections.synchronizedList(new ArrayList<String>());
+	private List<String> requestUris = Collections.synchronizedList(new ArrayList<>());
+	private final ServerBootstrap serverBootstrap;
+	private HttpServer server;
 
 	public RequestTrackingServer() throws Exception {
-		super();
-		setUp();
-		register("/*", new HttpRequestHandler() {
-			@Override
-			public void handle(HttpRequest request, HttpResponse response, HttpContext context)
-				throws HttpException, IOException {
-				System.err.println(request.getRequestLine());
-				// do nothing, this is just a dummy to track the URI
-			}
+		this.serverBootstrap = ServerBootstrap.bootstrap();
+
+
+		register("/*", (request, response, context) -> {
+			System.err.println(request.getRequestUri());
+			response.setCode(200);
 		});
+
+		this.server = serverBootstrap.create();
+		start();
+	}
+
+	public void start() throws IOException {
+		this.server.start();
+	}
+
+	public void stop() {
+		if (server != null) {
+			server.stop();
+			server = null;
+		}
 	}
 
 	public void register(String pattern, final HttpRequestHandler handler) {
 		if (server != null) {
-			throw new RuntimeException("Cannot register hander when server is running");
+			stop();
+			//throw new RuntimeException("Cannot register hander when server is running");
 		}
-		serverBootstrap.registerHandler(pattern, new HttpRequestHandler() {
-
-			@Override
-			public void handle(HttpRequest request, HttpResponse response, HttpContext context)
-				throws HttpException, IOException {
-				// wrap the original handler to track the request
-				String uri = request.getRequestLine().getUri();
-				requestUris.add(uri.contains("?") ? uri.substring(0, uri.indexOf("?")) : uri);
-				// never cache during tests
-				response.addHeader("Cache-Control", "no-cache");
-				handler.handle(request, response, context);
-			}
+		serverBootstrap.register(pattern, (ClassicHttpRequest request, ClassicHttpResponse response, HttpContext context) -> {
+			String uri = request.getRequestUri();
+			requestUris.add(uri.contains("?") ? uri.substring(0, uri.indexOf("?")) : uri);
+			response.addHeader("Cache-Control", "no-cache");
+			handler.handle(request, response, context);
 		});
+		try {
+			this.server = serverBootstrap.create();
+			start();
+		} catch (IOException e) {
+			log.error(e.getMessage(), e);
+		}
 	}
 
 	public void register(String pattern, final String responseContent) {
-		register(pattern, new HttpRequestHandler() {
-
-			@Override
-			public void handle(HttpRequest request, HttpResponse response, HttpContext context)
-				throws HttpException, IOException {
-				response.setEntity(new StringEntity(responseContent));
-			}
+		register(pattern, (ClassicHttpRequest request, ClassicHttpResponse response, HttpContext context) -> {
+			response.setCode(200);
+			response.setEntity(new StringEntity(responseContent));
 		});
 	}
 
@@ -102,8 +114,8 @@ public class RequestTrackingServer extends LocalServerTestBase {
 	public void registerError(String pattern, final int code, final String content) {
 		register(pattern, new TestRequestHandler() {
 			@Override
-			protected void handle(HttpHolder holder) throws IOException {
-				holder.response.setStatusCode(code);
+			protected void handle(HttpHolder holder) throws IOException, ParseException {
+				holder.response.setCode(code);
 				holder.response.setEntity(new StringEntity(content));
 			}
 		});

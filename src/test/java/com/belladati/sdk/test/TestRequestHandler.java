@@ -1,35 +1,40 @@
 package com.belladati.sdk.test;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertTrue;
+import org.apache.hc.core5.http.ClassicHttpRequest;
+import org.apache.hc.core5.http.ClassicHttpResponse;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.HttpException;
+import org.apache.hc.core5.http.NameValuePair;
+import org.apache.hc.core5.http.ParseException;
+import org.apache.hc.core5.http.io.HttpRequestHandler;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
+import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.net.URIBuilder;
+import org.apache.hc.core5.net.URLEncodedUtils;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.nio.charset.Charset;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-import org.apache.http.HttpEntityEnclosingRequest;
-import org.apache.http.HttpException;
-import org.apache.http.HttpRequest;
-import org.apache.http.HttpResponse;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.utils.URLEncodedUtils;
-import org.apache.http.protocol.HttpContext;
-import org.apache.http.protocol.HttpRequestHandler;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertTrue;
 
 /**
  * A request handler that provides more streamlined access to HTTP data and
  * handles some common processing.
  * 
- * @author Chris Hennigfeld
+ * 
  */
 public abstract class TestRequestHandler implements HttpRequestHandler {
 	@Override
-	public final void handle(HttpRequest request, HttpResponse response, HttpContext context) throws HttpException, IOException {
+	public final void handle(ClassicHttpRequest request, ClassicHttpResponse response, HttpContext context) throws HttpException, IOException {
 		String authHeader = request.getFirstHeader("Authorization").getValue();
 		assertTrue(authHeader.startsWith("OAuth"), "Unexpected auth header, was " + authHeader);
 		Map<String, String> authItems = new HashMap<String, String>();
@@ -47,22 +52,22 @@ public abstract class TestRequestHandler implements HttpRequestHandler {
 	 * 
 	 * @param holder provides access to HTTP data.
 	 */
-	protected abstract void handle(HttpHolder holder) throws IOException;
+	protected abstract void handle(HttpHolder holder) throws IOException, ParseException;
 
 	/**
 	 * Provides convenient access to HTTP data in commonly used ways.
 	 * 
-	 * @author Chris Hennigfeld
+	 * 
 	 */
 	protected class HttpHolder {
 		/** the HTTP request received by the server */
-		public final HttpRequest request;
+		public final ClassicHttpRequest request;
 		/** the HTTP response being prepared by the server */
-		public final HttpResponse response;
+		public final ClassicHttpResponse response;
 		/** authentication header parameters extracted from the request */
 		public final Map<String, String> authHeaders;
 
-		private HttpHolder(HttpRequest request, HttpResponse response, Map<String, String> authHeaders) {
+		private HttpHolder(ClassicHttpRequest request, ClassicHttpResponse response, Map<String, String> authHeaders) {
 			this.request = request;
 			this.response = response;
 			this.authHeaders = Collections.unmodifiableMap(authHeaders);
@@ -105,13 +110,11 @@ public abstract class TestRequestHandler implements HttpRequestHandler {
 		 * @throws IOException
 		 */
 		public byte[] getRequestBodyBytes() throws IOException {
-			if (request instanceof HttpEntityEnclosingRequest) {
-				ByteArrayOutputStream baos = new ByteArrayOutputStream();
-				try {
-					((HttpEntityEnclosingRequest) request).getEntity().writeTo(baos);
-					return baos.toByteArray();
-				} finally {
-					baos.close();
+			if (request instanceof ClassicHttpRequest) {
+				HttpEntity entity = ((ClassicHttpRequest) request).getEntity();
+				if (entity != null) {
+					// EntityUtils has a direct method to get the bytes
+					return EntityUtils.toByteArray(entity);
 				}
 			}
 			return new byte[0];
@@ -124,11 +127,20 @@ public abstract class TestRequestHandler implements HttpRequestHandler {
 		 * @return form parameters sent in the request body
 		 * @throws IOException
 		 */
-		public Map<String, String> getFormParameters() throws IOException {
+		public Map<String, String> getFormParameters() throws IOException, ParseException {
 			Map<String, String> map = new HashMap<String, String>();
-			if (request instanceof HttpEntityEnclosingRequest) {
-				for (NameValuePair pair : URLEncodedUtils.parse(((HttpEntityEnclosingRequest) request).getEntity())) {
-					map.put(pair.getName(), pair.getValue());
+			if (request instanceof ClassicHttpRequest) {
+				HttpEntity entity = ((ClassicHttpRequest) request).getEntity();
+				if (entity != null) {
+					// Read the entity body as a string
+					String body = EntityUtils.toString(entity);
+
+					// Parse it as URL-encoded form data
+					List<NameValuePair> params = URLEncodedUtils.parse(body, StandardCharsets.UTF_8);
+
+					for (NameValuePair pair : params) {
+						map.put(pair.getName(), pair.getValue());
+					}
 				}
 			}
 			return map;
@@ -141,23 +153,23 @@ public abstract class TestRequestHandler implements HttpRequestHandler {
 		 * @return URL parameters sent in the request
 		 */
 		public Map<String, String> getUrlParameters() {
-			Map<String, String> map = new HashMap<String, String>();
-			String uri = request.getRequestLine().getUri();
-			if (uri.contains("?")) {
-				String paramString = uri.substring(uri.indexOf("?") + 1);
-				for (NameValuePair pair : URLEncodedUtils.parse(paramString, Charset.defaultCharset())) {
+			Map<String, String> map = new HashMap<>();
+			try {
+				URI uri = request.getUri();
+				List<NameValuePair> params = new URIBuilder(uri).getQueryParams();
+				for (NameValuePair pair : params) {
 					map.put(pair.getName(), pair.getValue());
 				}
-			}
+			} catch (URISyntaxException ignored) {};
 			return map;
 		}
 
 		public void assertGet() {
-			assertEquals(request.getRequestLine().getMethod(), "GET");
+			assertEquals(request.getMethod(), "GET");
 		}
 
 		public void assertPost() {
-			assertEquals(request.getRequestLine().getMethod(), "POST");
+			assertEquals(request.getMethod(), "POST");
 		}
 	}
 }

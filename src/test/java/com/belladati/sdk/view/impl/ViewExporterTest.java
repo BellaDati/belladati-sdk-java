@@ -1,17 +1,5 @@
 package com.belladati.sdk.view.impl;
 
-import static org.testng.Assert.assertEquals;
-
-import java.awt.image.BufferedImage;
-import java.io.IOException;
-import java.io.InputStream;
-
-import javax.imageio.ImageIO;
-
-import org.apache.http.entity.InputStreamEntity;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
-
 import com.belladati.sdk.exception.impl.UnknownViewTypeException;
 import com.belladati.sdk.test.SDKTest;
 import com.belladati.sdk.test.TestRequestHandler;
@@ -21,6 +9,18 @@ import com.belladati.sdk.view.View;
 import com.belladati.sdk.view.export.ViewExport;
 import com.belladati.sdk.view.export.ViewExportType;
 import com.belladati.sdk.view.export.ViewExporter;
+import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.http.ParseException;
+import org.apache.hc.core5.http.io.entity.InputStreamEntity;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
+
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.io.InputStream;
+
+import static org.testng.Assert.assertEquals;
 
 @Test
 public class ViewExporterTest extends SDKTest {
@@ -36,14 +36,14 @@ public class ViewExporterTest extends SDKTest {
 	protected void setupSources() throws Exception {
 		server.register(URI_PNG, new TestRequestHandler() {
 			@Override
-			protected void handle(HttpHolder holder) throws IOException {
-				holder.response.setEntity(new InputStreamEntity(getTestImageStream()));
+			protected void handle(HttpHolder holder) throws IOException, ParseException {
+				holder.response.setEntity(new InputStreamEntity(getTestImageStream(), ContentType.DEFAULT_BINARY));
 			}
 		});
 		server.register(URI_PDF, new TestRequestHandler() {
 			@Override
-			protected void handle(HttpHolder holder) throws IOException {
-				holder.response.setEntity(new InputStreamEntity(getTestImageStream()));
+			protected void handle(HttpHolder holder) throws IOException, ParseException {
+				holder.response.setEntity(new InputStreamEntity(getTestImageStream(), ContentType.DEFAULT_BINARY));
 			}
 		});
 	}

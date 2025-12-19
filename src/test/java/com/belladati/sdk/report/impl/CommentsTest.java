@@ -1,25 +1,25 @@
 package com.belladati.sdk.report.impl;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertNotEquals;
-import static org.testng.Assert.assertNotSame;
-import static org.testng.Assert.assertNull;
-import static org.testng.Assert.assertSame;
+import com.belladati.sdk.report.Comment;
+import com.belladati.sdk.test.SDKTest;
+import com.belladati.sdk.test.TestRequestHandler;
+import com.belladati.sdk.util.PaginatedList;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.hc.core5.http.ParseException;
+import org.apache.hc.core5.http.io.entity.StringEntity;
+import org.testng.annotations.Test;
 
 import java.io.IOException;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.TimeZone;
 
-import org.apache.http.entity.StringEntity;
-import org.testng.annotations.Test;
-
-import com.belladati.sdk.report.Comment;
-import com.belladati.sdk.test.SDKTest;
-import com.belladati.sdk.test.TestRequestHandler;
-import com.belladati.sdk.util.PaginatedList;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNotEquals;
+import static org.testng.Assert.assertNotSame;
+import static org.testng.Assert.assertNull;
+import static org.testng.Assert.assertSame;
 
 @Test
 public class CommentsTest extends SDKTest {
@@ -175,7 +175,7 @@ public class CommentsTest extends SDKTest {
 	private void registerPost() {
 		server.register(String.format(commentsUri, reportId), new TestRequestHandler() {
 			@Override
-			protected void handle(HttpHolder holder) throws IOException {
+			protected void handle(HttpHolder holder) throws IOException, ParseException {
 				assertEquals(holder.getFormParameters(), Collections.singletonMap("text", text));
 				holder.response.setEntity(new StringEntity("OK"));
 			}
@@ -188,7 +188,7 @@ public class CommentsTest extends SDKTest {
 	private void registerDelete() {
 		server.register(String.format(deleteUri, commentId), new TestRequestHandler() {
 			@Override
-			protected void handle(HttpHolder holder) throws IOException {
+			protected void handle(HttpHolder holder) throws IOException, ParseException {
 				holder.response.setEntity(new StringEntity("OK"));
 			}
 		});

@@ -1,18 +1,5 @@
 package com.belladati.sdk.view.impl;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertNotEquals;
-import static org.testng.Assert.assertNull;
-import static org.testng.Assert.assertTrue;
-
-import java.io.IOException;
-import java.util.Collections;
-import java.util.Locale;
-
-import org.apache.http.entity.StringEntity;
-import org.testng.annotations.Test;
-
 import com.belladati.sdk.exception.impl.UnknownViewTypeException;
 import com.belladati.sdk.report.Report;
 import com.belladati.sdk.test.SDKTest;
@@ -25,11 +12,24 @@ import com.belladati.sdk.view.ViewType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.hc.core5.http.ParseException;
+import org.apache.hc.core5.http.io.entity.StringEntity;
+import org.testng.annotations.Test;
+
+import java.io.IOException;
+import java.util.Collections;
+import java.util.Locale;
+
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNotEquals;
+import static org.testng.Assert.assertNull;
+import static org.testng.Assert.assertTrue;
 
 /**
  * Tests behavior related to views.
  * 
- * @author Chris Hennigfeld
+ * 
  */
 @Test
 public class ViewsTest extends SDKTest {
@@ -247,7 +247,7 @@ public class ViewsTest extends SDKTest {
 	public void noLocale(String stringType, ViewType viewType) throws UnknownViewTypeException {
 		server.register(viewsUri + id + "/" + stringType, new TestRequestHandler() {
 			@Override
-			protected void handle(HttpHolder holder) throws IOException {
+			protected void handle(HttpHolder holder) throws IOException, ParseException {
 				assertFalse(holder.getUrlParameters().containsKey("lang"));
 				holder.response.setEntity(new StringEntity("{}"));
 			}
@@ -264,7 +264,7 @@ public class ViewsTest extends SDKTest {
 	public void customLocale(String stringType, ViewType viewType) throws UnknownViewTypeException {
 		server.register(viewsUri + id + "/" + stringType, new TestRequestHandler() {
 			@Override
-			protected void handle(HttpHolder holder) throws IOException {
+			protected void handle(HttpHolder holder) throws IOException, ParseException {
 				assertEquals(holder.getUrlParameters().get("lang"), "tr");
 				holder.response.setEntity(new StringEntity("{}"));
 			}
@@ -280,7 +280,7 @@ public class ViewsTest extends SDKTest {
 	public void builtInLocale(String stringType, ViewType viewType) throws UnknownViewTypeException {
 		server.register(viewsUri + id + "/" + stringType, new TestRequestHandler() {
 			@Override
-			protected void handle(HttpHolder holder) throws IOException {
+			protected void handle(HttpHolder holder) throws IOException, ParseException {
 				assertEquals(holder.getUrlParameters().get("lang"), "de");
 				holder.response.setEntity(new StringEntity("{}"));
 			}

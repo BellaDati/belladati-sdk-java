@@ -1,19 +1,18 @@
 package com.belladati.sdk.util.impl;
 
+import com.belladati.sdk.exception.InternalConfigurationException;
+import com.belladati.sdk.impl.BellaDatiServiceImpl;
+import com.belladati.sdk.util.PaginatedList;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import org.apache.hc.core5.net.URIBuilder;
+
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-
-import org.apache.http.client.utils.URIBuilder;
-
-import com.belladati.sdk.exception.InternalConfigurationException;
-import com.belladati.sdk.impl.BellaDatiServiceImpl;
-import com.belladati.sdk.util.PaginatedList;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 
 public abstract class PaginatedListImpl<T> implements PaginatedList<T> {
 

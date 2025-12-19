@@ -1,24 +1,5 @@
 package com.belladati.sdk.util.impl;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertNotEquals;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertNull;
-import static org.testng.Assert.assertTrue;
-import static org.testng.Assert.fail;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
-import java.util.List;
-import java.util.Locale;
-
-import org.apache.http.entity.StringEntity;
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
-
 import com.belladati.sdk.exception.impl.UnknownViewTypeException;
 import com.belladati.sdk.exception.interval.InvalidAbsoluteIntervalException;
 import com.belladati.sdk.exception.interval.InvalidRelativeIntervalException;
@@ -40,6 +21,25 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.IntNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
+import org.apache.hc.core5.http.ParseException;
+import org.apache.hc.core5.http.io.entity.StringEntity;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
+import java.util.List;
+import java.util.Locale;
+
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNotEquals;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertNull;
+import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
 
 @Test
 public class IntervalTest extends SDKTest {
@@ -321,7 +321,7 @@ public class IntervalTest extends SDKTest {
 
 		server.register(viewsUri, new TestRequestHandler() {
 			@Override
-			protected void handle(HttpHolder holder) throws IOException {
+			protected void handle(HttpHolder holder) throws IOException, ParseException {
 				String intervalString = holder.getUrlParameters().get("dateTimeDefinition");
 				assertNotNull(intervalString);
 				ObjectNode intervalNode = buildIntervalNode(TimeUnit.HOUR, from, to, "absolute");
@@ -343,7 +343,7 @@ public class IntervalTest extends SDKTest {
 
 		server.register(viewsUri, new TestRequestHandler() {
 			@Override
-			protected void handle(HttpHolder holder) throws IOException {
+			protected void handle(HttpHolder holder) throws IOException, ParseException {
 				String intervalString = holder.getUrlParameters().get("dateTimeDefinition");
 				assertNotNull(intervalString);
 				ObjectNode intervalNode = buildIntervalNode(DateUnit.YEAR, from, to, "absolute");
@@ -365,7 +365,7 @@ public class IntervalTest extends SDKTest {
 
 		server.register(viewsUri, new TestRequestHandler() {
 			@Override
-			protected void handle(HttpHolder holder) throws IOException {
+			protected void handle(HttpHolder holder) throws IOException, ParseException {
 				String intervalString = holder.getUrlParameters().get("dateTimeDefinition");
 				assertNotNull(intervalString);
 				ObjectNode intervalNode = buildIntervalNode(DateUnit.YEAR, from, to, "absolute");

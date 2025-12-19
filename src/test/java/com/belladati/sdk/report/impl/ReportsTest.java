@@ -1,22 +1,5 @@
 package com.belladati.sdk.report.impl;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertNotEquals;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertNull;
-import static org.testng.Assert.assertSame;
-
-import java.awt.image.BufferedImage;
-import java.io.IOException;
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.TimeZone;
-
-import org.apache.http.entity.InputStreamEntity;
-import org.apache.http.entity.StringEntity;
-import org.testng.annotations.Test;
-
 import com.belladati.sdk.dataset.DataSetInfo;
 import com.belladati.sdk.exception.server.InvalidJsonException;
 import com.belladati.sdk.exception.server.InvalidStreamException;
@@ -27,11 +10,29 @@ import com.belladati.sdk.test.TestRequestHandler;
 import com.belladati.sdk.util.PaginatedList;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.http.ParseException;
+import org.apache.hc.core5.http.io.entity.InputStreamEntity;
+import org.apache.hc.core5.http.io.entity.StringEntity;
+import org.testng.annotations.Test;
+
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.TimeZone;
+
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNotEquals;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertNull;
+import static org.testng.Assert.assertSame;
 
 /**
  * Tests behavior related to reports.
  * 
- * @author Chris Hennigfeld
+ * 
  */
 @Test
 public class ReportsTest extends SDKTest {
@@ -219,8 +220,8 @@ public class ReportsTest extends SDKTest {
 	public void loadThumbnailFromService() {
 		server.register(reportsUri + "/" + id + "/thumbnail", new TestRequestHandler() {
 			@Override
-			protected void handle(HttpHolder holder) throws IOException {
-				holder.response.setEntity(new InputStreamEntity(getTestImageStream()));
+			protected void handle(HttpHolder holder) throws IOException, ParseException {
+				holder.response.setEntity(new InputStreamEntity(getTestImageStream(), ContentType.DEFAULT_BINARY));
 			}
 		});
 
@@ -236,8 +237,8 @@ public class ReportsTest extends SDKTest {
 	public void loadThumbnailFromReportInfo() {
 		server.register(reportsUri + "/" + id + "/thumbnail", new TestRequestHandler() {
 			@Override
-			protected void handle(HttpHolder holder) throws IOException {
-				holder.response.setEntity(new InputStreamEntity(getTestImageStream()));
+			protected void handle(HttpHolder holder) throws IOException, ParseException {
+				holder.response.setEntity(new InputStreamEntity(getTestImageStream(), ContentType.DEFAULT_BINARY));
 			}
 		});
 
@@ -373,7 +374,7 @@ public class ReportsTest extends SDKTest {
 	private void registerCreateImage(String reportId, String viewId, String width, String height) {
 		server.register(reportsUri + "/" + reportId + "/images", new TestRequestHandler() {
 			@Override
-			protected void handle(HttpHolder holder) throws IOException {
+			protected void handle(HttpHolder holder) throws IOException, ParseException {
 				if (width != null) {
 					assertEquals(holder.getUrlParameters().get("width"), width);
 				}

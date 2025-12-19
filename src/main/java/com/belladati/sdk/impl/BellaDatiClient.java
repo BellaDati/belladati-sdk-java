@@ -22,35 +22,36 @@ import oauth.signpost.OAuth;
 import oauth.signpost.OAuthConsumer;
 import oauth.signpost.exception.OAuthException;
 import oauth.signpost.http.HttpParameters;
-import org.apache.http.HttpEntity;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpDelete;
-import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPatch;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.config.RegistryBuilder;
-import org.apache.http.conn.socket.ConnectionSocketFactory;
-import org.apache.http.conn.socket.PlainConnectionSocketFactory;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.conn.ssl.SSLContexts;
-import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
-import org.apache.http.entity.ByteArrayEntity;
-import org.apache.http.entity.ContentType;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.entity.mime.HttpMultipartMode;
-import org.apache.http.entity.mime.MultipartEntityBuilder;
-import org.apache.http.entity.mime.content.ContentBody;
-import org.apache.http.entity.mime.content.FileBody;
-import org.apache.http.entity.mime.content.StringBody;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.cache.CacheConfig;
-import org.apache.http.impl.client.cache.CachingHttpClientBuilder;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.hc.client5.http.classic.methods.HttpDelete;
+import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.client5.http.classic.methods.HttpPatch;
+import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
+import org.apache.hc.client5.http.config.ConnectionConfig;
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.entity.UrlEncodedFormEntity;
+import org.apache.hc.client5.http.entity.mime.ContentBody;
+import org.apache.hc.client5.http.entity.mime.FileBody;
+import org.apache.hc.client5.http.entity.mime.HttpMultipartMode;
+import org.apache.hc.client5.http.entity.mime.MultipartEntityBuilder;
+import org.apache.hc.client5.http.entity.mime.StringBody;
+import org.apache.hc.client5.http.impl.DefaultHttpRequestRetryStrategy;
+import org.apache.hc.client5.http.impl.cache.CacheConfig;
+import org.apache.hc.client5.http.impl.cache.CachingHttpClients;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
+import org.apache.hc.core5.http.ClassicHttpResponse;
+import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.NameValuePair;
+import org.apache.hc.core5.http.io.SocketConfig;
+import org.apache.hc.core5.http.io.entity.ByteArrayEntity;
+import org.apache.hc.core5.http.io.entity.StringEntity;
+import org.apache.hc.core5.ssl.SSLContextBuilder;
+import org.apache.hc.core5.util.TimeValue;
+import org.apache.hc.core5.util.Timeout;
 
 import javax.imageio.ImageIO;
 import javax.net.ssl.SSLContext;
@@ -62,9 +63,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
-import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
-import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.util.List;
 
@@ -93,34 +94,58 @@ public class BellaDatiClient implements Serializable {
 	 */
 	private CloseableHttpClient buildClient(boolean trustSelfSigned) {
 		try {
-			// if required, define custom SSL context allowing self-signed certs
-			SSLContext sslContext = !trustSelfSigned ? SSLContexts.createSystemDefault()
-				: SSLContexts.custom().loadTrustMaterial(null, new TrustSelfSignedStrategy()).build();
-
 			// set timeouts for the HTTP client
 			int globalTimeout = readFromProperty("bdTimeout", 100000);
 			int connectTimeout = readFromProperty("bdConnectTimeout", globalTimeout);
 			int connectionRequestTimeout = readFromProperty("bdConnectionRequestTimeout", globalTimeout);
 			int socketTimeout = readFromProperty("bdSocketTimeout", globalTimeout);
-			RequestConfig requestConfig = RequestConfig.copy(RequestConfig.DEFAULT).setConnectTimeout(connectTimeout)
-				.setSocketTimeout(socketTimeout).setConnectionRequestTimeout(connectionRequestTimeout).build();
+
+			RequestConfig requestConfig = RequestConfig.copy(RequestConfig.DEFAULT)
+					.setResponseTimeout(Timeout.ofMilliseconds(socketTimeout))
+					.setConnectionRequestTimeout(Timeout.ofMilliseconds(connectionRequestTimeout)).build();
 
 			// configure caching
-			CacheConfig cacheConfig = CacheConfig.copy(CacheConfig.DEFAULT).setSharedCache(false).setMaxCacheEntries(1000)
-				.setMaxObjectSize(2 * 1024 * 1024).build();
+			CacheConfig cacheConfig = CacheConfig.custom()
+					.setSharedCache(false)
+					.setMaxCacheEntries(1000)
+					.setMaxObjectSize(2 * 1024 * 1024L) // note: long in Client5
+					.build();
 
-			// configure connection pooling
-			PoolingHttpClientConnectionManager connManager = new PoolingHttpClientConnectionManager(RegistryBuilder
-				.<ConnectionSocketFactory> create().register("http", PlainConnectionSocketFactory.getSocketFactory())
-				.register("https", new SSLConnectionSocketFactory(sslContext)).build());
+// configure connection pooling
+			// configure SSL
+			SSLContext sslContext = SSLContextBuilder.create()
+					.loadTrustMaterial((chain, authType) -> true) // example: trust all
+					.build();
+
+			ConnectionConfig connectionCofig = ConnectionConfig.custom()
+					.setSocketTimeout(Timeout.ofMilliseconds(socketTimeout)) // read timeout
+					.setConnectTimeout(Timeout.ofMilliseconds(connectTimeout)) // connection establishment timeout
+					.build();
+
+			// configure connection pooling with modern builder
+			PoolingHttpClientConnectionManager connManager =
+					PoolingHttpClientConnectionManagerBuilder.create()
+							.setDefaultConnectionConfig(connectionCofig)
+							.setTlsSocketStrategy(new DefaultClientTlsStrategy(sslContext))
+							.build();
+
 			int connectionLimit = readFromProperty("bdMaxConnections", 40);
-			// there's only one server to connect to, so max per route matters
 			connManager.setMaxTotal(connectionLimit);
 			connManager.setDefaultMaxPerRoute(connectionLimit);
 
-			// create the HTTP client
-			return CachingHttpClientBuilder.create().setCacheConfig(cacheConfig).setDefaultRequestConfig(requestConfig)
-				.setConnectionManager(connManager).build();
+// optional: socket config
+			SocketConfig socketConfig = SocketConfig.custom()
+					.setSoTimeout(Timeout.ofSeconds(30))
+					.build();
+			connManager.setDefaultSocketConfig(socketConfig);
+
+// create the HTTP client
+			return CachingHttpClients.custom()
+					.setCacheConfig(cacheConfig)
+					.setDefaultRequestConfig(requestConfig)
+					.setConnectionManager(connManager)
+					.setRetryStrategy(new DefaultHttpRequestRetryStrategy(3, TimeValue.ofSeconds(2)))
+					.build();
 		} catch (GeneralSecurityException e) {
 			throw new InternalConfigurationException("Failed to set up SSL context", e);
 		}
@@ -144,7 +169,7 @@ public class BellaDatiClient implements Serializable {
 	}
 
 	public byte[] delete(String relativeUrl, TokenHolder tokenHolder, HttpParameters oauthParams, JsonNode json) {
-		HttpDeleteWithData delete = new HttpDeleteWithData(baseUrl + removeLeadingSlash(relativeUrl));
+		HttpDelete delete = new HttpDelete(baseUrl + removeLeadingSlash(relativeUrl));
 		delete.setEntity(new StringEntity(json.toString(), ContentType.APPLICATION_JSON));
 		return doRequest(delete, tokenHolder, oauthParams);
 	}
@@ -169,11 +194,7 @@ public class BellaDatiClient implements Serializable {
 		List<? extends NameValuePair> parameters) {
 		HttpPost post = new HttpPost(baseUrl + removeLeadingSlash(relativeUrl));
 		if (parameters != null) {
-			try {
-				post.setEntity(new UrlEncodedFormEntity(parameters, "UTF-8"));
-			} catch (UnsupportedEncodingException e) {
-				throw new IllegalArgumentException("Invalid URL encoding", e);
-			}
+			post.setEntity(new UrlEncodedFormEntity(parameters, StandardCharsets.UTF_8));
 		}
 		return doRequest(post, tokenHolder, oauthParams);
 	}
@@ -203,7 +224,7 @@ public class BellaDatiClient implements Serializable {
 		HttpPost post = new HttpPost(baseUrl + removeLeadingSlash(relativeUrl));
 
 		MultipartEntityBuilder builder = MultipartEntityBuilder.create();
-		builder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
+		builder.setMode(HttpMultipartMode.EXTENDED);
 
 		for (MultipartPiece<?> part : multipart) {
 			ContentType contentType = ContentType.create(part.getContentType());
@@ -228,16 +249,14 @@ public class BellaDatiClient implements Serializable {
 
 	public byte[] postUpload(String relativeUrl, TokenHolder tokenHolder, String content) {
 		HttpPost post = new HttpPost(baseUrl + removeLeadingSlash(relativeUrl));
-		StringEntity entity = new StringEntity(content, "UTF-8");
-		entity.setContentType("application/octet-stream");
+		StringEntity entity = new StringEntity(content, ContentType.APPLICATION_OCTET_STREAM);
 		post.setEntity(entity);
 		return doRequest(post, tokenHolder);
 	}
 
 	public byte[] postData(String relativeUrl, TokenHolder tokenHolder, byte[] content) {
 		HttpPost post = new HttpPost(baseUrl + removeLeadingSlash(relativeUrl));
-		ByteArrayEntity entity = new ByteArrayEntity(content);
-		entity.setContentType("application/octet-stream");
+		ByteArrayEntity entity = new ByteArrayEntity(content, ContentType.APPLICATION_OCTET_STREAM);
 		post.setEntity(entity);
 		return doRequest(post, tokenHolder);
 	}
@@ -302,66 +321,64 @@ public class BellaDatiClient implements Serializable {
 	}
 
 	private void closeQuietly(Closeable c) {
-		if (c == null) {
-			return;
-		} else {
+        if (c != null) {
 			try {
 				c.close();
-			} catch (IOException e) {}
+			} catch (IOException ignored) {}
 		}
-	}
+    }
 
 	public String getBaseUrl() {
 		return baseUrl;
 	}
 
-	private byte[] doRequest(HttpRequestBase request, TokenHolder tokenHolder) {
+	private byte[] doRequest(HttpUriRequestBase request, TokenHolder tokenHolder) {
 		return doRequest(request, tokenHolder, null);
 	}
 
-	private byte[] doRequest(HttpRequestBase request, TokenHolder tokenHolder, HttpParameters oauthParams) {
-		CloseableHttpResponse response = null;
+	private byte[] doRequest(HttpUriRequestBase request, TokenHolder tokenHolder, HttpParameters oauthParams) {
 		try {
 			request.setHeader("Connection", "close");
 			OAuthConsumer consumer = tokenHolder.createConsumer();
 			consumer.setAdditionalParameters(oauthParams);
 			consumer.sign(request);
-			response = client.execute(request);
-			int statusCode = response.getStatusLine().getStatusCode();
-			HttpEntity entity = response.getEntity();
-			byte[] content = entity != null ? readBytes(entity.getContent()) : new byte[0];
-			switch (statusCode) {
-			case 200:
-			case 204:
-				// all is well, return
-				return content;
-			// there was some sort of error - throw the right exception
-			case 400:
-			case 401:
-			case 403:
-				throw buildException(statusCode, content, tokenHolder.hasToken());
-			case 404:
-				throw new NotFoundException(request.getRequestLine().getUri());
-			case 405:
-				throw new MethodNotAllowedException(request.getRequestLine().getUri());
-			case 500:
-				throw new InternalErrorException();
-			default:
-				throw new UnexpectedResponseException(statusCode, new String(content));
-			}
+
+			return client.execute(request, response -> {
+				int statusCode = response.getCode();
+				HttpEntity entity = response.getEntity();
+				byte[] content = entity != null ? readBytes(entity.getContent()) : new byte[0];
+				switch (statusCode) {
+					case 200:
+					case 204:
+						// all is well, return
+						return content;
+					// there was some sort of error - throw the right exception
+					case 400:
+					case 401:
+					case 403:
+						throw buildException(statusCode, content, tokenHolder.hasToken());
+					case 404:
+						try {
+							throw new NotFoundException(request.getUri().toString());
+						} catch (URISyntaxException e) {
+							throw new NotFoundException(e.getMessage());
+						}
+					case 405:
+						try {
+							throw new MethodNotAllowedException(request.getUri().toString());
+						} catch (URISyntaxException e) {
+							throw new NotFoundException(e.getMessage());
+						}
+					case 500:
+						throw new InternalErrorException();
+					default:
+						throw new UnexpectedResponseException(statusCode, new String(content));
+				}
+			});
 		} catch (OAuthException e) {
 			throw new InternalConfigurationException("Failed to create OAuth signature", e);
 		} catch (IOException e) {
 			throw new ConnectionException("Failed to connect to BellaDati", e);
-		} finally {
-			try {
-				if (response != null) {
-					response.close();
-				}
-			} catch (IOException e) {
-				throw new ConnectionException("Failed to connect to BellaDati", e);
-			}
-			request.releaseConnection();
 		}
 	}
 
@@ -449,33 +466,8 @@ public class BellaDatiClient implements Serializable {
 			Field client = getClass().getDeclaredField("client");
 			client.setAccessible(true);
 			client.set(this, buildClient(trustSelfSigned));
-		} catch (NoSuchFieldException e) {
-			throw new InternalConfigurationException("Failed to set client fields", e);
-		} catch (IllegalAccessException e) {
-			throw new InternalConfigurationException("Failed to set client fields", e);
-		} catch (SecurityException e) {
-			throw new InternalConfigurationException("Failed to set client fields", e);
-		} catch (IllegalArgumentException e) {
+		} catch (NoSuchFieldException | IllegalAccessException | SecurityException | IllegalArgumentException e) {
 			throw new InternalConfigurationException("Failed to set client fields", e);
 		}
-	}
-
-	private static class HttpDeleteWithData extends HttpEntityEnclosingRequestBase {
-		public static final String METHOD_NAME = "DELETE";
-
-		public HttpDeleteWithData() {
-		}
-
-		public HttpDeleteWithData(URI uri) {
-			this.setURI(uri);
-		}
-
-		public HttpDeleteWithData(String uri) {
-			this.setURI(URI.create(uri));
-		}
-
-		public String getMethod() {
-			return "DELETE";
-		}
-	}
+    }
 }

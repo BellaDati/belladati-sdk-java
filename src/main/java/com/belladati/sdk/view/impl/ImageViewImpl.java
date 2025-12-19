@@ -1,14 +1,14 @@
 package com.belladati.sdk.view.impl;
 
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.util.Collection;
-
 import com.belladati.sdk.exception.impl.UnknownViewTypeException;
 import com.belladati.sdk.filter.Filter;
 import com.belladati.sdk.impl.BellaDatiServiceImpl;
 import com.belladati.sdk.view.ImageView;
 import com.fasterxml.jackson.databind.JsonNode;
+
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.util.Collection;
 
 public class ImageViewImpl extends ViewImpl implements ImageView {
 
@@ -34,7 +34,7 @@ public class ImageViewImpl extends ViewImpl implements ImageView {
 	/**
 	 * This class is a holder for an image
 	 * 
-	 * @author Pavol Kovac
+	 * 
 	 */
 	public static class ImageImpl implements Image {
 

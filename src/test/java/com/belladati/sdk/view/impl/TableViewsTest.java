@@ -1,22 +1,5 @@
 package com.belladati.sdk.view.impl;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertNotEquals;
-import static org.testng.Assert.assertNull;
-import static org.testng.Assert.assertTrue;
-
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-
-import org.apache.http.entity.StringEntity;
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
-
 import com.belladati.sdk.exception.impl.UnknownViewTypeException;
 import com.belladati.sdk.filter.Filter;
 import com.belladati.sdk.filter.FilterOperation;
@@ -29,6 +12,23 @@ import com.belladati.sdk.view.ViewType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.hc.core5.http.ParseException;
+import org.apache.hc.core5.http.io.entity.StringEntity;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
+
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNotEquals;
+import static org.testng.Assert.assertNull;
+import static org.testng.Assert.assertTrue;
 
 @Test
 public class TableViewsTest extends SDKTest {
@@ -317,7 +317,7 @@ public class TableViewsTest extends SDKTest {
 		final JsonNode result = new ObjectMapper().createObjectNode().put("content", "some content");
 		server.register(viewsUri + id + "/table/leftHeader", new TestRequestHandler() {
 			@Override
-			protected void handle(HttpHolder holder) throws IOException {
+			protected void handle(HttpHolder holder) throws IOException, ParseException {
 				Map<String, String> expectedParams = new HashMap<String, String>();
 				expectedParams.put("rowsFrom", "" + firstRow);
 				expectedParams.put("rowsTo", "" + lastRow);
@@ -337,7 +337,7 @@ public class TableViewsTest extends SDKTest {
 		final JsonNode result = new ObjectMapper().createObjectNode().put("content", "some content");
 		server.register(viewsUri + id + "/table/topHeader", new TestRequestHandler() {
 			@Override
-			protected void handle(HttpHolder holder) throws IOException {
+			protected void handle(HttpHolder holder) throws IOException, ParseException {
 				Map<String, String> expectedParams = new HashMap<String, String>();
 				expectedParams.put("columnsFrom", "" + firstCol);
 				expectedParams.put("columnsTo", "" + lastCol);
@@ -362,7 +362,7 @@ public class TableViewsTest extends SDKTest {
 		final JsonNode result = new ObjectMapper().createObjectNode().put("content", "some content");
 		server.register(viewsUri + id + "/table/data", new TestRequestHandler() {
 			@Override
-			protected void handle(HttpHolder holder) throws IOException {
+			protected void handle(HttpHolder holder) throws IOException, ParseException {
 				Map<String, String> expectedParams = new HashMap<String, String>();
 				expectedParams.put("rowsFrom", "" + firstRow);
 				expectedParams.put("rowsTo", "" + lastRow);
@@ -384,7 +384,7 @@ public class TableViewsTest extends SDKTest {
 		final JsonNode result = new ObjectMapper().createObjectNode().put("content", "some content");
 		server.register(viewsUri + id + "/table/data", new TestRequestHandler() {
 			@Override
-			protected void handle(HttpHolder holder) throws IOException {
+			protected void handle(HttpHolder holder) throws IOException, ParseException {
 				Map<String, String> expectedParams = new HashMap<String, String>();
 				expectedParams.put("rowsFrom", "" + firstRow);
 				expectedParams.put("rowsTo", "" + lastRow);
@@ -453,7 +453,7 @@ public class TableViewsTest extends SDKTest {
 
 		TestRequestHandler paramChecker = new TestRequestHandler() {
 			@Override
-			protected void handle(HttpHolder holder) throws IOException {
+			protected void handle(HttpHolder holder) throws IOException, ParseException {
 				assertFalse(holder.getUrlParameters().containsKey("lang"));
 				holder.response.setEntity(new StringEntity("{}"));
 			}
@@ -481,7 +481,7 @@ public class TableViewsTest extends SDKTest {
 		server.register(viewsUri + id + "/table/bounds", builder.buildTableNode(rows, columns, 2, 2).toString());
 		TestRequestHandler paramChecker = new TestRequestHandler() {
 			@Override
-			protected void handle(HttpHolder holder) throws IOException {
+			protected void handle(HttpHolder holder) throws IOException, ParseException {
 				assertEquals(holder.getUrlParameters().get("lang"), "tr");
 				holder.response.setEntity(new StringEntity("{}"));
 			}
@@ -511,7 +511,7 @@ public class TableViewsTest extends SDKTest {
 
 		TestRequestHandler paramChecker = new TestRequestHandler() {
 			@Override
-			protected void handle(HttpHolder holder) throws IOException {
+			protected void handle(HttpHolder holder) throws IOException, ParseException {
 				assertEquals(holder.getUrlParameters().get("lang"), "tr");
 				holder.response.setEntity(new StringEntity("{}"));
 			}

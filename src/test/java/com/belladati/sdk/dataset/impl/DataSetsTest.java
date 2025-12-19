@@ -1,23 +1,5 @@
 package com.belladati.sdk.dataset.impl;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertNotEquals;
-import static org.testng.Assert.assertNull;
-import static org.testng.Assert.assertSame;
-import static org.testng.Assert.assertTrue;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.TimeZone;
-
-import org.apache.http.entity.StringEntity;
-import org.testng.annotations.Test;
-
 import com.belladati.sdk.dataset.DataSet;
 import com.belladati.sdk.dataset.DataSetInfo;
 import com.belladati.sdk.dataset.data.DataColumn;
@@ -30,11 +12,29 @@ import com.belladati.sdk.util.PaginatedList;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.hc.core5.http.ParseException;
+import org.apache.hc.core5.http.io.entity.StringEntity;
+import org.testng.annotations.Test;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.TimeZone;
+
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNotEquals;
+import static org.testng.Assert.assertNull;
+import static org.testng.Assert.assertSame;
+import static org.testng.Assert.assertTrue;
 
 /**
  * Tests behavior related to data sets.
  * 
- * @author Chris Hennigfeld
+ * 
  */
 @Test
 public class DataSetsTest extends SDKTest {
@@ -350,7 +350,7 @@ public class DataSetsTest extends SDKTest {
 
 		server.register(String.format(dataUri, id), new TestRequestHandler() {
 			@Override
-			protected void handle(HttpHolder holder) throws IOException {
+			protected void handle(HttpHolder holder) throws IOException, ParseException {
 				Map<String, String> formParams = holder.getFormParameters();
 				assertEquals(formParams.size(), 1);
 				assertTrue(formParams.containsKey("dataRow"));
@@ -376,7 +376,7 @@ public class DataSetsTest extends SDKTest {
 
 		server.register(String.format(dataUri, id), new TestRequestHandler() {
 			@Override
-			protected void handle(HttpHolder holder) throws IOException {
+			protected void handle(HttpHolder holder) throws IOException, ParseException {
 				Map<String, String> formParams = holder.getFormParameters();
 				assertEquals(formParams.size(), 1);
 				assertTrue(formParams.containsKey("dataRow"));

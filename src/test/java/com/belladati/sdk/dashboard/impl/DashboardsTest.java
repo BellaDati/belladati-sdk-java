@@ -1,20 +1,5 @@
 package com.belladati.sdk.dashboard.impl;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertNotEquals;
-import static org.testng.Assert.assertNull;
-import static org.testng.Assert.assertSame;
-
-import java.awt.image.BufferedImage;
-import java.io.IOException;
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.TimeZone;
-
-import org.apache.http.entity.InputStreamEntity;
-import org.testng.annotations.Test;
-
 import com.belladati.sdk.dashboard.Dashboard;
 import com.belladati.sdk.dashboard.DashboardInfo;
 import com.belladati.sdk.exception.server.InvalidStreamException;
@@ -23,11 +8,27 @@ import com.belladati.sdk.test.TestRequestHandler;
 import com.belladati.sdk.util.PaginatedList;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.http.ParseException;
+import org.apache.hc.core5.http.io.entity.InputStreamEntity;
+import org.testng.annotations.Test;
+
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.TimeZone;
+
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNotEquals;
+import static org.testng.Assert.assertNull;
+import static org.testng.Assert.assertSame;
 
 /**
  * Tests behavior related to dashboards.
  * 
- * @author Chris Hennigfeld
+ * 
  */
 @Test
 public class DashboardsTest extends SDKTest {
@@ -156,8 +157,8 @@ public class DashboardsTest extends SDKTest {
 	public void loadThumbnailFromService() {
 		server.register(dashboardsUri + "/" + id + "/thumbnail", new TestRequestHandler() {
 			@Override
-			protected void handle(HttpHolder holder) throws IOException {
-				holder.response.setEntity(new InputStreamEntity(getTestImageStream()));
+			protected void handle(HttpHolder holder) throws IOException, ParseException {
+				holder.response.setEntity(new InputStreamEntity(getTestImageStream(), ContentType.DEFAULT_BINARY));
 			}
 		});
 
@@ -173,8 +174,8 @@ public class DashboardsTest extends SDKTest {
 	public void loadThumbnailFromDashboardInfo() {
 		server.register(dashboardsUri + "/" + id + "/thumbnail", new TestRequestHandler() {
 			@Override
-			protected void handle(HttpHolder holder) throws IOException {
-				holder.response.setEntity(new InputStreamEntity(getTestImageStream()));
+			protected void handle(HttpHolder holder) throws IOException, ParseException {
+				holder.response.setEntity(new InputStreamEntity(getTestImageStream(), ContentType.DEFAULT_BINARY));
 			}
 		});
 

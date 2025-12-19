@@ -1,30 +1,28 @@
 package com.belladati.sdk.test;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertNull;
-
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.InputStream;
-import java.util.Locale;
-
-import javax.imageio.ImageIO;
-
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.DataProvider;
-
 import com.belladati.sdk.dataset.source.ImportIntervalUnit;
 import com.belladati.sdk.impl.BellaDatiClient;
 import com.belladati.sdk.impl.BellaDatiServiceImpl;
 import com.belladati.sdk.impl.TokenHolder;
 import com.belladati.sdk.view.ViewType;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.DataProvider;
+
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.InputStream;
+import java.util.Locale;
+
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertNull;
 
 /**
  * Superclass for all SDK test classes using a local test server.
  * 
- * @author Chris Hennigfeld
+ * 
  */
 public class SDKTest {
 
@@ -60,7 +58,9 @@ public class SDKTest {
 
 	@AfterMethod(alwaysRun = true)
 	protected void tearDownServer() throws Exception {
-		server.shutDown();
+		if (server != null) {
+			server.stop();
+		}
 	}
 
 	/** resets the locale back to what it was */

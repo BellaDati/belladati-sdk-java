@@ -1,16 +1,15 @@
 package com.belladati.sdk.auth.impl;
 
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
-import java.net.URL;
-
-import org.apache.http.client.utils.URIBuilder;
-
 import com.belladati.sdk.BellaDatiService;
 import com.belladati.sdk.auth.OAuthRequest;
 import com.belladati.sdk.impl.BellaDatiClient;
 import com.belladati.sdk.impl.BellaDatiServiceImpl;
 import com.belladati.sdk.impl.TokenHolder;
+import org.apache.hc.core5.net.URIBuilder;
+
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
+import java.net.URL;
 
 public class OAuthRequestImpl implements OAuthRequest {
 

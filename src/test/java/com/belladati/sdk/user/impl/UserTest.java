@@ -1,9 +1,20 @@
 package com.belladati.sdk.user.impl;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertNotEquals;
-import static org.testng.Assert.assertNull;
+import com.belladati.sdk.exception.server.InvalidStreamException;
+import com.belladati.sdk.test.SDKTest;
+import com.belladati.sdk.test.TestRequestHandler;
+import com.belladati.sdk.user.User;
+import com.belladati.sdk.user.UserGroup;
+import com.belladati.sdk.user.UserInfo;
+import com.belladati.sdk.user.UserRequestType;
+import com.belladati.sdk.user.UserRole;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.http.ParseException;
+import org.apache.hc.core5.http.io.entity.InputStreamEntity;
+import org.apache.hc.core5.http.io.entity.StringEntity;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -16,25 +27,15 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
 
-import org.apache.http.entity.InputStreamEntity;
-import org.apache.http.entity.StringEntity;
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
-
-import com.belladati.sdk.exception.server.InvalidStreamException;
-import com.belladati.sdk.test.SDKTest;
-import com.belladati.sdk.test.TestRequestHandler;
-import com.belladati.sdk.user.User;
-import com.belladati.sdk.user.UserGroup;
-import com.belladati.sdk.user.UserInfo;
-import com.belladati.sdk.user.UserRequestType;
-import com.belladati.sdk.user.UserRole;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNotEquals;
+import static org.testng.Assert.assertNull;
 
 /**
  * Tests behavior related to users.
  * 
- * @author Chris Hennigfeld
+ * 
  */
 @Test
 public class UserTest extends SDKTest {
@@ -240,8 +241,8 @@ public class UserTest extends SDKTest {
 	public void loadImageFromService() {
 		server.register(usersUri + "/" + id + "/image", new TestRequestHandler() {
 			@Override
-			protected void handle(HttpHolder holder) throws IOException {
-				holder.response.setEntity(new InputStreamEntity(getTestImageStream()));
+			protected void handle(HttpHolder holder) throws IOException, ParseException {
+				holder.response.setEntity(new InputStreamEntity(getTestImageStream(), ContentType.DEFAULT_BINARY));
 			}
 		});
 
@@ -257,8 +258,8 @@ public class UserTest extends SDKTest {
 	public void loadImageFromReportInfo() {
 		server.register(usersUri + "/" + id + "/image", new TestRequestHandler() {
 			@Override
-			protected void handle(HttpHolder holder) throws IOException {
-				holder.response.setEntity(new InputStreamEntity(getTestImageStream()));
+			protected void handle(HttpHolder holder) throws IOException, ParseException {
+				holder.response.setEntity(new InputStreamEntity(getTestImageStream(), ContentType.DEFAULT_BINARY));
 			}
 		});
 
@@ -294,8 +295,8 @@ public class UserTest extends SDKTest {
 	public void loadEmptyContentImage() throws InvalidStreamException {
 		server.register(usersUri + "/" + id + "/image", new TestRequestHandler() {
 			@Override
-			protected void handle(HttpHolder holder) throws IOException {
-				holder.response.setStatusCode(204);
+			protected void handle(HttpHolder holder) throws IOException, ParseException {
+				holder.response.setCode(204);
 				holder.response.setEntity(null);
 			}
 		});
@@ -375,7 +376,7 @@ public class UserTest extends SDKTest {
 		final String status = "INACTIVE";
 		server.register(String.format(statusUri, id), new TestRequestHandler() {
 			@Override
-			protected void handle(HttpHolder holder) throws IOException {
+			protected void handle(HttpHolder holder) throws IOException, ParseException {
 				assertEquals(holder.getFormParameters(), Collections.singletonMap("status", status));
 				holder.response.setEntity(new StringEntity(""));
 			}
@@ -389,7 +390,7 @@ public class UserTest extends SDKTest {
 		final String status = "ACTIVE";
 		server.register(String.format(statusUri, id), new TestRequestHandler() {
 			@Override
-			protected void handle(HttpHolder holder) throws IOException {
+			protected void handle(HttpHolder holder) throws IOException, ParseException {
 				assertEquals(holder.getFormParameters(), Collections.singletonMap("status", status));
 				holder.response.setEntity(new StringEntity(""));
 			}
@@ -402,7 +403,7 @@ public class UserTest extends SDKTest {
 	public void createUserRequest_fromService() {
 		server.register(String.format(userRequestUri, username), new TestRequestHandler() {
 			@Override
-			protected void handle(HttpHolder holder) throws IOException {
+			protected void handle(HttpHolder holder) throws IOException, ParseException {
 				assertEquals(holder.getFormParameters(), Collections.singletonMap("request_type", "PASSWORD_RESET"));
 				holder.response.setEntity(new StringEntity("12345;AbCdEfGh"));
 			}
@@ -415,7 +416,7 @@ public class UserTest extends SDKTest {
 	public void createUserRequest_fromUser() {
 		server.register(String.format(userRequestUri, username), new TestRequestHandler() {
 			@Override
-			protected void handle(HttpHolder holder) throws IOException {
+			protected void handle(HttpHolder holder) throws IOException, ParseException {
 				assertEquals(holder.getFormParameters(), Collections.singletonMap("request_type", "LOGIN_UNATTENDED"));
 				holder.response.setEntity(new StringEntity("98765;RDQX1Qx"));
 			}
@@ -429,7 +430,7 @@ public class UserTest extends SDKTest {
 	public void createAccessToken_fromService() throws Exception {
 		server.register(String.format(accessTokenUri, username), new TestRequestHandler() {
 			@Override
-			protected void handle(HttpHolder holder) throws IOException {
+			protected void handle(HttpHolder holder) throws IOException, ParseException {
 				assertEquals(holder.getFormParameters().size(), 0);
 				holder.response.setEntity(new StringEntity("myToken1;myTokenSecret1"));
 			}
@@ -442,7 +443,7 @@ public class UserTest extends SDKTest {
 	public void createAccessToken_fromUser() {
 		server.register(String.format(accessTokenUri, username), new TestRequestHandler() {
 			@Override
-			protected void handle(HttpHolder holder) throws IOException {
+			protected void handle(HttpHolder holder) throws IOException, ParseException {
 				Map<String, String> formParams = new HashMap<>();
 				formParams.put("validity", "66");
 				formParams.put("domain_id", domainId);

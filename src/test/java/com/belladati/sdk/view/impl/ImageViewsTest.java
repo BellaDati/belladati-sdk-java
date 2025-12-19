@@ -1,17 +1,5 @@
 package com.belladati.sdk.view.impl;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertNotEquals;
-import static org.testng.Assert.assertTrue;
-
-import java.io.IOException;
-
-import org.apache.http.entity.InputStreamEntity;
-import org.apache.http.entity.StringEntity;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
-
 import com.belladati.sdk.exception.impl.UnknownViewTypeException;
 import com.belladati.sdk.test.SDKTest;
 import com.belladati.sdk.test.TestRequestHandler;
@@ -19,6 +7,19 @@ import com.belladati.sdk.view.ImageView;
 import com.belladati.sdk.view.ImageView.Image;
 import com.belladati.sdk.view.View;
 import com.belladati.sdk.view.ViewType;
+import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.http.ParseException;
+import org.apache.hc.core5.http.io.entity.InputStreamEntity;
+import org.apache.hc.core5.http.io.entity.StringEntity;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
+
+import java.io.IOException;
+
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNotEquals;
+import static org.testng.Assert.assertTrue;
 
 @Test
 public class ImageViewsTest extends SDKTest {
@@ -32,8 +33,8 @@ public class ImageViewsTest extends SDKTest {
 	protected void setupSources() throws Exception {
 		server.register(viewsImageUri, new TestRequestHandler() {
 			@Override
-			protected void handle(HttpHolder holder) throws IOException {
-				holder.response.setEntity(new InputStreamEntity(getTestImageStream()));
+			protected void handle(HttpHolder holder) throws IOException, ParseException {
+				holder.response.setEntity(new InputStreamEntity(getTestImageStream(), ContentType.DEFAULT_BINARY));
 			}
 		});
 	}
@@ -97,9 +98,9 @@ public class ImageViewsTest extends SDKTest {
 		final boolean[] executed = new boolean[1];
 		server.register(viewsImageUri, new TestRequestHandler() {
 			@Override
-			protected void handle(HttpHolder holder) throws IOException {
+			protected void handle(HttpHolder holder) throws IOException, ParseException {
 				assertEquals(holder.getUrlParameters().size(), 0);
-				holder.response.setEntity(new StringEntity(""));
+				holder.response.setEntity(new StringEntity("", ContentType.TEXT_PLAIN));
 				executed[0] = true;
 			}
 		});
@@ -112,9 +113,9 @@ public class ImageViewsTest extends SDKTest {
 		final boolean[] executed = new boolean[1];
 		server.register(viewsImageUri, new TestRequestHandler() {
 			@Override
-			protected void handle(HttpHolder holder) throws IOException {
+			protected void handle(HttpHolder holder) throws IOException, ParseException {
 				assertEquals(holder.getUrlParameters().size(), 0);
-				holder.response.setEntity(new StringEntity(""));
+				holder.response.setEntity(new StringEntity("", ContentType.TEXT_PLAIN));
 				executed[0] = true;
 			}
 		});

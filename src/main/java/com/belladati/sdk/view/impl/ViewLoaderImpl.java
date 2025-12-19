@@ -1,14 +1,5 @@
 package com.belladati.sdk.view.impl;
 
-import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Locale;
-
-import org.apache.http.client.utils.URIBuilder;
-
 import com.belladati.sdk.exception.InternalConfigurationException;
 import com.belladati.sdk.filter.Filter;
 import com.belladati.sdk.impl.BellaDatiServiceImpl;
@@ -19,6 +10,14 @@ import com.belladati.sdk.view.ViewLoader;
 import com.belladati.sdk.view.ViewType;
 import com.belladati.sdk.view.impl.TableViewImpl.TableImpl;
 import com.fasterxml.jackson.databind.JsonNode;
+import org.apache.hc.core5.net.URIBuilder;
+
+import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Locale;
 
 public class ViewLoaderImpl implements ViewLoader {
 

@@ -1,17 +1,5 @@
 package com.belladati.sdk.dataset.impl;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertNull;
-import static org.testng.Assert.assertSame;
-import static org.testng.Assert.assertTrue;
-
-import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-
-import org.testng.annotations.Test;
-
 import com.belladati.sdk.dataset.data.OverwritePolicy;
 import com.belladati.sdk.dataset.source.DataSource;
 import com.belladati.sdk.dataset.source.DataSourcePendingImport;
@@ -22,6 +10,18 @@ import com.belladati.sdk.test.SDKTest;
 import com.belladati.sdk.test.TestRequestHandler;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.hc.core5.http.ParseException;
+import org.testng.annotations.Test;
+
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNull;
+import static org.testng.Assert.assertSame;
+import static org.testng.Assert.assertTrue;
 
 @Test
 public class DataSourcePendingImportTest extends SDKTest {
@@ -59,7 +59,7 @@ public class DataSourcePendingImportTest extends SDKTest {
 	public void postToServer() {
 		server.register(requestUri, new TestRequestHandler() {
 			@Override
-			protected void handle(HttpHolder holder) throws IOException {
+			protected void handle(HttpHolder holder) throws IOException, ParseException {
 				assertEquals(holder.getFormParameters().get("params"), pending.toJson().toString());
 			}
 		});

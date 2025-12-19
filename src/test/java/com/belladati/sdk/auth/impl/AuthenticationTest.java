@@ -1,16 +1,5 @@
 package com.belladati.sdk.auth.impl;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertTrue;
-
-import java.io.IOException;
-import java.net.URLEncoder;
-import java.util.Map;
-
-import org.apache.http.entity.StringEntity;
-import org.testng.annotations.Test;
-
 import com.belladati.sdk.BellaDati;
 import com.belladati.sdk.BellaDatiConnection;
 import com.belladati.sdk.BellaDatiService;
@@ -19,12 +8,23 @@ import com.belladati.sdk.test.SDKTest;
 import com.belladati.sdk.test.TestRequestHandler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.hc.core5.http.ParseException;
+import org.apache.hc.core5.http.io.entity.StringEntity;
+import org.testng.annotations.Test;
+
+import java.io.IOException;
+import java.net.URLEncoder;
+import java.util.Map;
+
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertTrue;
 
 /**
  * Tests authentication using the SDK. Currently doesn't check signatures or
  * SSL, but ensures the correct keys and tokens are sent.
  * 
- * @author Chris Hennigfeld
+ * 
  */
 @Test
 public class AuthenticationTest extends SDKTest {
@@ -40,7 +40,7 @@ public class AuthenticationTest extends SDKTest {
 		String requestTokenURI = "/oauth/requestToken";
 		server.register(requestTokenURI, new TestRequestHandler() {
 			@Override
-			protected void handle(HttpHolder holder) throws IOException {
+			protected void handle(HttpHolder holder) throws IOException, ParseException {
 				holder.assertAuth(key, null);
 				holder.response
 					.setEntity(new StringEntity("oauth_token=" + requestToken + "&oauth_token_secret=" + requestSecret));
@@ -53,7 +53,7 @@ public class AuthenticationTest extends SDKTest {
 
 		server.register(accessTokenURI, new TestRequestHandler() {
 			@Override
-			protected void handle(HttpHolder holder) throws IOException {
+			protected void handle(HttpHolder holder) throws IOException, ParseException {
 				holder.assertAuth(key, requestToken);
 				holder.response.setEntity(new StringEntity("oauth_token=" + accessToken + "&oauth_token_secret=" + accessSecret));
 			}
@@ -109,7 +109,7 @@ public class AuthenticationTest extends SDKTest {
 		server.register("/oauth/requestToken", new TestRequestHandler() {
 
 			@Override
-			protected void handle(HttpHolder holder) throws IOException {
+			protected void handle(HttpHolder holder) throws IOException, ParseException {
 				assertEquals(holder.authHeaders.get("oauth_callback"), URLEncoder.encode(redirectUrl, "UTF-8"), "Wrong callback");
 				assertEquals(holder.getRequestBody(), "");
 				holder.response.setEntity(new StringEntity("oauth_token=" + requestToken + "&oauth_token_secret=123abc"));
@@ -152,7 +152,7 @@ public class AuthenticationTest extends SDKTest {
 		String accessTokenURI = "/oauth/accessToken";
 		server.register(accessTokenURI, new TestRequestHandler() {
 			@Override
-			protected void handle(HttpHolder holder) throws IOException {
+			protected void handle(HttpHolder holder) throws IOException, ParseException {
 				holder.assertAuth(key, null);
 				Map<String, String> formParams = holder.getFormParameters();
 				assertEquals(formParams.get("x_auth_username"), username, "Unexpected username");
@@ -185,7 +185,7 @@ public class AuthenticationTest extends SDKTest {
 		String reportsURI = "/api/reports";
 		server.register(reportsURI, new TestRequestHandler() {
 			@Override
-			protected void handle(HttpHolder holder) throws IOException {
+			protected void handle(HttpHolder holder) throws IOException, ParseException {
 				holder.assertAuth(key, token);
 				ObjectNode node = new ObjectMapper().createObjectNode();
 				node.put("size", 1).put("offset", 0).put("reports", new ObjectMapper().createArrayNode());

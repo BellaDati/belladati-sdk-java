@@ -1,5 +1,8 @@
 package com.belladati.sdk.util.impl;
 
+import com.belladati.sdk.impl.BellaDatiServiceImpl;
+import org.apache.hc.core5.net.URIBuilder;
+
 import java.net.URISyntaxException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -7,14 +10,10 @@ import java.util.Date;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.apache.http.client.utils.URIBuilder;
-
-import com.belladati.sdk.impl.BellaDatiServiceImpl;
-
 /**
  * Utilities and helper methods used in BellaDati SDK.
  * 
- * @author Lubomir Elko
+ * 
  */
 public class BellaDatiSdkUtils {
 

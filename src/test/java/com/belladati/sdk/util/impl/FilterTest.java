@@ -1,22 +1,5 @@
 package com.belladati.sdk.util.impl;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertNotEquals;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertSame;
-import static org.testng.Assert.assertTrue;
-
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-
-import org.apache.http.entity.StringEntity;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
-
 import com.belladati.sdk.dataset.Attribute;
 import com.belladati.sdk.dataset.AttributeValue;
 import com.belladati.sdk.dataset.impl.AttributeImpl;
@@ -41,11 +24,28 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.hc.core5.http.ParseException;
+import org.apache.hc.core5.http.io.entity.StringEntity;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
+
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNotEquals;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertSame;
+import static org.testng.Assert.assertTrue;
 
 /**
  * Tests filters and using filters in views.
  * 
- * @author Chris Hennigfeld
+ * 
  */
 @Test
 public class FilterTest extends SDKTest {
@@ -159,7 +159,7 @@ public class FilterTest extends SDKTest {
 
 		server.register(viewsUri, new TestRequestHandler() {
 			@Override
-			protected void handle(HttpHolder holder) throws IOException {
+			protected void handle(HttpHolder holder) throws IOException, ParseException {
 				assertEquals(holder.getUrlParameters(), Collections.emptyMap());
 				holder.response.setEntity(new StringEntity("{}"));
 			}
@@ -175,7 +175,7 @@ public class FilterTest extends SDKTest {
 	public void queryStringSingleFilter() throws UnknownViewTypeException {
 		server.register(viewsUri, new TestRequestHandler() {
 			@Override
-			protected void handle(HttpHolder holder) throws IOException {
+			protected void handle(HttpHolder holder) throws IOException, ParseException {
 				String filterString = holder.getUrlParameters().get("filter");
 				assertNotNull(filterString);
 				ObjectNode drilldownNode = mapper.createObjectNode();
@@ -202,7 +202,7 @@ public class FilterTest extends SDKTest {
 
 		server.register(viewsUri, new TestRequestHandler() {
 			@Override
-			protected void handle(HttpHolder holder) throws IOException {
+			protected void handle(HttpHolder holder) throws IOException, ParseException {
 				String filterString = holder.getUrlParameters().get("filter");
 				assertNotNull(filterString);
 				ObjectNode expected = mapper.createObjectNode();
@@ -238,7 +238,7 @@ public class FilterTest extends SDKTest {
 
 		server.register(viewsUri, new TestRequestHandler() {
 			@Override
-			protected void handle(HttpHolder holder) throws IOException {
+			protected void handle(HttpHolder holder) throws IOException, ParseException {
 				String filterString = holder.getUrlParameters().get("filter");
 				assertNotNull(filterString);
 				ObjectNode expected = mapper.createObjectNode();
@@ -272,7 +272,7 @@ public class FilterTest extends SDKTest {
 		String dataUri = "/api/reports/views/" + viewId + "/table/data";
 		server.register(boundsUri, new TestRequestHandler() {
 			@Override
-			protected void handle(HttpHolder holder) throws IOException {
+			protected void handle(HttpHolder holder) throws IOException, ParseException {
 				String filterString = holder.getUrlParameters().get("filter");
 				assertNotNull(filterString);
 				ObjectNode drilldownNode = mapper.createObjectNode();
@@ -283,7 +283,7 @@ public class FilterTest extends SDKTest {
 		});
 		server.register(leftUri, new TestRequestHandler() {
 			@Override
-			protected void handle(HttpHolder holder) throws IOException {
+			protected void handle(HttpHolder holder) throws IOException, ParseException {
 				String filterString = holder.getUrlParameters().get("filter");
 				assertNotNull(filterString);
 				ObjectNode drilldownNode = mapper.createObjectNode();
@@ -294,7 +294,7 @@ public class FilterTest extends SDKTest {
 		});
 		server.register(topUri, new TestRequestHandler() {
 			@Override
-			protected void handle(HttpHolder holder) throws IOException {
+			protected void handle(HttpHolder holder) throws IOException, ParseException {
 				String filterString = holder.getUrlParameters().get("filter");
 				assertNotNull(filterString);
 				ObjectNode drilldownNode = mapper.createObjectNode();
@@ -305,7 +305,7 @@ public class FilterTest extends SDKTest {
 		});
 		server.register(dataUri, new TestRequestHandler() {
 			@Override
-			protected void handle(HttpHolder holder) throws IOException {
+			protected void handle(HttpHolder holder) throws IOException, ParseException {
 				String filterString = holder.getUrlParameters().get("filter");
 				assertNotNull(filterString);
 				ObjectNode drilldownNode = mapper.createObjectNode();

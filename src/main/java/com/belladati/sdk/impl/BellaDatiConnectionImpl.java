@@ -1,22 +1,20 @@
 package com.belladati.sdk.impl;
 
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.Arrays;
-import java.util.List;
-
-import oauth.signpost.OAuth;
-import oauth.signpost.http.HttpParameters;
-
-import org.apache.http.NameValuePair;
-import org.apache.http.message.BasicNameValuePair;
-
 import com.belladati.sdk.BellaDatiConnection;
 import com.belladati.sdk.BellaDatiService;
 import com.belladati.sdk.auth.OAuthRequest;
 import com.belladati.sdk.auth.impl.OAuthRequestImpl;
 import com.belladati.sdk.exception.ConnectionException;
 import com.belladati.sdk.exception.auth.AuthorizationException;
+import oauth.signpost.OAuth;
+import oauth.signpost.http.HttpParameters;
+import org.apache.hc.core5.http.NameValuePair;
+import org.apache.hc.core5.http.message.BasicNameValuePair;
+
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.Arrays;
+import java.util.List;
 
 class BellaDatiConnectionImpl implements BellaDatiConnection {
 

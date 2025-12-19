@@ -1,19 +1,5 @@
 package com.belladati.sdk.util.impl;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertTrue;
-
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-
-import org.apache.http.entity.StringEntity;
-import org.testng.annotations.Test;
-
 import com.belladati.sdk.impl.BellaDatiServiceImpl;
 import com.belladati.sdk.impl.TokenHolder;
 import com.belladati.sdk.impl.VolatileBellaDatiClient;
@@ -25,11 +11,25 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.hc.core5.http.ParseException;
+import org.apache.hc.core5.http.io.entity.StringEntity;
+import org.testng.annotations.Test;
+
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertTrue;
 
 /**
  * Tests behavior of the {@link PaginatedList}.
  * 
- * @author Chris Hennigfeld
+ * 
  */
 @Test
 public class PaginatedListTest extends SDKTest {
@@ -82,7 +82,7 @@ public class PaginatedListTest extends SDKTest {
 	public void load() throws Exception {
 		server.register(relativeUrl, new TestRequestHandler() {
 			@Override
-			protected void handle(HttpHolder holder) throws IOException {
+			protected void handle(HttpHolder holder) throws IOException, ParseException {
 				assertEquals(holder.getUrlParameters(), Collections.emptyMap());
 				holder.response.setEntity(new StringEntity(buildResponse(1, 0).toString()));
 			}
@@ -97,7 +97,7 @@ public class PaginatedListTest extends SDKTest {
 		final int size = 3;
 		server.register(relativeUrl, new TestRequestHandler() {
 			@Override
-			protected void handle(HttpHolder holder) throws IOException {
+			protected void handle(HttpHolder holder) throws IOException, ParseException {
 				Map<String, String> expectedMap = new HashMap<String, String>();
 				expectedMap.put("size", "" + size);
 				expectedMap.put("offset", "" + 0);
@@ -116,7 +116,7 @@ public class PaginatedListTest extends SDKTest {
 		final int page = 5;
 		server.register(relativeUrl, new TestRequestHandler() {
 			@Override
-			protected void handle(HttpHolder holder) throws IOException {
+			protected void handle(HttpHolder holder) throws IOException, ParseException {
 				assertEquals(holder.getUrlParameters(), buildParamMap(size, size * page));
 				holder.response.setEntity(new StringEntity(buildResponse(size, 0).toString()));
 			}
@@ -132,7 +132,7 @@ public class PaginatedListTest extends SDKTest {
 		final String id2 = "id2";
 		server.register(relativeUrl, new TestRequestHandler() {
 			@Override
-			protected void handle(HttpHolder holder) throws IOException {
+			protected void handle(HttpHolder holder) throws IOException, ParseException {
 				assertEquals(holder.getUrlParameters(), Collections.emptyMap());
 				holder.response.setEntity(new StringEntity(buildResponse(1, 0, id1).toString()));
 			}
@@ -145,7 +145,7 @@ public class PaginatedListTest extends SDKTest {
 		setupServer();
 		server.register(relativeUrl, new TestRequestHandler() {
 			@Override
-			protected void handle(HttpHolder holder) throws IOException {
+			protected void handle(HttpHolder holder) throws IOException, ParseException {
 				assertEquals(holder.getUrlParameters(), Collections.emptyMap());
 				holder.response.setEntity(new StringEntity(buildResponse(1, 0, id2).toString()));
 			}
@@ -161,7 +161,7 @@ public class PaginatedListTest extends SDKTest {
 	public void loadNextCallsLoad() throws Exception {
 		server.register(relativeUrl, new TestRequestHandler() {
 			@Override
-			protected void handle(HttpHolder holder) throws IOException {
+			protected void handle(HttpHolder holder) throws IOException, ParseException {
 				assertEquals(holder.getUrlParameters(), Collections.emptyMap());
 				holder.response.setEntity(new StringEntity(buildResponse(1, 0).toString()));
 			}
@@ -193,7 +193,7 @@ public class PaginatedListTest extends SDKTest {
 		setupServer();
 		server.register(relativeUrl, new TestRequestHandler() {
 			@Override
-			protected void handle(HttpHolder holder) throws IOException {
+			protected void handle(HttpHolder holder) throws IOException, ParseException {
 				assertEquals(holder.getUrlParameters(), buildParamMap(1, 1));
 				holder.response.setEntity(new StringEntity(buildResponse(1, 1, id2).toString()));
 			}
@@ -204,7 +204,7 @@ public class PaginatedListTest extends SDKTest {
 		setupServer();
 		server.register(relativeUrl, new TestRequestHandler() {
 			@Override
-			protected void handle(HttpHolder holder) throws IOException {
+			protected void handle(HttpHolder holder) throws IOException, ParseException {
 				assertEquals(holder.getUrlParameters(), buildParamMap(1, 2));
 				holder.response.setEntity(new StringEntity(buildResponse(1, 2).toString()));
 			}

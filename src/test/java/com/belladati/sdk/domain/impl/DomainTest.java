@@ -1,12 +1,5 @@
 package com.belladati.sdk.domain.impl;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertNotEquals;
-
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
-
 import com.belladati.sdk.domain.Domain;
 import com.belladati.sdk.domain.DomainInfo;
 import com.belladati.sdk.test.SDKTest;
@@ -15,11 +8,17 @@ import com.belladati.sdk.user.UserGroup;
 import com.belladati.sdk.util.CachedList;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
+
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNotEquals;
 
 /**
  * Tests behavior related to domains.
  * 
- * @author Lubomir Elko
+ * 
  */
 @Test
 public class DomainTest extends SDKTest {

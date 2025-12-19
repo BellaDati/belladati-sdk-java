@@ -1,11 +1,5 @@
 package com.belladati.sdk.exception.impl;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertTrue;
-import static org.testng.Assert.fail;
-
-import org.testng.annotations.Test;
-
 import com.belladati.sdk.BellaDati;
 import com.belladati.sdk.auth.impl.OAuthRequestImpl;
 import com.belladati.sdk.exception.ConnectionException;
@@ -17,11 +11,16 @@ import com.belladati.sdk.exception.server.NotFoundException;
 import com.belladati.sdk.exception.server.ServerResponseException;
 import com.belladati.sdk.exception.server.UnexpectedResponseException;
 import com.belladati.sdk.test.SDKTest;
+import org.testng.annotations.Test;
+
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
 
 /**
  * Verifies that various exception cases are treated correctly.
  * 
- * @author Chris Hennigfeld
+ * 
  */
 @Test
 public class ExceptionTest extends SDKTest {
@@ -32,7 +31,7 @@ public class ExceptionTest extends SDKTest {
 	@Test(expectedExceptions = ConnectionException.class)
 	public void connectionFailed() throws Exception {
 		getService();
-		server.shutDown();
+		server.stop();
 		getService().getClient().get(uri, getService().getTokenHolder());
 	}
 

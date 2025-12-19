@@ -1,10 +1,10 @@
 package com.belladati.sdk.impl;
 
+import oauth.signpost.OAuthConsumer;
+import oauth.signpost.commonshttp5.CommonsHttpOAuthConsumer;
+
 import java.io.Serializable;
 import java.util.Random;
-
-import oauth.signpost.OAuthConsumer;
-import oauth.signpost.commonshttp.CommonsHttpOAuthConsumer;
 
 public class TokenHolder implements Serializable {
 
@@ -28,12 +28,12 @@ public class TokenHolder implements Serializable {
 		CommonsHttpOAuthConsumer consumer = new CommonsHttpOAuthConsumer(consumerKey, consumerSecret) {
 			private static final long serialVersionUID = 2077439267247908434L;
 
-			@Override
+                    @Override
 			protected String generateNonce() {
 				// thread-safe nonce generation
 				// http://code.google.com/p/oauth-signpost/issues/detail?id=41
 				return Long.toString(RANDOM.nextLong());
-			}
+                    }
 		};
 		consumer.setTokenWithSecret(token, tokenSecret);
 		return consumer;

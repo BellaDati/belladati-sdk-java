@@ -1,9 +1,5 @@
 package com.belladati.sdk.view.impl;
 
-import java.net.URISyntaxException;
-
-import org.apache.http.client.utils.URIBuilder;
-
 import com.belladati.sdk.exception.InternalConfigurationException;
 import com.belladati.sdk.impl.BellaDatiServiceImpl;
 import com.belladati.sdk.util.PageOrientation;
@@ -11,11 +7,14 @@ import com.belladati.sdk.util.PageSize;
 import com.belladati.sdk.view.export.ViewExport;
 import com.belladati.sdk.view.export.ViewExportType;
 import com.belladati.sdk.view.export.ViewExporter;
+import org.apache.hc.core5.net.URIBuilder;
+
+import java.net.URISyntaxException;
 
 /**
  * This class exports view to various export types {@link ViewExportType}
  * 
- * @author Pavol Kovac
+ * 
  */
 public final class ViewExporterImpl implements ViewExporter {
 

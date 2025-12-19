@@ -1,12 +1,5 @@
 package com.belladati.sdk.user.impl;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-
-import org.apache.http.message.BasicNameValuePair;
-
 import com.belladati.sdk.impl.BellaDatiServiceImpl;
 import com.belladati.sdk.user.UserEditBuilder;
 import com.belladati.sdk.user.UserRole;
@@ -14,11 +7,17 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.hc.core5.http.message.BasicNameValuePair;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Builder used to initiate user object that should be edited.
  * 
- * @author Lubomir Elko
+ * 
  */
 public class UserEditBuilderImpl implements UserEditBuilder {
 

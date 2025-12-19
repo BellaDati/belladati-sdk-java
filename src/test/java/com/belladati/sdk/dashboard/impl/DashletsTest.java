@@ -1,18 +1,8 @@
 package com.belladati.sdk.dashboard.impl;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertNotEquals;
-import static org.testng.Assert.assertTrue;
-
-import java.util.Collections;
-
-import org.testng.annotations.Test;
-
 import com.belladati.sdk.dashboard.Dashboard;
 import com.belladati.sdk.dashboard.Dashlet;
 import com.belladati.sdk.dashboard.Dashlet.Type;
-import com.belladati.sdk.dashboard.impl.DashletImpl;
 import com.belladati.sdk.exception.impl.DashletException;
 import com.belladati.sdk.exception.impl.UnknownViewTypeException;
 import com.belladati.sdk.test.SDKTest;
@@ -22,11 +12,19 @@ import com.belladati.sdk.view.View;
 import com.belladati.sdk.view.ViewType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.testng.annotations.Test;
+
+import java.util.Collections;
+
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNotEquals;
+import static org.testng.Assert.assertTrue;
 
 /**
  * Tests behavior related to views.
  * 
- * @author Chris Hennigfeld
+ * 
  */
 @Test
 public class DashletsTest extends SDKTest {

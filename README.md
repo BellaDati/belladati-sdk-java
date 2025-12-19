@@ -18,4 +18,4 @@ Include this SDK as a Maven dependency
 </dependency>
 ```
 
-You may need to add depency on org.apache.httpcomponents::httpclient as well.
+You may need to add depency on org.apache.httpcomponents.client5::httpclient5 as well.
